@@ -1,17 +1,17 @@
 import {ConnectionInterface} from "./ConnectionInterface";
-import {uuidv4 as uuid} from "uuid";
 import {MessageInterface, MessageType} from "./MessageInterface";
-import {EventHandler, ObservableInterface} from "./ObservableInterface";
+import {EventTarget} from "./ObservableInterface";
+import {v4 as uuid} from "uuid";
 
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 
-export class Client implements ObservableInterface {
-    private events: Map<string, EventHandler[]> = new Map<string, EventHandler[]>();
+export class Client extends EventTarget {
     private awaitingResponse: Map<string, ArrayOfPromiseResolvers> = new Map<string, ArrayOfPromiseResolvers>();
 
     public constructor(
         private connection: ConnectionInterface
     ) {
+        super();
         this.connection.on('message', this.onMessage);
     }
 
@@ -28,16 +28,6 @@ export class Client implements ObservableInterface {
         );
     }
 
-    /**
-     * Bind your listener function to given type of event which comes from server.
-     */
-    public on(eventName: string, handler: EventHandler): Client {
-        const handlers = this.events.get(eventName) ?? [];
-        handlers.push(handler);
-        this.events.set(eventName, handlers);
-        return this;
-    }
-
     private getMessage(command: string, data: any): MessageInterface
     {
         return {
@@ -49,7 +39,10 @@ export class Client implements ObservableInterface {
         };
     }
 
-    private onMessage(message: MessageInterface) {
+    private onMessage(payload: string) {
+        const message: MessageInterface = JSON.parse(payload);
+
+        // Resolve promise if exists
         const [resolve, reject] = this.awaitingResponse.get(message.meta.ref) ?? [];
         if (resolve && reject) {
             if (message.meta.type === MessageType.Error) {
@@ -59,6 +52,8 @@ export class Client implements ObservableInterface {
             }
             this.awaitingResponse.delete(message.meta.ref);
         }
-        this.events.get(message.meta.type)?.forEach(callback => callback(message));
+
+        // Emit event
+        this.emit(message.meta.type, message);
     }
 }
