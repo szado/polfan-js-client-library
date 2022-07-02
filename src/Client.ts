@@ -12,7 +12,7 @@ export class Client extends EventTarget {
         private connection: ConnectionInterface
     ) {
         super();
-        this.connection.on('message', this.onMessage);
+        this.connection.on('message', payload => this.onMessage(payload));
     }
 
     /**

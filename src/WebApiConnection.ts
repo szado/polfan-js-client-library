@@ -1,4 +1,4 @@
-import {ConnectionEvent, ConnectionState} from "./ConnectionInterface";
+import {ConnectionEvent, ConnectionInterface, ConnectionState} from "./ConnectionInterface";
 import {EventTarget} from "./ObservableInterface";
 
 export interface WebApiConnectionConfig {
@@ -6,7 +6,7 @@ export interface WebApiConnectionConfig {
     url: string;
 }
 
-export class WebApiConnection extends EventTarget {
+export class WebApiConnection extends EventTarget implements ConnectionInterface {
     public state: ConnectionState = ConnectionState.ready;
 
     public constructor(
@@ -15,10 +15,12 @@ export class WebApiConnection extends EventTarget {
         super();
     }
 
-    connect(): void {
+    public connect(): void {
+        this.emit(ConnectionEvent.connect);
     }
 
-    disconnect(): void {
+    public disconnect(): void {
+        this.emit(ConnectionEvent.disconnect);
     }
 
     public send(data: object): void {
@@ -35,8 +37,7 @@ export class WebApiConnection extends EventTarget {
             .then(this.onMessage);
     }
 
-    private onMessage(message: string): void
-    {
+    private onMessage(message: string): void {
         this.emit(ConnectionEvent.message, message);
     }
 }

@@ -1,16 +1,16 @@
 import { Client } from "./Client";
 import { WebApiConnection } from "./WebApiConnection";
-import { MessageType } from "./MessageInterface";
+import { MessageType as MessType } from "./MessageInterface";
 import { getToken } from "./Token";
-export declare const PolfanServer: {
-    MessageType: typeof MessageType;
-    client: {
-        Client: typeof Client;
-        connection: {
-            WebApiConnection: typeof WebApiConnection;
-        };
+import { WebSocketConnection } from "./WebSocketConnection";
+export declare const MessageType: typeof MessType;
+export declare const client: {
+    Client: typeof Client;
+    connection: {
+        WebApiConnection: typeof WebApiConnection;
+        WebSocketConnection: typeof WebSocketConnection;
     };
-    auth: {
-        getToken: typeof getToken;
-    };
+};
+export declare const auth: {
+    getToken: typeof getToken;
 };

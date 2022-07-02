@@ -1,4 +1,4 @@
-const apiUrl = 'https://polfan.pl/webservice/auth/token';
+const apiUrl = 'https://polfan.pl/webservice/api/auth/token';
 const defaultClientName = 'Polfan JS Library';
 
 export interface TokenInterface {
@@ -10,12 +10,12 @@ export async function getToken(login: string, password: string, clientName: stri
     const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-            ContentType: 'application/json',
+            'Content-Type': 'application/json',
             Accept: 'application/json'
         },
         body: JSON.stringify({
             login, password, client_name: clientName
         })
     });
-    return await response.json();
+    return response.json();
 }
