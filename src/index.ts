@@ -1,17 +1,26 @@
 import {Client} from "./Client";
-import {WebApiConnection} from "./WebApiConnection";
-import {MessageType as MessType} from "./MessageInterface";
+import {WebApiConnection} from "./connections/WebApiConnection";
 import {getToken} from "./Token";
-import {WebSocketConnection} from "./WebSocketConnection";
+import {WebSocketConnection} from "./connections/WebSocketConnection";
+import {events, commands} from "./protocol";
+import {Dto} from "./dtos/Dto";
+import {Envelope} from "./dtos/protocol/Envelope";
+import {EnvelopeMeta} from "./dtos/protocol/EnvelopeMeta";
 
-export const MessageType = MessType;
-export const client = {
-    Client,
-    connection: {
-        WebApiConnection,
-        WebSocketConnection
-    }
+const connections = {
+    WebApi: WebApiConnection, WebSocket: WebSocketConnection
 };
-export const auth = {
+
+const data = {
+    Dto,
+    Envelope,
+    EnvelopeMeta,
+    events, commands
+}
+
+export {
+    Client,
+    connections,
+    data,
     getToken
 };

@@ -16,8 +16,8 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        filename: 'polfan-js-client.js',
+        filename: 'pserv-js-client.js',
         path: path.resolve(__dirname, 'dist'),
-        library: 'PolfanServer',
+        library: 'PServ',
     },
 };
