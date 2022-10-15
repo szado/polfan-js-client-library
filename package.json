@@ -2,7 +2,7 @@
   "name": "polfan-server-js-client",
   "version": "1.0.0",
   "description": "JavaScript client library for handling communication with Polfan chat server.",
-  "main": "dist/pserv-js-client.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack"

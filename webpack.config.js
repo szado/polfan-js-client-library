@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
     entry: './src/index.ts',
-    mode: 'production',
+    mode: 'development',
     module: {
         rules: [
             {
@@ -17,7 +17,7 @@ module.exports = {
     },
     devtool: 'source-map',
     output: {
-        filename: 'pserv-js-client.js',
+        filename: 'index.js',
         path: path.resolve(__dirname, 'dist'),
         library: 'PServ',
     },

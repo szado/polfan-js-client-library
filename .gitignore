@@ -1,5 +1,2 @@
 node_modules
 .idea
-dist/*
-!dist/pserv-js-client.js
-!dist/pserv-js-client.js.map
