@@ -25,13 +25,11 @@ function guessCommandType(obj) {
     return Object.getPrototypeOf(obj).constructor.name;
 }
 class Client extends ObservableInterface_1.EventTarget {
-    connection;
-    commandsCount = 0;
-    awaitingResponse = new Map();
-    eventsMap;
     constructor(connection) {
         super();
         this.connection = connection;
+        this.commandsCount = 0;
+        this.awaitingResponse = new Map();
         this.setCustomEventMap({}); // Set default event map.
         this.connection.on(ConnectionInterface_1.ConnectionEvent.message, payload => this.onMessage(payload));
         this.connection.on(ConnectionInterface_1.ConnectionEvent.disconnect, () => this.onDisconnect());
@@ -103,7 +101,9 @@ exports.Client = Client;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventTarget = void 0;
 class EventTarget {
-    events = new Map();
+    constructor() {
+        this.events = new Map();
+    }
     on(eventName, handler) {
         const handlers = this.events.get(eventName) ?? [];
         handlers.push(handler);
@@ -186,11 +186,10 @@ exports.WebApiConnection = void 0;
 const ConnectionInterface_1 = __webpack_require__(/*! ./ConnectionInterface */ "./src/connections/ConnectionInterface.ts");
 const ObservableInterface_1 = __webpack_require__(/*! ../ObservableInterface */ "./src/ObservableInterface.ts");
 class WebApiConnection extends ObservableInterface_1.EventTarget {
-    config;
-    state = ConnectionInterface_1.ConnectionState.ready;
     constructor(config) {
         super();
         this.config = config;
+        this.state = ConnectionInterface_1.ConnectionState.ready;
     }
     connect() {
         this.emit(ConnectionInterface_1.ConnectionEvent.connect);
@@ -232,12 +231,11 @@ exports.WebSocketConnection = void 0;
 const ObservableInterface_1 = __webpack_require__(/*! ../ObservableInterface */ "./src/ObservableInterface.ts");
 const ConnectionInterface_1 = __webpack_require__(/*! ./ConnectionInterface */ "./src/connections/ConnectionInterface.ts");
 class WebSocketConnection extends ObservableInterface_1.EventTarget {
-    config;
-    state = ConnectionInterface_1.ConnectionState.disconnected;
-    ws = null;
     constructor(config) {
         super();
         this.config = config;
+        this.state = ConnectionInterface_1.ConnectionState.disconnected;
+        this.ws = null;
     }
     connect() {
         this.ws = new WebSocket(`${this.config.url}?token=${this.config.token}`);
@@ -336,10 +334,6 @@ exports.Message = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 const User_1 = __webpack_require__(/*! ./User */ "./src/dtos/User.ts");
 class Message extends Dto_1.Dto {
-    id;
-    author;
-    topicId;
-    content;
     constructor(data) {
         super();
         this.fill(data, {
@@ -363,9 +357,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Permission = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 class Permission extends Dto_1.Dto {
-    name;
-    value;
-    skip;
     constructor(data) {
         super(data);
         this.fill(data);
@@ -387,9 +378,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Role = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 class Role extends Dto_1.Dto {
-    id;
-    name;
-    color;
     constructor(data) {
         super();
         this.fill(data);
@@ -412,9 +400,6 @@ exports.Room = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 const Topic_1 = __webpack_require__(/*! ./Topic */ "./src/dtos/Topic.ts");
 class Room extends Dto_1.Dto {
-    id;
-    name;
-    topics;
     constructor(data) {
         super();
         this.fill(data, {
@@ -439,7 +424,6 @@ exports.RoomMember = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 const User_1 = __webpack_require__(/*! ./User */ "./src/dtos/User.ts");
 class RoomMember extends Dto_1.Dto {
-    user;
     constructor(data) {
         super();
         this.fill(data, {
@@ -463,9 +447,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RoomSummary = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 class RoomSummary extends Dto_1.Dto {
-    id;
-    name;
-    description;
     constructor(data) {
         super();
         this.fill(data);
@@ -488,9 +469,6 @@ exports.Space = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 const Role_1 = __webpack_require__(/*! ./Role */ "./src/dtos/Role.ts");
 class Space extends Dto_1.Dto {
-    id;
-    name;
-    roles;
     constructor(data) {
         super();
         this.fill(data, {
@@ -515,8 +493,6 @@ exports.SpaceMember = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 const User_1 = __webpack_require__(/*! ./User */ "./src/dtos/User.ts");
 class SpaceMember extends Dto_1.Dto {
-    user;
-    roles;
     constructor(data) {
         super();
         this.fill(data, {
@@ -540,9 +516,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Topic = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 class Topic extends Dto_1.Dto {
-    id;
-    name;
-    description;
     constructor(data) {
         super();
         this.fill(data);
@@ -564,10 +537,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.User = void 0;
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 class User extends Dto_1.Dto {
-    id;
-    nick;
-    avatar;
-    flags;
     constructor(data) {
         super();
         this.fill(data);
@@ -591,8 +560,6 @@ const Space_1 = __webpack_require__(/*! ./Space */ "./src/dtos/Space.ts");
 const Room_1 = __webpack_require__(/*! ./Room */ "./src/dtos/Room.ts");
 const Dto_1 = __webpack_require__(/*! ./Dto */ "./src/dtos/Dto.ts");
 class UserState extends Dto_1.Dto {
-    spaces;
-    rooms;
     constructor(data) {
         super();
         this.fill(data, {
@@ -618,8 +585,6 @@ exports.Envelope = void 0;
 const Dto_1 = __webpack_require__(/*! ../Dto */ "./src/dtos/Dto.ts");
 const EnvelopeMeta_1 = __webpack_require__(/*! ./EnvelopeMeta */ "./src/dtos/protocol/EnvelopeMeta.ts");
 class Envelope extends Dto_1.Dto {
-    meta;
-    data;
     constructor(data) {
         super();
         this.fill(data, {
@@ -643,8 +608,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EnvelopeMeta = void 0;
 const Dto_1 = __webpack_require__(/*! ../Dto */ "./src/dtos/Dto.ts");
 class EnvelopeMeta extends Dto_1.Dto {
-    type;
-    ref;
     constructor(data) {
         super();
         this.fill(data);
@@ -666,9 +629,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AssignRole = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class AssignRole extends Dto_1.Dto {
-    roleId;
-    spaceId;
-    userId;
     constructor(data) {
         super();
         this.fill(data);
@@ -690,8 +650,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateMessage = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class CreateMessage extends Dto_1.Dto {
-    topicId;
-    content;
     constructor(data) {
         super();
         this.fill(data);
@@ -713,9 +671,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateRole = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class CreateRole extends Dto_1.Dto {
-    spaceId;
-    name;
-    color;
     constructor(data) {
         super();
         this.fill(data);
@@ -737,9 +692,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateRoom = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class CreateRoom extends Dto_1.Dto {
-    spaceId;
-    name;
-    description;
     constructor(data) {
         super();
         this.fill(data);
@@ -761,7 +713,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateSpace = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class CreateSpace extends Dto_1.Dto {
-    name;
     constructor(data) {
         super();
         this.fill(data);
@@ -783,9 +734,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateTopic = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class CreateTopic extends Dto_1.Dto {
-    roomId;
-    name;
-    description;
     constructor(data) {
         super();
         this.fill(data);
@@ -807,9 +755,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeassignRole = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class DeassignRole extends Dto_1.Dto {
-    roleId;
-    spaceId;
-    userId;
     constructor(data) {
         super();
         this.fill(data);
@@ -831,8 +776,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteRole = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class DeleteRole extends Dto_1.Dto {
-    roleId;
-    spaceId;
     constructor(data) {
         super();
         this.fill(data);
@@ -854,7 +797,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteRoom = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class DeleteRoom extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -876,7 +818,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteSpace = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class DeleteSpace extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -898,7 +839,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteTopic = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class DeleteTopic extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -920,10 +860,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetComputedPermissions = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class GetComputedPermissions extends Dto_1.Dto {
-    names;
-    spaceId;
-    roomId;
-    topicId;
     constructor(data) {
         super();
         this.fill(data);
@@ -945,10 +881,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetRolePermissions = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class GetRolePermissions extends Dto_1.Dto {
-    layer;
-    layerId;
-    roleId;
-    names;
     constructor(data) {
         super();
         this.fill(data);
@@ -970,7 +902,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetRoomMembers = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class GetRoomMembers extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1013,7 +944,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetSpaceMembers = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class GetSpaceMembers extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1035,7 +965,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetSpaceRooms = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class GetSpaceRooms extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1057,10 +986,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetUserPermissions = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class GetUserPermissions extends Dto_1.Dto {
-    layer;
-    layerId;
-    userId;
-    names;
     constructor(data) {
         super();
         this.fill(data);
@@ -1082,7 +1007,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.JoinRoom = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class JoinRoom extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1104,7 +1028,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.JoinSpace = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class JoinSpace extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1126,7 +1049,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LeaveRoom = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class LeaveRoom extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1148,7 +1070,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LeaveSpace = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class LeaveSpace extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1171,10 +1092,6 @@ exports.SetRolePermissions = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Permission_1 = __webpack_require__(/*! ../../Permission */ "./src/dtos/Permission.ts");
 class SetRolePermissions extends Dto_1.Dto {
-    permissions;
-    layer;
-    layerId;
-    roleId;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1199,10 +1116,6 @@ exports.SetUserPermissions = void 0;
 const Permission_1 = __webpack_require__(/*! ../../Permission */ "./src/dtos/Permission.ts");
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class SetUserPermissions extends Dto_1.Dto {
-    permissions;
-    layer;
-    layerId;
-    userId;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1226,7 +1139,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Bye = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class Bye extends Dto_1.Dto {
-    reason;
     constructor(data) {
         super();
         this.fill(data);
@@ -1248,8 +1160,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Error = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class Error extends Dto_1.Dto {
-    code;
-    message;
     constructor(data) {
         super();
         this.fill(data);
@@ -1272,7 +1182,6 @@ exports.NewMessage = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Message_1 = __webpack_require__(/*! ../../Message */ "./src/dtos/Message.ts");
 class NewMessage extends Dto_1.Dto {
-    message;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1297,8 +1206,6 @@ exports.NewRole = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Role_1 = __webpack_require__(/*! ../../Role */ "./src/dtos/Role.ts");
 class NewRole extends Dto_1.Dto {
-    spaceId;
-    role;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1323,8 +1230,6 @@ exports.NewRoom = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const RoomSummary_1 = __webpack_require__(/*! ../../RoomSummary */ "./src/dtos/RoomSummary.ts");
 class NewRoom extends Dto_1.Dto {
-    summary;
-    spaceId;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1349,8 +1254,6 @@ exports.NewTopic = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Topic_1 = __webpack_require__(/*! ../../Topic */ "./src/dtos/Topic.ts");
 class NewTopic extends Dto_1.Dto {
-    roomId;
-    topic;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1396,7 +1299,6 @@ exports.Permissions = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Permission_1 = __webpack_require__(/*! ../../Permission */ "./src/dtos/Permission.ts");
 class Permissions extends Dto_1.Dto {
-    permissions;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1420,8 +1322,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RoleDeleted = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class RoleDeleted extends Dto_1.Dto {
-    roleId;
-    spaceId;
     constructor(data) {
         super();
         this.fill(data);
@@ -1443,7 +1343,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RoomDeleted = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class RoomDeleted extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1466,7 +1365,6 @@ exports.RoomJoined = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Room_1 = __webpack_require__(/*! ../../Room */ "./src/dtos/Room.ts");
 class RoomJoined extends Dto_1.Dto {
-    room;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1490,7 +1388,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RoomLeft = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class RoomLeft extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1513,7 +1410,6 @@ exports.RoomMemberJoined = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const RoomMember_1 = __webpack_require__(/*! ../../RoomMember */ "./src/dtos/RoomMember.ts");
 class RoomMemberJoined extends Dto_1.Dto {
-    member;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1537,7 +1433,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RoomMemberLeft = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class RoomMemberLeft extends Dto_1.Dto {
-    userId;
     constructor(data) {
         super();
         this.fill(data);
@@ -1560,7 +1455,6 @@ exports.RoomMembers = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const RoomMember_1 = __webpack_require__(/*! ../../RoomMember */ "./src/dtos/RoomMember.ts");
 class RoomMembers extends Dto_1.Dto {
-    members;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1586,9 +1480,6 @@ const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const UserState_1 = __webpack_require__(/*! ../../UserState */ "./src/dtos/UserState.ts");
 const User_1 = __webpack_require__(/*! ../../User */ "./src/dtos/User.ts");
 class Session extends Dto_1.Dto {
-    serverVersion;
-    state;
-    user;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1613,7 +1504,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SpaceDeleted = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class SpaceDeleted extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1636,7 +1526,6 @@ exports.SpaceJoined = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const Space_1 = __webpack_require__(/*! ../../Space */ "./src/dtos/Space.ts");
 class SpaceJoined extends Dto_1.Dto {
-    space;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1660,7 +1549,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SpaceLeft = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class SpaceLeft extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
@@ -1683,7 +1571,6 @@ exports.SpaceMemberJoined = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const SpaceMember_1 = __webpack_require__(/*! ../../SpaceMember */ "./src/dtos/SpaceMember.ts");
 class SpaceMemberJoined extends Dto_1.Dto {
-    member;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1707,7 +1594,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SpaceMemberLeft = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class SpaceMemberLeft extends Dto_1.Dto {
-    userId;
     constructor(data) {
         super();
         this.fill(data);
@@ -1730,7 +1616,6 @@ exports.SpaceMemberUpdate = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const SpaceMember_1 = __webpack_require__(/*! ../../SpaceMember */ "./src/dtos/SpaceMember.ts");
 class SpaceMemberUpdate extends Dto_1.Dto {
-    member;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1755,7 +1640,6 @@ exports.SpaceMembers = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const SpaceMember_1 = __webpack_require__(/*! ../../SpaceMember */ "./src/dtos/SpaceMember.ts");
 class SpaceMembers extends Dto_1.Dto {
-    members;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1780,7 +1664,6 @@ exports.SpaceRooms = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 const RoomSummary_1 = __webpack_require__(/*! ../../RoomSummary */ "./src/dtos/RoomSummary.ts");
 class SpaceRooms extends Dto_1.Dto {
-    summaries;
     constructor(data) {
         super();
         this.fill(data, {
@@ -1804,7 +1687,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TopicDeleted = void 0;
 const Dto_1 = __webpack_require__(/*! ../../Dto */ "./src/dtos/Dto.ts");
 class TopicDeleted extends Dto_1.Dto {
-    id;
     constructor(data) {
         super();
         this.fill(data);
