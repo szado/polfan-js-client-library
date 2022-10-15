@@ -15,6 +15,7 @@ module.exports = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
     },
+    devtool: 'source-map',
     output: {
         filename: 'pserv-js-client.js',
         path: path.resolve(__dirname, 'dist'),
