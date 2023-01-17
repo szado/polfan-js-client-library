@@ -5,19 +5,23 @@ import { WebSocketConnection } from "./connections/WebSocketConnection";
 import { Dto } from "./dtos/Dto";
 import { Envelope } from "./dtos/protocol/Envelope";
 import { EnvelopeMeta } from "./dtos/protocol/EnvelopeMeta";
-declare const connections: {
-    WebApi: typeof WebApiConnection;
-    WebSocket: typeof WebSocketConnection;
-};
-declare const data: {
-    Dto: typeof Dto;
-    Envelope: typeof Envelope;
-    EnvelopeMeta: typeof EnvelopeMeta;
-    events: {
-        [x: string]: typeof Dto;
+declare const _default: {
+    Client: typeof Client;
+    connections: {
+        WebApi: typeof WebApiConnection;
+        WebSocket: typeof WebSocketConnection;
     };
-    commands: {
-        [x: string]: typeof Dto;
+    data: {
+        Dto: typeof Dto;
+        Envelope: typeof Envelope;
+        EnvelopeMeta: typeof EnvelopeMeta;
+        events: {
+            [x: string]: typeof Dto;
+        };
+        commands: {
+            [x: string]: typeof Dto;
+        };
     };
+    getToken: typeof getToken;
 };
-export { Client, connections, data, getToken };
+export default _default;

@@ -7,9 +7,18 @@ var PServ;
 /*!***********************!*\
   !*** ./src/Client.ts ***!
   \***********************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Client = void 0;
 const ConnectionInterface_1 = __webpack_require__(/*! ./connections/ConnectionInterface */ "./src/connections/ConnectionInterface.ts");
@@ -41,28 +50,31 @@ class Client extends ObservableInterface_1.EventTarget {
      * @return Promise which resolves to the event returned by server (including `Error`)
      * in response to command and rejects with connection error.
      */
-    async exec(commandPayload, commandType) {
-        const message = this.createEnvelope(commandType ?? guessCommandType(commandPayload), commandPayload);
-        this.connection.send(message.toJson());
-        return new Promise((...args) => this.awaitingResponse.set(message.meta.ref, args));
+    exec(commandPayload, commandType) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const message = this.createEnvelope(commandType !== null && commandType !== void 0 ? commandType : guessCommandType(commandPayload), commandPayload);
+            this.connection.send(message.toJson());
+            return new Promise((...args) => this.awaitingResponse.set(message.meta.ref, args));
+        });
     }
     /**
      * Set custom DTO classes for events.
      */
     setCustomEventMap(customMap) {
-        this.eventsMap = { ...protocol_1.events, ...customMap };
+        this.eventsMap = Object.assign(Object.assign({}, protocol_1.events), customMap);
         return this;
     }
     onMessage(payload) {
+        var _a, _b, _c;
         const message = JSON.parse(payload);
         const dto = this.createEventByEnvelope(message);
-        const [resolve] = this.awaitingResponse.get(message.meta.ref ?? '') ?? [];
+        const [resolve] = (_b = this.awaitingResponse.get((_a = message.meta.ref) !== null && _a !== void 0 ? _a : '')) !== null && _b !== void 0 ? _b : [];
         if (resolve) {
-            resolve(dto ?? message.data);
+            resolve(dto !== null && dto !== void 0 ? dto : message.data);
             this.awaitingResponse.delete(message.meta.ref);
         }
         this.emit('message', message);
-        this.emit(message.meta.type ?? 'unknown', message, dto);
+        this.emit((_c = message.meta.type) !== null && _c !== void 0 ? _c : 'unknown', message, dto);
     }
     onDisconnect() {
         this.awaitingResponse.forEach(([resolve, reject], key) => {
@@ -80,7 +92,8 @@ class Client extends ObservableInterface_1.EventTarget {
         });
     }
     createEventByEnvelope(message) {
-        if ((message.meta.type ?? false) && this.eventsMap.hasOwnProperty(message.meta.type)) {
+        var _a;
+        if (((_a = message.meta.type) !== null && _a !== void 0 ? _a : false) && this.eventsMap.hasOwnProperty(message.meta.type)) {
             return new this.eventsMap[message.meta.type](message.data);
         }
         return null;
@@ -105,13 +118,15 @@ class EventTarget {
         this.events = new Map();
     }
     on(eventName, handler) {
-        const handlers = this.events.get(eventName) ?? [];
+        var _a;
+        const handlers = (_a = this.events.get(eventName)) !== null && _a !== void 0 ? _a : [];
         handlers.push(handler);
         this.events.set(eventName, handlers);
         return this;
     }
     emit(eventName, ...args) {
-        this.events.get(eventName)?.forEach(callback => callback(...args));
+        var _a;
+        (_a = this.events.get(eventName)) === null || _a === void 0 ? void 0 : _a.forEach(callback => callback(...args));
         return this;
     }
 }
@@ -124,25 +139,36 @@ exports.EventTarget = EventTarget;
 /*!**********************!*\
   !*** ./src/Token.ts ***!
   \**********************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports) {
 
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getToken = void 0;
 const apiUrl = 'https://polfan.pl/webservice/api/auth/token';
 const defaultClientName = 'Polfan JS Library';
-async function getToken(login, password, clientName = defaultClientName) {
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        },
-        body: JSON.stringify({
-            login, password, client_name: clientName
-        })
+function getToken(login, password, clientName = defaultClientName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            body: JSON.stringify({
+                login, password, client_name: clientName
+            })
+        });
+        return response.json();
     });
-    return response.json();
 }
 exports.getToken = getToken;
 
@@ -245,10 +271,12 @@ class WebSocketConnection extends ObservableInterface_1.EventTarget {
         this.ws.onmessage = ev => this.onMessage(ev);
     }
     disconnect() {
-        this.ws?.close();
+        var _a;
+        (_a = this.ws) === null || _a === void 0 ? void 0 : _a.close();
     }
     send(data) {
-        this.ws?.send(data);
+        var _a;
+        (_a = this.ws) === null || _a === void 0 ? void 0 : _a.send(data);
     }
     onMessage(event) {
         this.emit(ConnectionInterface_1.ConnectionEvent.message, event.data);
@@ -314,7 +342,7 @@ class Dto {
         return new this.constructor(this.toRaw(overrideBy));
     }
     fill(data, overrideBy = {}) {
-        Object.assign(this, { ...data, ...overrideBy });
+        Object.assign(this, Object.assign(Object.assign({}, data), overrideBy));
     }
 }
 exports.Dto = Dto;
@@ -1840,7 +1868,7 @@ exports.commands = {
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -1856,12 +1884,9 @@ var exports = __webpack_exports__;
   \**********************/
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getToken = exports.data = exports.connections = exports.Client = void 0;
 const Client_1 = __webpack_require__(/*! ./Client */ "./src/Client.ts");
-Object.defineProperty(exports, "Client", ({ enumerable: true, get: function () { return Client_1.Client; } }));
 const WebApiConnection_1 = __webpack_require__(/*! ./connections/WebApiConnection */ "./src/connections/WebApiConnection.ts");
 const Token_1 = __webpack_require__(/*! ./Token */ "./src/Token.ts");
-Object.defineProperty(exports, "getToken", ({ enumerable: true, get: function () { return Token_1.getToken; } }));
 const WebSocketConnection_1 = __webpack_require__(/*! ./connections/WebSocketConnection */ "./src/connections/WebSocketConnection.ts");
 const protocol_1 = __webpack_require__(/*! ./protocol */ "./src/protocol.ts");
 const Dto_1 = __webpack_require__(/*! ./dtos/Dto */ "./src/dtos/Dto.ts");
@@ -1870,14 +1895,18 @@ const EnvelopeMeta_1 = __webpack_require__(/*! ./dtos/protocol/EnvelopeMeta */ "
 const connections = {
     WebApi: WebApiConnection_1.WebApiConnection, WebSocket: WebSocketConnection_1.WebSocketConnection
 };
-exports.connections = connections;
 const data = {
     Dto: Dto_1.Dto,
     Envelope: Envelope_1.Envelope,
     EnvelopeMeta: EnvelopeMeta_1.EnvelopeMeta,
     events: protocol_1.events, commands: protocol_1.commands
 };
-exports.data = data;
+exports["default"] = {
+    Client: Client_1.Client,
+    connections,
+    data,
+    getToken: Token_1.getToken
+};
 
 })();
 
