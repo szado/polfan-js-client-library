@@ -18,7 +18,7 @@ const data = {
     events, commands
 }
 
-export {
+export default {
     Client,
     connections,
     data,
