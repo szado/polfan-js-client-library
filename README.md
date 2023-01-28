@@ -1,25 +1,25 @@
 # pserv-js-client-library
-JavaScript client library to handle connection with Polfan chat service with TypeScript support.
+TypeScript client library to handle connection with Polfan chat service.
 
 ## How to use?
 
 ```js
-// Create a client; WebSocket and WebApi connections are supported.
-const connection = new PServ.connections.WebSocket({
-    url: 'wss://s1.polfan.pl/ws',
-    token: await PServ.getToken('login', 'password', 'Client Name')
-});
-const client = new PServ.Client(connection);
+(async function () {
+    // Request new token and create client instance.
+    const tokenData = await PServ.Client.getToken('login', 'pass');
+    const client = new PServ.Client.createByToken(tokenData.token);
 
-// Bind the listener for each NewMessage events.
-client.on('NewMessage', ev => `${ev.message.author.nick} wrote: ${ev.message.content}`);
+    // Bind the listener for each NewMessage event:
+    client.on('NewMessage', ev => `${ev.message.author.nick} wrote: ${ev.message.content}`);
 
-// Send a message to the server on connect.
-connection.on('connect', () => client.exec(new PServ.data.commands.CreateMessage({
-    content: 'Hello world!',
-    topicId: 'xxxxxx-xxxxx-xxxxx-xxxxx-xxxxx'
-})));
+    // Send a message to the server:
+    client.sendCommand(new PServ.commands.CreateMessage({
+        content: 'Hello world!',
+        topicId: 'xxxxxx-xxxxx-xxxxx-xxxxx-xxxxx'
+    }));
 
-// Connect to server.
-connection.connect();
+    // You can handle result for specific command with returned promise:
+    const result = client.sendCommand(new PServ.commands.GetSpaceMembers({id: 'xxx'}));
+    console.log('Space member list', result.members)
+})();
 ```
