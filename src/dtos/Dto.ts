@@ -1,4 +1,4 @@
-export function cast<T extends typeof Dto>(data: any, dto: T): T {
+export function cast<T extends typeof Dto>(data: any, dto: T): T|undefined {
     if (data instanceof dto) {
         return data as any;
     }

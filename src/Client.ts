@@ -1,4 +1,4 @@
-import {ConnectionEvent, ConnectionInterface} from "./connections/ConnectionInterface";
+import {ChatConnectionEvent, ChatConnectionInterface} from "./connections/ConnectionAssets";
 import {EventTarget} from "./ObservableInterface";
 import {Envelope} from "./dtos/protocol/Envelope";
 import {JoinRoom} from "./dtos/protocol/commands/JoinRoom";
@@ -7,7 +7,7 @@ import {RoomJoined} from "./dtos/protocol/events/RoomJoined";
 import {LeaveRoom} from "./dtos/protocol/commands/LeaveRoom";
 import {RoomLeft} from "./dtos/protocol/events/RoomLeft";
 import {CreateRoom} from "./dtos/protocol/commands/CreateRoom";
-import {Error} from "./dtos/protocol/events/Error";
+import {Error as ErrorEvent} from "./dtos/protocol/events/Error";
 import {SpaceRooms} from "./dtos/protocol/events/SpaceRooms";
 import {DeleteRoom} from "./dtos/protocol/commands/DeleteRoom";
 import {RoomDeleted} from "./dtos/protocol/events/RoomDeleted";
@@ -45,9 +45,11 @@ import {GetComputedPermissions} from "./dtos/protocol/commands/GetComputedPermis
 import {GetRolePermissions} from "./dtos/protocol/commands/GetRolePermissions";
 import {GetUserPermissions} from "./dtos/protocol/commands/GetUserPermissions";
 import {commands, events} from "./protocol";
+import {WebSocketConnection} from "./connections/WebSocketConnection";
+import {RestApiConnection} from "./connections/RestApiConnection";
 
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
-type CmdResult<EventDto> = EventDto | Error;
+type CmdResult<EventDto> = EventDto | ErrorEvent;
 type CommandsToEventsType<CommandT> =
     // General commands
     CommandT extends GetSession ? CmdResult<Session> :
@@ -88,33 +90,89 @@ function guessCommandType(obj: any): string {
     return Object.getPrototypeOf(obj).constructor.name;
 }
 
+export enum ClientEvent {
+    message = 'message',
+    renewal = 'renewalStart',
+    renewalSuccess = 'renewalSuccess',
+    renewalError = 'renewalError',
+}
+
+export interface TokenInterface {
+    token: string,
+    expiration: string
+}
+
+export interface MyAccountInterface {
+    id: number;
+    nick: string;
+    avatar: string;
+}
+
 export class Client extends EventTarget {
+    public static readonly defaultClientName = 'polfan-server-js-client';
+    public static readonly defaultWebSocketUrl = 'ws://pserv.shado.p5.tiktalik.io:1600/ws';
+    public static readonly defaultWebApiUrl = 'http://pserv.shado.p5.tiktalik.io:1600/api';
+    public static readonly defaultRestApiUrl = 'https://polfan.pl/webservice/api';
+    public static readonly defaultAvatarUrlPrefix = 'https://polfan.pl/modules/users/avatars/';
+
+    public static async getToken(
+        login: string,
+        password: string,
+        clientName: string = Client.defaultClientName
+    ): Promise<TokenInterface> {
+        const connection = new RestApiConnection({url: Client.defaultRestApiUrl});
+        const response = await connection.send('POST', 'auth/tokens', {
+            login, password, client_name: clientName
+        });
+        if (response.ok) {
+            return response.data;
+        }
+        throw new Error(`Cannot create user token: ${response.data.errors[0]}`);
+    }
+
+    public static createByToken(token: string): Client {
+        return new Client(
+            new WebSocketConnection({token, url: Client.defaultWebSocketUrl}),
+            new RestApiConnection({token, url: Client.defaultRestApiUrl}),
+        );
+    }
+
+    public static createByTemporaryNick(temporaryNick: string): Client {
+        return new Client(
+            new WebSocketConnection({temporaryNick, url: Client.defaultWebSocketUrl}),
+            new RestApiConnection({url: Client.defaultRestApiUrl}),
+        );
+    }
+
     protected commandsCount = 0;
     protected awaitingResponse: Map<string, ArrayOfPromiseResolvers> = new Map<string, ArrayOfPromiseResolvers>();
     protected eventsMap: {[x: string]: typeof Dto};
 
-    public constructor(private connection: ConnectionInterface) {
+    public constructor(
+        public readonly chatConnection: ChatConnectionInterface,
+        public readonly restConnection: RestApiConnection,
+    ) {
         super();
         this.setCustomEventMap({}); // Set default event map.
-        this.connection.on(ConnectionEvent.message, payload => this.onMessage(payload));
-        this.connection.on(ConnectionEvent.disconnect, () => this.onDisconnect());
+        this.chatConnection.on(ChatConnectionEvent.message, (payload: any) => this.onMessage(payload));
+        this.chatConnection.on(ChatConnectionEvent.destroy, (reconnect: boolean) => this.onDisconnect(reconnect));
     }
 
     /**
-     * Send command to server.
+     * Send command to chat server.
      * @param commandPayload Command payload object.
      * @param commandType Command type; if not specified, it will be guessed from the command payload class name.
      * @return Promise which resolves to the event returned by server (including `Error`)
      * in response to command and rejects with connection error.
      */
-    public async exec<CommandT extends Dto = any>(
+    public async sendCommand<CommandT extends Dto = any>(
         commandPayload: CommandT,
         commandType?: string
     ): Promise<CommandsToEventsType<CommandT>> {
         const message = this.createEnvelope(commandType ?? guessCommandType(commandPayload), commandPayload);
-        this.connection.send(message.toJson());
+        this.chatConnection.send(message.toRaw());
         return new Promise(
-            (...args) => this.awaitingResponse.set(message.meta.ref as string, args)
+            (...args) => this.awaitingResponse.set(message.ref as string, args)
         );
     }
 
@@ -126,40 +184,55 @@ export class Client extends EventTarget {
         return this;
     }
 
-    private onMessage(payload: string) {
-        const message: Envelope = JSON.parse(payload);
-        const dto = this.createEventByEnvelope(message);
-
-        const [resolve] = this.awaitingResponse.get(message.meta.ref ?? '') ?? [];
-        if (resolve) {
-            resolve(dto ?? message.data);
-            this.awaitingResponse.delete(message.meta.ref as string);
-        }
-
-        this.emit('message', message);
-        this.emit(message.meta.type ?? 'unknown', message, dto);
+    public destroy(): this {
+        this.chatConnection.destroy();
+        return this;
     }
 
-    private onDisconnect(): void {
+    public async getMe(): Promise<MyAccountInterface> {
+        const response = await this.restConnection.send('GET', 'auth/me');
+        if (response.ok) {
+            return response.data;
+        }
+        throw new Error(`Cannot get current user account: ${response.data.errors[0]}`);
+    }
+
+    private onMessage(message: any) {
+        const dto = this.createEvent(message);
+
+        const [resolve] = this.awaitingResponse.get(message.ref ?? '') ?? [];
+        if (resolve) {
+            resolve(dto ?? message.data);
+            this.awaitingResponse.delete(message.ref as string);
+        }
+
+        this.emit(ClientEvent.message, message);
+        this.emit(message.type ?? 'unknown', message, dto);
+    }
+
+    private onDisconnect(reconnect: boolean): void {
         this.awaitingResponse.forEach(([resolve, reject], key: string) => {
             reject('Disconnected');
             this.awaitingResponse.delete(key);
         });
+        if (reconnect) {
+            this.emit(ClientEvent.renewal);
+            this.chatConnection.once(ChatConnectionEvent.ready, () => this.emit(ClientEvent.renewalSuccess));
+            this.chatConnection.once(ChatConnectionEvent.error, () => this.emit(ClientEvent.renewalError));
+        }
     }
 
     private createEnvelope(commandType: string, dto: Dto): Envelope {
         return new Envelope({
-            meta: {
-                type: commandType,
-                ref: (++this.commandsCount).toString()
-            },
+            type: commandType,
+            ref: (++this.commandsCount).toString(),
             data: dto
         });
     }
 
-    private createEventByEnvelope(message: Envelope): Dto | null {
-        if ((message.meta.type ?? false) && this.eventsMap.hasOwnProperty(message.meta.type)) {
-            return new (this.eventsMap[message.meta.type] as any)(message.data);
+    private createEvent(message: Envelope): Dto | null {
+        if ((message.type ?? false) && this.eventsMap.hasOwnProperty(message.type)) {
+            return new (this.eventsMap[message.type] as any)(message.data);
         }
         return null;
     }
