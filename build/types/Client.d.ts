@@ -58,7 +58,7 @@ export interface TokenInterface {
     expiration: string;
 }
 export interface MyAccountInterface {
-    id: number;
+    id: string;
     nick: string;
     avatar: string;
 }
@@ -95,6 +95,7 @@ export declare class Client extends EventTarget {
     }): this;
     destroy(): this;
     getMe(): Promise<MyAccountInterface>;
+    deleteToken(token: string): Promise<void>;
     private onMessage;
     private onDisconnect;
     private createEnvelope;

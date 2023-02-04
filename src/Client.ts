@@ -103,7 +103,7 @@ export interface TokenInterface {
 }
 
 export interface MyAccountInterface {
-    id: number;
+    id: string;
     nick: string;
     avatar: string;
 }
@@ -192,9 +192,17 @@ export class Client extends EventTarget {
     public async getMe(): Promise<MyAccountInterface> {
         const response = await this.restConnection.send('GET', 'auth/me');
         if (response.ok) {
+            response.data.id = response.data.id.toString();
             return response.data;
         }
         throw new Error(`Cannot get current user account: ${response.data.errors[0]}`);
+    }
+
+    public async deleteToken(token: string): Promise<void> {
+        const response = await this.restConnection.send('DELETE', `auth/tokens/${token}`);
+        if (!response.ok) {
+            throw new Error(`Cannot delete access token: ${response.data.errors[0]}`);
+        }
     }
 
     private onMessage(message: any) {

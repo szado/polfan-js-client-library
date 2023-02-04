@@ -1,4 +1,4 @@
-import {Client, ClientEvent} from "./Client";
+import {Client, ClientEvent, TokenInterface, MyAccountInterface} from "./Client";
 import {WebApiConnection} from "./connections/WebApiConnection";
 import {WebSocketConnection} from "./connections/WebSocketConnection";
 import {RestApiConnection} from "./connections/RestApiConnection";
