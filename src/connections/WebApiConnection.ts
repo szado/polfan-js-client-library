@@ -18,6 +18,10 @@ export class WebApiConnection extends EventTarget implements ChatConnectionInter
         }
     }
 
+    public init() {
+        this.emit(ChatConnectionEvent.ready);
+    }
+
     public send(data: any): void {
         this.sendStack.push({data: data, attempts: 0, lastTimeoutId: null});
         this.makeApiCall(this.sendStack.length - 1);

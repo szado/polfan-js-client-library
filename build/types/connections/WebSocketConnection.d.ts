@@ -11,6 +11,7 @@ export declare class WebSocketConnection extends EventTarget implements ChatConn
     protected connectingTimeoutId: any;
     protected authenticated: boolean;
     constructor(options: WebSocketConnectionInterface);
+    init(): void;
     send(data: any): void;
     destroy(): void;
     private connect;

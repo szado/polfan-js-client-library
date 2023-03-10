@@ -12,6 +12,7 @@ export declare class WebApiConnection extends EventTarget implements ChatConnect
         lastTimeoutId: any;
     }[];
     constructor(options: WebApiConnectionOptionsInterface);
+    init(): void;
     send(data: any): void;
     destroy(): void;
     protected onMessage(reqId: number, response: Response): Promise<void>;

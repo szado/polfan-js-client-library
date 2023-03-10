@@ -79,7 +79,7 @@ export const events = {
     NewTopic,
     TopicDeleted,
     NewMessage,
-} as {[x: string]: typeof Dto};
+};
 
 export const commands = {
     // General commands
@@ -110,4 +110,4 @@ export const commands = {
     CreateTopic,
     DeleteTopic,
     CreateMessage,
-} as {[x: string]: typeof Dto}
+};

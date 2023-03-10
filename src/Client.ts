@@ -92,6 +92,7 @@ function guessCommandType(obj: any): string {
 
 export enum ClientEvent {
     message = 'message',
+    ready = 'ready',
     renewal = 'renewalStart',
     renewalSuccess = 'renewalSuccess',
     renewalError = 'renewalError',
@@ -147,6 +148,7 @@ export class Client extends EventTarget {
     protected commandsCount = 0;
     protected awaitingResponse: Map<string, ArrayOfPromiseResolvers> = new Map<string, ArrayOfPromiseResolvers>();
     protected eventsMap: {[x: string]: typeof Dto};
+    protected reconnecting: boolean;
 
     public constructor(
         public readonly chatConnection: ChatConnectionInterface,
@@ -156,6 +158,20 @@ export class Client extends EventTarget {
         this.setCustomEventMap({}); // Set default event map.
         this.chatConnection.on(ChatConnectionEvent.message, (payload: any) => this.onMessage(payload));
         this.chatConnection.on(ChatConnectionEvent.destroy, (reconnect: boolean) => this.onDisconnect(reconnect));
+        this.chatConnection.on(ChatConnectionEvent.ready, () => {
+            if (this.reconnecting) {
+                this.reconnecting = false;
+                this.emit(ClientEvent.renewalSuccess);
+                return;
+            }
+            this.emit(ClientEvent.ready);
+        });
+        this.chatConnection.on(ChatConnectionEvent.error, () => {
+            if (this.reconnecting) {
+                this.reconnecting = false;
+                this.emit(ClientEvent.renewalError);
+            }
+        });
     }
 
     /**
@@ -181,6 +197,11 @@ export class Client extends EventTarget {
      */
     public setCustomEventMap(customMap: {[x: string]: typeof Dto}): this {
         this.eventsMap = {...events, ...customMap};
+        return this;
+    }
+
+    public init(): this {
+        this.chatConnection.init();
         return this;
     }
 
@@ -215,7 +236,7 @@ export class Client extends EventTarget {
         }
 
         this.emit(ClientEvent.message, message);
-        this.emit(message.type ?? 'unknown', message, dto);
+        this.emit(message.type ?? 'unknown', dto, message);
     }
 
     private onDisconnect(reconnect: boolean): void {
@@ -224,9 +245,8 @@ export class Client extends EventTarget {
             this.awaitingResponse.delete(key);
         });
         if (reconnect) {
+            this.reconnecting = true;
             this.emit(ClientEvent.renewal);
-            this.chatConnection.once(ChatConnectionEvent.ready, () => this.emit(ClientEvent.renewalSuccess));
-            this.chatConnection.once(ChatConnectionEvent.error, () => this.emit(ClientEvent.renewalError));
         }
     }
 

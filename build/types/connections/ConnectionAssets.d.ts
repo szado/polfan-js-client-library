@@ -11,6 +11,7 @@ export interface ConnectionOptionsInterface {
     temporaryNick?: string;
 }
 export interface ChatConnectionInterface extends ObservableInterface {
+    init(): void;
     send(data: any): void;
     destroy(): void;
 }

@@ -49,6 +49,7 @@ type CmdResult<EventDto> = EventDto | ErrorEvent;
 type CommandsToEventsType<CommandT> = CommandT extends GetSession ? CmdResult<Session> : CommandT extends SetUserPermissions ? CmdResult<Permissions> : CommandT extends GetUserPermissions ? CmdResult<Permissions> : CommandT extends GetComputedPermissions ? CmdResult<Permissions> : CommandT extends JoinSpace ? CmdResult<SpaceJoined> : CommandT extends LeaveSpace ? CmdResult<SpaceLeft> : CommandT extends CreateSpace ? CmdResult<SpaceJoined> : CommandT extends DeleteSpace ? CmdResult<SpaceDeleted> : CommandT extends GetSpaceMembers ? CmdResult<SpaceMembers> : CommandT extends GetSpaceRooms ? CmdResult<SpaceRooms> : CommandT extends CreateRole ? CmdResult<NewRole> : CommandT extends DeleteRole ? CmdResult<RoleDeleted> : CommandT extends AssignRole ? CmdResult<SpaceMemberUpdate> : CommandT extends DeassignRole ? CmdResult<SpaceMemberUpdate> : CommandT extends SetRolePermissions ? CmdResult<Permissions> : CommandT extends GetRolePermissions ? CmdResult<Permissions> : CommandT extends JoinRoom ? CmdResult<RoomJoined> : CommandT extends LeaveRoom ? CmdResult<RoomLeft> : CommandT extends CreateRoom ? CmdResult<RoomJoined> : CommandT extends DeleteRoom ? CmdResult<RoomDeleted> : CommandT extends GetRoomMembers ? CmdResult<RoomMembers> : CommandT extends CreateTopic ? CmdResult<NewTopic> : CommandT extends DeleteTopic ? CmdResult<TopicDeleted> : CommandT extends CreateMessage ? CmdResult<NewMessage> : any;
 export declare enum ClientEvent {
     message = "message",
+    ready = "ready",
     renewal = "renewalStart",
     renewalSuccess = "renewalSuccess",
     renewalError = "renewalError"
@@ -78,6 +79,7 @@ export declare class Client extends EventTarget {
     protected eventsMap: {
         [x: string]: typeof Dto;
     };
+    protected reconnecting: boolean;
     constructor(chatConnection: ChatConnectionInterface, restConnection: RestApiConnection);
     /**
      * Send command to chat server.
@@ -93,6 +95,7 @@ export declare class Client extends EventTarget {
     setCustomEventMap(customMap: {
         [x: string]: typeof Dto;
     }): this;
+    init(): this;
     destroy(): this;
     getMe(): Promise<MyAccountInterface>;
     deleteToken(token: string): Promise<void>;

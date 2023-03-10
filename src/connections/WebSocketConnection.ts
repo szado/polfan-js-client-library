@@ -23,6 +23,13 @@ export class WebSocketConnection extends EventTarget implements ChatConnectionIn
         }
     }
 
+    public init() {
+        if (this.ws) {
+            this.destroy();
+        }
+        this.connect();
+    }
+
     public send(data: any): void {
         if (!this.ws || this.ws.readyState === this.ws.CLOSED) {
             this.connect();
@@ -42,6 +49,7 @@ export class WebSocketConnection extends EventTarget implements ChatConnectionIn
     public destroy(): void {
         this.sendQueue = [];
         this.ws?.close();
+        this.ws = null;
     }
 
     private connect(): void {

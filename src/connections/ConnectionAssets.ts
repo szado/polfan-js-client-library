@@ -14,6 +14,7 @@ export interface ConnectionOptionsInterface {
 }
 
 export interface ChatConnectionInterface extends ObservableInterface {
+    init(): void;
     send(data: any): void;
     destroy(): void;
 }
