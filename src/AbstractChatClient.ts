@@ -51,7 +51,7 @@ import {EventTarget} from "./EventTarget";
 
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 
-export abstract class AbstractClient extends EventTarget {
+export abstract class AbstractChatClient extends EventTarget {
     protected awaitingResponse: Map<string, ArrayOfPromiseResolvers> = new Map<string, ArrayOfPromiseResolvers>();
     protected sentCounter: number = 0;
 

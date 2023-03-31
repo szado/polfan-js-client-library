@@ -1,4 +1,4 @@
-import {WebSocketClient} from "./WebSocketClient";
+import {WebSocketChatClient} from "./WebSocketChatClient";
 import {IndexedCollection, ObservableIndexedObjectCollection} from "./IndexedObjectCollection";
 import {
     Message,
@@ -29,7 +29,7 @@ import {
 
 type Deferred = {resolver: () => void, promise: Promise<void>};
 
-export class WebSocketStateTracker {
+export class ChatStateTracker {
     private readonly joinedSpaces = new ObservableIndexedObjectCollection<Space>('id');
     private readonly joinedRooms = new ObservableIndexedObjectCollection<Room>('id');
     private readonly spacesRoles = new IndexedCollection<string, ObservableIndexedObjectCollection<Role>>();
@@ -46,7 +46,7 @@ export class WebSocketStateTracker {
     private reconnecting: boolean = false;
     private me: User = null;
 
-    public constructor(private readonly client: WebSocketClient) {
+    public constructor(private readonly client: WebSocketChatClient) {
         this.bind();
     }
 

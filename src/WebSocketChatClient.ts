@@ -1,7 +1,7 @@
 import {ObservableInterface} from "./EventTarget";
-import {AbstractClient, CommandResult, CommandsMap} from "./AbstractClient";
+import {AbstractChatClient, CommandResult, CommandsMap} from "./AbstractChatClient";
 import {Envelope} from "pserv-ts-types";
-import {WebSocketStateTracker} from "./WebSocketStateTracker";
+import {ChatStateTracker} from "./ChatStateTracker";
 
 export interface WebSocketClientOptions {
     url: string;
@@ -12,16 +12,16 @@ export interface WebSocketClientOptions {
     stateTracking?: boolean;
 }
 
-enum WebSocketClientEvent {
+enum WebSocketChatClientEvent {
     connect = 'connect',
     disconnect = 'disconnect',
     message = 'message',
     error = 'error',
 }
 
-export class WebSocketClient extends AbstractClient implements ObservableInterface {
-    public readonly Event = WebSocketClientEvent;
-    public readonly state?: WebSocketStateTracker;
+export class WebSocketChatClient extends AbstractChatClient implements ObservableInterface {
+    public readonly Event = WebSocketChatClientEvent;
+    public readonly state?: ChatStateTracker;
 
     protected ws: WebSocket|null = null;
     protected sendQueue: [commandType: keyof CommandsMap, commandData: any][] = [];
@@ -35,7 +35,7 @@ export class WebSocketClient extends AbstractClient implements ObservableInterfa
             throw new Error('Token or temporary nick is required');
         }
         if (this.options.stateTracking ?? true) {
-            this.state = new WebSocketStateTracker(this);
+            this.state = new ChatStateTracker(this);
         }
     }
 

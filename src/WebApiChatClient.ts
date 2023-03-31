@@ -1,8 +1,8 @@
-import {AbstractClient, CommandResult, CommandsMap} from "./AbstractClient";
+import {AbstractChatClient, CommandResult, CommandsMap} from "./AbstractChatClient";
 import {ObservableInterface} from "./EventTarget";
 import {Envelope} from "pserv-ts-types";
 
-export interface WebApiClientOptions {
+export interface WebApiChatClientOptions {
     url: string;
     token?: string;
     temporaryNick?: string;
@@ -10,18 +10,18 @@ export interface WebApiClientOptions {
     attemptDelayMs?: number;
 }
 
-enum WebApiClientEvent {
+enum WebApiChatClientEvent {
     message = 'message',
     error = 'error',
     destroy = 'destroy',
 }
 
-export class WebApiClient extends AbstractClient implements ObservableInterface {
-    public readonly Event = WebApiClientEvent;
+export class WebApiChatClient extends AbstractChatClient implements ObservableInterface {
+    public readonly Event = WebApiChatClientEvent;
 
     protected sendStack: {data: any, attempts: number, lastTimeoutId: any}[];
 
-    public constructor(private readonly options: WebApiClientOptions) {
+    public constructor(private readonly options: WebApiChatClientOptions) {
         super();
         if (!this.options.token && !this.options.temporaryNick) {
             throw new Error('Token or temporary nick is required');
