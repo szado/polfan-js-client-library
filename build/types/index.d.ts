@@ -1,4 +1,5 @@
-import { WebSocketClient } from "./WebSocketClient";
-import { WebApiClient } from "./WebApiClient";
+import { WebSocketChatClient } from "./WebSocketChatClient";
+import { WebApiChatClient } from "./WebApiChatClient";
 import { IndexedCollection, IndexedObjectCollection, ObservableIndexedCollection, ObservableIndexedObjectCollection } from "./IndexedObjectCollection";
-export { IndexedCollection, ObservableIndexedCollection, IndexedObjectCollection, ObservableIndexedObjectCollection, WebSocketClient, WebApiClient, };
+import { AuthClient } from "./AuthClient";
+export { IndexedCollection, ObservableIndexedCollection, IndexedObjectCollection, ObservableIndexedObjectCollection, WebSocketChatClient, WebApiChatClient, AuthClient };
