@@ -14,7 +14,7 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export abstract class AbstractRestClient {
     protected abstract defaultUrl: string;
 
-    protected constructor(
+    public constructor(
         private readonly options: RestClientOptions,
     ) {}
 
