@@ -131,6 +131,12 @@ interface ObservableCollectionEvent<KeyT> {
 export class ObservableIndexedCollection<KeyT, ValueT> extends IndexedCollection<KeyT, ValueT> implements ObservableInterface {
     protected eventTarget: EventTarget<ObservableCollectionEvent<KeyT>>;
 
+    public constructor(items: [key: KeyT, value: ValueT][] = []) {
+        super();
+        this.eventTarget = new EventTarget<ObservableCollectionEvent<KeyT>>();
+        this.set(...items);
+    }
+
     public set(...items: [KeyT, ValueT][]) {
         if (items.length) {
             super.set(...items);
@@ -162,6 +168,11 @@ export class ObservableIndexedCollection<KeyT, ValueT> extends IndexedCollection
         this.eventTarget.once(eventName, handler);
         return this;
     }
+
+    public off(eventName: string, handler: (ev?: ObservableCollectionEvent<KeyT>) => void): this {
+        this.eventTarget.off(eventName, handler);
+        return this;
+    }
 }
 
 export class ObservableIndexedObjectCollection<T> extends IndexedObjectCollection<T> implements ObservableInterface {
@@ -171,8 +182,9 @@ export class ObservableIndexedObjectCollection<T> extends IndexedObjectCollectio
         public readonly id: keyof T | ((item: T) => string),
         items: T[] = [],
     ) {
-        super(id, items);
+        super(id);
         this.eventTarget = new EventTarget();
+        this.set(...items);
     }
 
     public set(...items: T[]) {
@@ -204,6 +216,11 @@ export class ObservableIndexedObjectCollection<T> extends IndexedObjectCollectio
 
     public once(eventName: 'change', handler: (ev?: ObservableCollectionEvent<string>) => void): this {
         this.eventTarget.once(eventName, handler);
+        return this;
+    }
+
+    public off(eventName: string, handler: (ev?: ObservableCollectionEvent<string>) => void): this {
+        this.eventTarget.off(eventName, handler);
         return this;
     }
 }

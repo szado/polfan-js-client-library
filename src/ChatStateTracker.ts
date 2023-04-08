@@ -47,6 +47,7 @@ export class ChatStateTracker {
     private me: User = null;
 
     public constructor(private readonly client: WebSocketChatClient) {
+        this.createDeferredGetter('session');
         this.bind();
     }
 
@@ -200,6 +201,16 @@ export class ChatStateTracker {
             room.id,
             new ObservableIndexedObjectCollection<Topic>('id', room.topics)
         ]));
+
+        const topicsMessages: [string, ObservableIndexedObjectCollection<Message>][] = [];
+        for (const room of rooms) {
+            topicsMessages.push(...room.topics.map<[string, ObservableIndexedObjectCollection<Message>]>(topic => [
+                topic.id,
+                new ObservableIndexedObjectCollection<Message>('id')
+            ]));
+        }
+        this.topicsMessages.set(...topicsMessages);
+
         this.joinedRooms.set(...rooms);
     }
 
@@ -235,12 +246,11 @@ export class ChatStateTracker {
     }
 
     private handleSession(ev: Session): void {
-        this.me = ev.user;
-
         if (this.me && !this.reconnecting) {
             return;
         }
 
+        this.me = ev.user;
         this.reconnecting = false;
 
         this.joinedRooms.deleteAll();

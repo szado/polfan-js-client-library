@@ -12,7 +12,7 @@ export interface MyAccountInterface {
 }
 
 export class AuthClient extends AbstractRestClient {
-    protected defaultUrl: string = 'https://polfan.pl/webservice';
+    protected defaultUrl: string = 'https://polfan.pl/webservice/api';
 
     public static async createToken(
         login: string,

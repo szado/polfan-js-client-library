@@ -34,11 +34,13 @@ interface ObservableCollectionEvent<KeyT> {
 }
 export declare class ObservableIndexedCollection<KeyT, ValueT> extends IndexedCollection<KeyT, ValueT> implements ObservableInterface {
     protected eventTarget: EventTarget<ObservableCollectionEvent<KeyT>>;
+    constructor(items?: [key: KeyT, value: ValueT][]);
     set(...items: [KeyT, ValueT][]): void;
     delete(...ids: KeyT[]): void;
     deleteAll(): void;
     on(eventName: 'change', handler: (ev?: ObservableCollectionEvent<KeyT>) => void): this;
     once(eventName: 'change', handler: (ev?: ObservableCollectionEvent<KeyT>) => void): this;
+    off(eventName: string, handler: (ev?: ObservableCollectionEvent<KeyT>) => void): this;
 }
 export declare class ObservableIndexedObjectCollection<T> extends IndexedObjectCollection<T> implements ObservableInterface {
     readonly id: keyof T | ((item: T) => string);
@@ -49,5 +51,6 @@ export declare class ObservableIndexedObjectCollection<T> extends IndexedObjectC
     deleteAll(): void;
     on(eventName: 'change', handler: (ev?: ObservableCollectionEvent<string>) => void): this;
     once(eventName: 'change', handler: (ev?: ObservableCollectionEvent<string>) => void): this;
+    off(eventName: string, handler: (ev?: ObservableCollectionEvent<string>) => void): this;
 }
 export {};

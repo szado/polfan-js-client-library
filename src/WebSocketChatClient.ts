@@ -80,6 +80,10 @@ export class WebSocketChatClient extends AbstractChatClient implements Observabl
 
     private onMessage(event: MessageEvent): void {
         const envelope: Envelope = JSON.parse(event.data);
+        this.handleIncomingEnvelope(envelope);
+        this.emit(envelope.type, envelope.data);
+        this.emit(this.Event.message, envelope);
+
         // Login successfully
         if (!this.authenticated) {
             const isAuthenticated = envelope.type !== 'Error';
@@ -92,9 +96,6 @@ export class WebSocketChatClient extends AbstractChatClient implements Observabl
                 this.authenticatedResolvers[1](envelope.data);
             }
         }
-        this.handleIncomingEnvelope(envelope);
-        this.emit(envelope.type, envelope);
-        this.emit(this.Event.message, envelope);
     }
 
     private onClose(event: CloseEvent): void {

@@ -52,7 +52,7 @@ export class WebApiChatClient extends AbstractChatClient implements ObservableIn
         this.sendStack.splice(reqId, 1);
         const envelope: Envelope = await response.json();
         this.handleIncomingEnvelope(envelope);
-        this.emit(envelope.type, envelope);
+        this.emit(envelope.type, envelope.data);
         this.emit(this.Event.message, envelope);
     }
 
