@@ -1053,8 +1053,8 @@ var ChatStateTracker = /*#__PURE__*/function () {
       if (!this.roomsMembers.has(ev.id)) {
         var _this$deferredGetters2;
         this.roomsMembers.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
-          var _member$user$id;
-          return (_member$user$id = member === null || member === void 0 ? void 0 : member.user.id) !== null && _member$user$id !== void 0 ? _member$user$id : member.spaceMember.user.id;
+          var _member$user$id, _member$user;
+          return (_member$user$id = (_member$user = member.user) === null || _member$user === void 0 ? void 0 : _member$user.id) !== null && _member$user$id !== void 0 ? _member$user$id : member.spaceMember.user.id;
         }, ev.members)]);
         (_this$deferredGetters2 = this.deferredGetters.get("rooms-members-".concat(ev.id))) === null || _this$deferredGetters2 === void 0 ? void 0 : _this$deferredGetters2.resolver();
       }

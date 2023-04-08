@@ -237,7 +237,7 @@ export class ChatStateTracker {
             this.roomsMembers.set([
                 ev.id,
                 new ObservableIndexedObjectCollection(
-                    member => member?.user.id ?? member.spaceMember.user.id,
+                    member => member.user?.id ?? member.spaceMember.user.id,
                     ev.members,
                 )
             ]);
