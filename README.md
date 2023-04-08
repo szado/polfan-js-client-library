@@ -4,22 +4,22 @@ TypeScript client library to handle connection with Polfan chat service.
 ## How to use?
 
 ```js
-(async function () {
-    // Request new token and create client instance.
-    const tokenData = await PServ.Client.getToken('login', 'pass');
-    const client = new PServ.Client.createByToken(tokenData.token);
-
-    // Bind the listener for each NewMessage event:
-    client.on('NewMessage', ev => `${ev.message.author.nick} wrote: ${ev.message.content}`);
-
-    // Send a message to the server:
-    client.sendCommand(new PServ.commands.CreateMessage({
-        content: 'Hello world!',
-        topicId: 'xxxxxx-xxxxx-xxxxx-xxxxx-xxxxx'
-    }));
-
-    // You can handle result for specific command with returned promise:
-    const result = client.sendCommand(new PServ.commands.GetSpaceMembers({id: 'xxx'}));
-    console.log('Space member list', result.members)
+(async () => {
+    // Get access token by credentials
+    const token = await PServ.AuthClient.createToken('login', 'password');
+    
+    // Create web api client (there is also WebSocket client available)
+    const client = new PServ.WebApiChatClient({
+        token: token.token, // Pass received token
+        url: 'https://pserv-api-address',
+    });
+    
+    // Call `GetSession` command which returns user session data
+    const session = await client.send('GetSession');
+    
+    console.log("My nick:", session.user.nick);
+    console.log("The rooms you are in:", session.rooms);
+    console.log("The spaces you are in:", session.spaces);
+    console.log("The version of server you connected to:", session.serverVersion);
 })();
 ```
