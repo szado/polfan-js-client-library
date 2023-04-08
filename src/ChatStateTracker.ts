@@ -172,9 +172,21 @@ export class ChatStateTracker {
     }
 
     private handleNewTopic(ev: NewTopic): void {
-        const collection = this.roomsTopics.get(ev.roomId);
-        collection.set(ev.topic);
-        this.joinedRooms.get(ev.roomId).topics = collection.items;
+        this.addJoinedRoomTopics(ev.roomId, ev.topic);
+        this.joinedRooms.get(ev.roomId).topics.push(ev.topic);
+    }
+
+    private addJoinedRoomTopics(roomId: string, ...topics: Topic[]): void {
+        if (this.roomsTopics.has(roomId)) {
+            this.roomsTopics.get(roomId).set(...topics);
+        } else {
+            this.roomsTopics.set([roomId, new ObservableIndexedObjectCollection<Topic>('id', topics)]);
+        }
+
+        this.topicsMessages.set(...topics.map<[string, ObservableIndexedObjectCollection<Message>]>(topic => [
+            topic.id,
+            new ObservableIndexedObjectCollection<Message>('id')
+        ]));
     }
 
     private handleRoleDeleted(ev: RoleDeleted): void {
@@ -187,9 +199,7 @@ export class ChatStateTracker {
         if (ev.spaceId) {
             this.spacesRooms.get(ev.spaceId).delete(ev.id);
         }
-        this.joinedRooms.delete(ev.id);
-        this.roomsMembers.delete(ev.id);
-        this.roomsTopics.delete(ev.id);
+        this.deleteJoinedRooms(ev.id);
     }
 
     private handleRoomJoined(ev: RoomJoined): void {
@@ -197,27 +207,27 @@ export class ChatStateTracker {
     }
 
     private addJoinedRooms(...rooms: Room[]): void {
-        this.roomsTopics.set(...rooms.map<[string, ObservableIndexedObjectCollection<Topic>]>(room => [
-            room.id,
-            new ObservableIndexedObjectCollection<Topic>('id', room.topics)
-        ]));
-
-        const topicsMessages: [string, ObservableIndexedObjectCollection<Message>][] = [];
         for (const room of rooms) {
-            topicsMessages.push(...room.topics.map<[string, ObservableIndexedObjectCollection<Message>]>(topic => [
-                topic.id,
-                new ObservableIndexedObjectCollection<Message>('id')
-            ]));
+            this.addJoinedRoomTopics(room.id, ...room.topics);
         }
-        this.topicsMessages.set(...topicsMessages);
-
         this.joinedRooms.set(...rooms);
     }
 
     private handleRoomLeft(ev: RoomLeft): void {
-        this.joinedRooms.delete(ev.id);
-        this.roomsMembers.delete(ev.id);
-        this.roomsTopics.delete(ev.id);
+        this.deleteJoinedRooms(ev.id);
+    }
+
+    private deleteJoinedRooms(...roomIds: string[]): void {
+        this.joinedRooms.delete(...roomIds);
+        this.roomsMembers.delete(...roomIds);
+
+        const topicIds: string[] = [];
+        for (const roomId of roomIds) {
+            topicIds.push(...(this.roomsTopics.get(roomId)?.map(topic => topic.id) ?? []));
+        }
+        this.topicsMessages.delete(...topicIds);
+
+        this.roomsTopics.delete(...roomIds);
     }
 
     private handleRoomMemberJoined(ev: RoomMemberJoined): void {
@@ -268,6 +278,9 @@ export class ChatStateTracker {
     }
 
     private handleSpaceDeleted(ev: SpaceDeleted): void {
+        this.deleteJoinedRooms(
+            ...this.joinedRooms.findBy('spaceId', ev.id).map(room => room.id)
+        );
         this.spacesRoles.delete(ev.id);
         this.spacesMembers.delete(ev.id);
         this.spacesRooms.delete(ev.id);
@@ -287,10 +300,7 @@ export class ChatStateTracker {
     }
 
     private handleSpaceLeft(ev: SpaceLeft): void {
-        this.spacesRoles.delete(ev.id);
-        this.spacesMembers.delete(ev.id);
-        this.spacesRooms.delete(ev.id);
-        this.joinedSpaces.delete(ev.id);
+        this.handleSpaceDeleted(ev);
     }
 
     private handleSpaceMemberJoined(ev: SpaceMemberJoined): void {
