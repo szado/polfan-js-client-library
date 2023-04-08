@@ -842,7 +842,6 @@ var ChatStateTracker = /*#__PURE__*/function () {
     key: "deferredGetterReadiness",
     value: function () {
       var _deferredGetterReadiness = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(name) {
-        var _this$deferredGetters;
         return _regeneratorRuntime().wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -852,7 +851,7 @@ var ChatStateTracker = /*#__PURE__*/function () {
                   break;
                 }
                 _context10.next = 3;
-                return (_this$deferredGetters = this.deferredGetters.get(name)) === null || _this$deferredGetters === void 0 ? void 0 : _this$deferredGetters.promise;
+                return this.deferredGetters.get(name).promise;
               case 3:
               case "end":
                 return _context10.stop();
@@ -939,6 +938,7 @@ var ChatStateTracker = /*#__PURE__*/function () {
   }, {
     key: "createDeferredGetter",
     value: function createDeferredGetter(name) {
+      var _this2 = this;
       if (this.deferredGetters.has(name)) {
         return;
       }
@@ -947,7 +947,10 @@ var ChatStateTracker = /*#__PURE__*/function () {
         resolver: undefined
       };
       deferred.promise = new Promise(function (resolve) {
-        return deferred.resolver = resolve;
+        return deferred.resolver = function () {
+          _this2.deferredGetters["delete"](name);
+          resolve();
+        };
       });
       this.deferredGetters.set([name, deferred]);
     }
@@ -1076,18 +1079,18 @@ var ChatStateTracker = /*#__PURE__*/function () {
     key: "handleRoomMembers",
     value: function handleRoomMembers(ev) {
       if (!this.roomsMembers.has(ev.id)) {
-        var _this$deferredGetters2;
+        var _this$deferredGetters;
         this.roomsMembers.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
           var _member$user$id, _member$user;
           return (_member$user$id = (_member$user = member.user) === null || _member$user === void 0 ? void 0 : _member$user.id) !== null && _member$user$id !== void 0 ? _member$user$id : member.spaceMember.user.id;
         }, ev.members)]);
-        (_this$deferredGetters2 = this.deferredGetters.get("rooms-members-".concat(ev.id))) === null || _this$deferredGetters2 === void 0 ? void 0 : _this$deferredGetters2.resolver();
+        (_this$deferredGetters = this.deferredGetters.get("rooms-members-".concat(ev.id))) === null || _this$deferredGetters === void 0 ? void 0 : _this$deferredGetters.resolver();
       }
     }
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      var _this$deferredGetters3;
+      var _this$deferredGetters2;
       if (this.me && !this.reconnecting) {
         return;
       }
@@ -1102,7 +1105,7 @@ var ChatStateTracker = /*#__PURE__*/function () {
       this.spacesMembers.deleteAll();
       this.addJoinedRooms.apply(this, ChatStateTracker_toConsumableArray(ev.state.rooms));
       this.addJoinedSpaces.apply(this, ChatStateTracker_toConsumableArray(ev.state.spaces));
-      (_this$deferredGetters3 = this.deferredGetters.get('session')) === null || _this$deferredGetters3 === void 0 ? void 0 : _this$deferredGetters3.resolver();
+      (_this$deferredGetters2 = this.deferredGetters.get('session')) === null || _this$deferredGetters2 === void 0 ? void 0 : _this$deferredGetters2.resolver();
     }
   }, {
     key: "handleSpaceDeleted",
@@ -1155,20 +1158,20 @@ var ChatStateTracker = /*#__PURE__*/function () {
     key: "handleSpaceMembers",
     value: function handleSpaceMembers(ev) {
       if (!this.spacesMembers.has(ev.id)) {
-        var _this$deferredGetters4;
+        var _this$deferredGetters3;
         this.spacesMembers.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
           return member === null || member === void 0 ? void 0 : member.user.id;
         }, ev.members)]);
-        (_this$deferredGetters4 = this.deferredGetters.get("spaces-members-".concat(ev.id))) === null || _this$deferredGetters4 === void 0 ? void 0 : _this$deferredGetters4.resolver();
+        (_this$deferredGetters3 = this.deferredGetters.get("spaces-members-".concat(ev.id))) === null || _this$deferredGetters3 === void 0 ? void 0 : _this$deferredGetters3.resolver();
       }
     }
   }, {
     key: "handleSpaceRooms",
     value: function handleSpaceRooms(ev) {
       if (!this.spacesRooms.has(ev.id)) {
-        var _this$deferredGetters5;
+        var _this$deferredGetters4;
         this.spacesRooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
-        (_this$deferredGetters5 = this.deferredGetters.get("spaces-rooms-".concat(ev.id))) === null || _this$deferredGetters5 === void 0 ? void 0 : _this$deferredGetters5.resolver();
+        (_this$deferredGetters4 = this.deferredGetters.get("spaces-rooms-".concat(ev.id))) === null || _this$deferredGetters4 === void 0 ? void 0 : _this$deferredGetters4.resolver();
       }
     }
   }, {

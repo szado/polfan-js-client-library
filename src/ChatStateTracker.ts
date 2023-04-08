@@ -112,7 +112,7 @@ export class ChatStateTracker {
 
     private async deferredGetterReadiness(name: string): Promise<void> {
         if (this.deferredGetters.has(name)) {
-            await this.deferredGetters.get(name)?.promise;
+            await this.deferredGetters.get(name).promise;
         }
     }
 
@@ -146,7 +146,10 @@ export class ChatStateTracker {
             return;
         }
         const deferred: Deferred = {promise: undefined, resolver: undefined};
-        deferred.promise = new Promise(resolve => deferred.resolver = resolve);
+        deferred.promise = new Promise(resolve => deferred.resolver = () => {
+            this.deferredGetters.delete(name);
+            resolve();
+        });
         this.deferredGetters.set([name, deferred]);
     }
 
