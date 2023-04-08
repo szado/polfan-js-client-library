@@ -32,11 +32,13 @@ export declare class ChatStateTracker {
     private handleNewRole;
     private handleNewRoom;
     private handleNewTopic;
+    private addJoinedRoomTopics;
     private handleRoleDeleted;
     private handleRoomDeleted;
     private handleRoomJoined;
     private addJoinedRooms;
     private handleRoomLeft;
+    private deleteJoinedRooms;
     private handleRoomMemberJoined;
     private handleRoomMemberLeft;
     private handleRoomMembers;

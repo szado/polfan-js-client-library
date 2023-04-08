@@ -980,9 +980,25 @@ var ChatStateTracker = /*#__PURE__*/function () {
   }, {
     key: "handleNewTopic",
     value: function handleNewTopic(ev) {
-      var collection = this.roomsTopics.get(ev.roomId);
-      collection.set(ev.topic);
-      this.joinedRooms.get(ev.roomId).topics = collection.items;
+      this.addJoinedRoomTopics(ev.roomId, ev.topic);
+      this.joinedRooms.get(ev.roomId).topics.push(ev.topic);
+    }
+  }, {
+    key: "addJoinedRoomTopics",
+    value: function addJoinedRoomTopics(roomId) {
+      var _this$topicsMessages;
+      for (var _len = arguments.length, topics = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        topics[_key - 1] = arguments[_key];
+      }
+      if (this.roomsTopics.has(roomId)) {
+        var _this$roomsTopics$get;
+        (_this$roomsTopics$get = this.roomsTopics.get(roomId)).set.apply(_this$roomsTopics$get, topics);
+      } else {
+        this.roomsTopics.set([roomId, new ObservableIndexedObjectCollection('id', topics)]);
+      }
+      (_this$topicsMessages = this.topicsMessages).set.apply(_this$topicsMessages, ChatStateTracker_toConsumableArray(topics.map(function (topic) {
+        return [topic.id, new ObservableIndexedObjectCollection('id')];
+      })));
     }
   }, {
     key: "handleRoleDeleted",
@@ -997,9 +1013,7 @@ var ChatStateTracker = /*#__PURE__*/function () {
       if (ev.spaceId) {
         this.spacesRooms.get(ev.spaceId)["delete"](ev.id);
       }
-      this.joinedRooms["delete"](ev.id);
-      this.roomsMembers["delete"](ev.id);
-      this.roomsTopics["delete"](ev.id);
+      this.deleteJoinedRooms(ev.id);
     }
   }, {
     key: "handleRoomJoined",
@@ -1009,29 +1023,40 @@ var ChatStateTracker = /*#__PURE__*/function () {
   }, {
     key: "addJoinedRooms",
     value: function addJoinedRooms() {
-      var _this$roomsTopics, _this$topicsMessages, _this$joinedRooms;
-      for (var _len = arguments.length, rooms = new Array(_len), _key = 0; _key < _len; _key++) {
-        rooms[_key] = arguments[_key];
+      var _this$joinedRooms;
+      for (var _len2 = arguments.length, rooms = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        rooms[_key2] = arguments[_key2];
       }
-      (_this$roomsTopics = this.roomsTopics).set.apply(_this$roomsTopics, ChatStateTracker_toConsumableArray(rooms.map(function (room) {
-        return [room.id, new ObservableIndexedObjectCollection('id', room.topics)];
-      })));
-      var topicsMessages = [];
       for (var _i = 0, _rooms = rooms; _i < _rooms.length; _i++) {
         var room = _rooms[_i];
-        topicsMessages.push.apply(topicsMessages, ChatStateTracker_toConsumableArray(room.topics.map(function (topic) {
-          return [topic.id, new ObservableIndexedObjectCollection('id')];
-        })));
+        this.addJoinedRoomTopics.apply(this, [room.id].concat(ChatStateTracker_toConsumableArray(room.topics)));
       }
-      (_this$topicsMessages = this.topicsMessages).set.apply(_this$topicsMessages, topicsMessages);
       (_this$joinedRooms = this.joinedRooms).set.apply(_this$joinedRooms, rooms);
     }
   }, {
     key: "handleRoomLeft",
     value: function handleRoomLeft(ev) {
-      this.joinedRooms["delete"](ev.id);
-      this.roomsMembers["delete"](ev.id);
-      this.roomsTopics["delete"](ev.id);
+      this.deleteJoinedRooms(ev.id);
+    }
+  }, {
+    key: "deleteJoinedRooms",
+    value: function deleteJoinedRooms() {
+      var _this$joinedRooms2, _this$roomsMembers, _this$topicsMessages2, _this$roomsTopics;
+      for (var _len3 = arguments.length, roomIds = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        roomIds[_key3] = arguments[_key3];
+      }
+      (_this$joinedRooms2 = this.joinedRooms)["delete"].apply(_this$joinedRooms2, roomIds);
+      (_this$roomsMembers = this.roomsMembers)["delete"].apply(_this$roomsMembers, roomIds);
+      var topicIds = [];
+      for (var _i2 = 0, _roomIds = roomIds; _i2 < _roomIds.length; _i2++) {
+        var _this$roomsTopics$get2, _this$roomsTopics$get3;
+        var roomId = _roomIds[_i2];
+        topicIds.push.apply(topicIds, ChatStateTracker_toConsumableArray((_this$roomsTopics$get2 = (_this$roomsTopics$get3 = this.roomsTopics.get(roomId)) === null || _this$roomsTopics$get3 === void 0 ? void 0 : _this$roomsTopics$get3.map(function (topic) {
+          return topic.id;
+        })) !== null && _this$roomsTopics$get2 !== void 0 ? _this$roomsTopics$get2 : []));
+      }
+      (_this$topicsMessages2 = this.topicsMessages)["delete"].apply(_this$topicsMessages2, topicIds);
+      (_this$roomsTopics = this.roomsTopics)["delete"].apply(_this$roomsTopics, roomIds);
     }
   }, {
     key: "handleRoomMemberJoined",
@@ -1082,6 +1107,9 @@ var ChatStateTracker = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceDeleted",
     value: function handleSpaceDeleted(ev) {
+      this.deleteJoinedRooms.apply(this, ChatStateTracker_toConsumableArray(this.joinedRooms.findBy('spaceId', ev.id).map(function (room) {
+        return room.id;
+      })));
       this.spacesRoles["delete"](ev.id);
       this.spacesMembers["delete"](ev.id);
       this.spacesRooms["delete"](ev.id);
@@ -1096,8 +1124,8 @@ var ChatStateTracker = /*#__PURE__*/function () {
     key: "addJoinedSpaces",
     value: function addJoinedSpaces() {
       var _this$spacesRoles, _this$joinedSpaces;
-      for (var _len2 = arguments.length, spaces = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        spaces[_key2] = arguments[_key2];
+      for (var _len4 = arguments.length, spaces = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        spaces[_key4] = arguments[_key4];
       }
       (_this$spacesRoles = this.spacesRoles).set.apply(_this$spacesRoles, ChatStateTracker_toConsumableArray(spaces.map(function (space) {
         return [space.id, new ObservableIndexedObjectCollection('id', space.roles)];
@@ -1107,10 +1135,7 @@ var ChatStateTracker = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceLeft",
     value: function handleSpaceLeft(ev) {
-      this.spacesRoles["delete"](ev.id);
-      this.spacesMembers["delete"](ev.id);
-      this.spacesRooms["delete"](ev.id);
-      this.joinedSpaces["delete"](ev.id);
+      this.handleSpaceDeleted(ev);
     }
   }, {
     key: "handleSpaceMemberJoined",
