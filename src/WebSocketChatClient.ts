@@ -1,7 +1,7 @@
 import {ObservableInterface} from "./EventTarget";
 import {AbstractChatClient, CommandResult, CommandsMap} from "./AbstractChatClient";
 import {Envelope} from "pserv-ts-types";
-import {ChatStateTracker} from "./ChatStateTracker";
+import {ChatStateTracker} from "./state-tracker/ChatStateTracker";
 
 export interface WebSocketClientOptions {
     url: string;
