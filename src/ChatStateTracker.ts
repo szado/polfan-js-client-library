@@ -336,9 +336,23 @@ export class ChatStateTracker {
     }
 
     private handleSpaceMemberUpdate(ev: SpaceMemberUpdate): void {
-        if (this.spacesMembers.has(ev.spaceId)) {
-            this.spacesMembers.get(ev.spaceId).set(ev.member);
+        if (!this.spacesMembers.has(ev.spaceId)) {
+            return;
         }
+
+        // Update members of rooms related to this space
+        for (const room of this.joinedRooms.findBy('spaceId', ev.spaceId).items) {
+            const roomMembers = this.roomsMembers.get(room.id);
+            if (!roomMembers) {
+                // Skip update if member list for this room is not loaded
+                continue;
+            }
+            const roomMember = roomMembers.get(ev.member.user.id);
+            roomMember.spaceMember = ev.member;
+            roomMembers.set(roomMember);
+        }
+
+        this.spacesMembers.get(ev.spaceId).set(ev.member);
     }
 
     private handleTopicDeleted(ev: TopicDeleted): void {
