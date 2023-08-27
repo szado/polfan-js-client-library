@@ -54,6 +54,7 @@ __webpack_require__.d(__webpack_exports__, {
   "IndexedObjectCollection": () => (/* reexport */ IndexedObjectCollection),
   "ObservableIndexedCollection": () => (/* reexport */ ObservableIndexedCollection),
   "ObservableIndexedObjectCollection": () => (/* reexport */ ObservableIndexedObjectCollection),
+  "Permission": () => (/* reexport */ Permission),
   "WebApiChatClient": () => (/* reexport */ WebApiChatClient),
   "WebSocketChatClient": () => (/* reexport */ WebSocketChatClient)
 });
@@ -561,17 +562,1161 @@ var ObservableIndexedObjectCollection = /*#__PURE__*/function (_IndexedObjectCol
   }]);
   return ObservableIndexedObjectCollection;
 }(IndexedObjectCollection);
-;// CONCATENATED MODULE: ./src/ChatStateTracker.ts
-function ChatStateTracker_typeof(obj) { "@babel/helpers - typeof"; return ChatStateTracker_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, ChatStateTracker_typeof(obj); }
-function ChatStateTracker_toConsumableArray(arr) { return ChatStateTracker_arrayWithoutHoles(arr) || ChatStateTracker_iterableToArray(arr) || ChatStateTracker_unsupportedIterableToArray(arr) || ChatStateTracker_nonIterableSpread(); }
-function ChatStateTracker_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function ChatStateTracker_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return ChatStateTracker_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return ChatStateTracker_arrayLikeToArray(o, minLen); }
-function ChatStateTracker_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-function ChatStateTracker_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return ChatStateTracker_arrayLikeToArray(arr); }
-function ChatStateTracker_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == ChatStateTracker_typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
+;// CONCATENATED MODULE: ./src/state-tracker/DeferredTask.ts
+function DeferredTask_typeof(obj) { "@babel/helpers - typeof"; return DeferredTask_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, DeferredTask_typeof(obj); }
+function DeferredTask_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, DeferredTask_toPropertyKey(descriptor.key), descriptor); } }
+function DeferredTask_createClass(Constructor, protoProps, staticProps) { if (protoProps) DeferredTask_defineProperties(Constructor.prototype, protoProps); if (staticProps) DeferredTask_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function DeferredTask_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function DeferredTask_defineProperty(obj, key, value) { key = DeferredTask_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function DeferredTask_toPropertyKey(arg) { var key = DeferredTask_toPrimitive(arg, "string"); return DeferredTask_typeof(key) === "symbol" ? key : String(key); }
+function DeferredTask_toPrimitive(input, hint) { if (DeferredTask_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (DeferredTask_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+var DeferredTask = /*#__PURE__*/DeferredTask_createClass(function DeferredTask() {
+  var _this = this;
+  DeferredTask_classCallCheck(this, DeferredTask);
+  DeferredTask_defineProperty(this, "promise", void 0);
+  DeferredTask_defineProperty(this, "resolve", void 0);
+  this.promise = new Promise(function (resolve) {
+    return _this.resolve = resolve;
+  });
+});
+;// CONCATENATED MODULE: ./src/state-tracker/RoomsManager.ts
+function RoomsManager_typeof(obj) { "@babel/helpers - typeof"; return RoomsManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, RoomsManager_typeof(obj); }
+function RoomsManager_createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = RoomsManager_unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+function RoomsManager_toConsumableArray(arr) { return RoomsManager_arrayWithoutHoles(arr) || RoomsManager_iterableToArray(arr) || RoomsManager_unsupportedIterableToArray(arr) || RoomsManager_nonIterableSpread(); }
+function RoomsManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function RoomsManager_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return RoomsManager_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return RoomsManager_arrayLikeToArray(o, minLen); }
+function RoomsManager_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function RoomsManager_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return RoomsManager_arrayLikeToArray(arr); }
+function RoomsManager_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == RoomsManager_typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+function RoomsManager_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function RoomsManager_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, RoomsManager_toPropertyKey(descriptor.key), descriptor); } }
+function RoomsManager_createClass(Constructor, protoProps, staticProps) { if (protoProps) RoomsManager_defineProperties(Constructor.prototype, protoProps); if (staticProps) RoomsManager_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function RoomsManager_defineProperty(obj, key, value) { key = RoomsManager_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function RoomsManager_toPropertyKey(arg) { var key = RoomsManager_toPrimitive(arg, "string"); return RoomsManager_typeof(key) === "symbol" ? key : String(key); }
+function RoomsManager_toPrimitive(input, hint) { if (RoomsManager_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (RoomsManager_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+
+var RoomsManager = /*#__PURE__*/function () {
+  // Temporary not lazy loaded; server must implement GetTopicMessages command.
+
+  function RoomsManager(tracker) {
+    var _this = this;
+    RoomsManager_classCallCheck(this, RoomsManager);
+    this.tracker = tracker;
+    RoomsManager_defineProperty(this, "list", new ObservableIndexedObjectCollection('id'));
+    RoomsManager_defineProperty(this, "topics", new IndexedCollection());
+    RoomsManager_defineProperty(this, "topicsMessages", new IndexedCollection());
+    RoomsManager_defineProperty(this, "members", new IndexedCollection());
+    RoomsManager_defineProperty(this, "deferredSession", new DeferredTask());
+    this.tracker.client.on('NewMessage', function (ev) {
+      return _this.handleNewMessage(ev);
+    });
+    this.tracker.client.on('NewTopic', function (ev) {
+      return _this.handleNewTopic(ev);
+    });
+    this.tracker.client.on('TopicDeleted', function (ev) {
+      return _this.handleTopicDeleted(ev);
+    });
+    this.tracker.client.on('RoomJoined', function (ev) {
+      return _this.handleRoomJoined(ev);
+    });
+    this.tracker.client.on('RoomLeft', function (ev) {
+      return _this.handleRoomLeft(ev);
+    });
+    this.tracker.client.on('RoomMemberJoined', function (ev) {
+      return _this.handleRoomMemberJoined(ev);
+    });
+    this.tracker.client.on('RoomMemberLeft', function (ev) {
+      return _this.handleRoomMemberLeft(ev);
+    });
+    this.tracker.client.on('RoomMembers', function (ev) {
+      return _this.handleRoomMembers(ev);
+    });
+    this.tracker.client.on('RoomMemberUpdated', function (ev) {
+      return _this.handleRoomMemberUpdated(ev);
+    });
+    this.tracker.client.on('Session', function (ev) {
+      return _this.handleSession(ev);
+    });
+  }
+
+  /**
+   * Get collection of room members.
+   */
+  RoomsManager_createClass(RoomsManager, [{
+    key: "getMembers",
+    value: function () {
+      var _getMembers = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(roomId) {
+        var result;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (this.members.has(roomId)) {
+                  _context.next = 7;
+                  break;
+                }
+                _context.next = 3;
+                return this.tracker.client.send('GetRoomMembers', {
+                  id: roomId
+                });
+              case 3:
+                result = _context.sent;
+                if (!result.error) {
+                  _context.next = 6;
+                  break;
+                }
+                throw result.error;
+              case 6:
+                this.handleRoomMembers(result.data);
+              case 7:
+                return _context.abrupt("return", this.members.get(roomId));
+              case 8:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+      function getMembers(_x) {
+        return _getMembers.apply(this, arguments);
+      }
+      return getMembers;
+    }()
+    /**
+     * Get a room member representing the current user.
+     */
+  }, {
+    key: "getMe",
+    value: function () {
+      var _getMe = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(roomId) {
+        var userId, members;
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this.tracker.getMe();
+              case 2:
+                userId = _context2.sent.id;
+                _context2.next = 5;
+                return this.getMembers(roomId);
+              case 5:
+                members = _context2.sent;
+                if (members) {
+                  _context2.next = 8;
+                  break;
+                }
+                return _context2.abrupt("return", null);
+              case 8:
+                return _context2.abrupt("return", members.items.find(function (member) {
+                  var _member$user$id, _member$user;
+                  return ((_member$user$id = (_member$user = member.user) === null || _member$user === void 0 ? void 0 : _member$user.id) !== null && _member$user$id !== void 0 ? _member$user$id : member.spaceMember.user.id) === userId;
+                }));
+              case 9:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+      function getMe(_x2) {
+        return _getMe.apply(this, arguments);
+      }
+      return getMe;
+    }()
+    /**
+     * Get collection of all the rooms you are in.
+     */
+  }, {
+    key: "get",
+    value: function () {
+      var _get = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.deferredSession.promise;
+              case 2:
+                return _context3.abrupt("return", this.list);
+              case 3:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+      function get() {
+        return _get.apply(this, arguments);
+      }
+      return get;
+    }()
+    /**
+     * Get collection of room topics.
+     */
+  }, {
+    key: "getTopics",
+    value: function () {
+      var _getTopics = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(roomId) {
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this.deferredSession.promise;
+              case 2:
+                return _context4.abrupt("return", this.topics.get(roomId));
+              case 3:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+      function getTopics(_x3) {
+        return _getTopics.apply(this, arguments);
+      }
+      return getTopics;
+    }()
+    /**
+     * Get collection of the messages written in topic.
+     */
+  }, {
+    key: "getMessages",
+    value: function () {
+      var _getMessages = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(topicId) {
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                return _context5.abrupt("return", this.topicsMessages.get(topicId));
+              case 1:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+      function getMessages(_x4) {
+        return _getMessages.apply(this, arguments);
+      }
+      return getMessages;
+    }()
+    /**
+     * For internal use. If you want to leave the room, execute a proper command on client object.
+     * @internal
+     */
+  }, {
+    key: "_delete",
+    value: function _delete() {
+      var _this$list, _this$members, _this$topicsMessages, _this$topics;
+      for (var _len = arguments.length, roomIds = new Array(_len), _key = 0; _key < _len; _key++) {
+        roomIds[_key] = arguments[_key];
+      }
+      (_this$list = this.list)["delete"].apply(_this$list, roomIds);
+      (_this$members = this.members)["delete"].apply(_this$members, roomIds);
+      var topicIds = [];
+      for (var _i = 0, _roomIds = roomIds; _i < _roomIds.length; _i++) {
+        var _this$topics$get$map, _this$topics$get;
+        var roomId = _roomIds[_i];
+        topicIds.push.apply(topicIds, RoomsManager_toConsumableArray((_this$topics$get$map = (_this$topics$get = this.topics.get(roomId)) === null || _this$topics$get === void 0 ? void 0 : _this$topics$get.map(function (topic) {
+          return topic.id;
+        })) !== null && _this$topics$get$map !== void 0 ? _this$topics$get$map : []));
+      }
+      (_this$topicsMessages = this.topicsMessages)["delete"].apply(_this$topicsMessages, topicIds);
+      (_this$topics = this.topics)["delete"].apply(_this$topics, roomIds);
+    }
+
+    /**
+     * For internal use. If you want to leave the room, execute a proper command on client object.
+     * @internal
+     */
+  }, {
+    key: "_deleteBySpaceId",
+    value: function _deleteBySpaceId(spaceId) {
+      this._delete.apply(this, RoomsManager_toConsumableArray(this.list.findBy('spaceId', spaceId).map(function (room) {
+        return room.id;
+      })));
+    }
+
+    /**
+     * For internal use.
+     * @internal
+     */
+  }, {
+    key: "_handleSpaceMemberUpdate",
+    value: function _handleSpaceMemberUpdate(spaceId, member) {
+      // Update members of rooms related to this space
+      var _iterator = RoomsManager_createForOfIteratorHelper(this.list.findBy('spaceId', spaceId).items),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var room = _step.value;
+          var roomMembers = this.members.get(room.id);
+          if (!roomMembers) {
+            // Skip update if member list for this room is not loaded
+            continue;
+          }
+          var roomMember = roomMembers.get(member.user.id);
+          roomMember.spaceMember = member;
+          roomMembers.set(roomMember);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }, {
+    key: "handleRoomMemberUpdated",
+    value: function handleRoomMemberUpdated(ev) {
+      if (!this.members.has(ev.roomId)) {
+        return;
+      }
+      this.members.get(ev.roomId).set(ev.member);
+    }
+  }, {
+    key: "handleTopicDeleted",
+    value: function handleTopicDeleted(ev) {
+      var collection = this.topics.get(ev.roomId);
+      collection["delete"](ev.id);
+      this.list.get(ev.roomId).topics = collection.items;
+    }
+  }, {
+    key: "handleNewMessage",
+    value: function handleNewMessage(ev) {
+      this.topicsMessages.get(ev.topicId).set(ev.message);
+    }
+  }, {
+    key: "handleNewTopic",
+    value: function handleNewTopic(ev) {
+      this.addJoinedRoomTopics(ev.roomId, ev.topic);
+      this.list.get(ev.roomId).topics.push(ev.topic);
+    }
+  }, {
+    key: "addJoinedRoomTopics",
+    value: function addJoinedRoomTopics(roomId) {
+      var _this$topicsMessages2;
+      for (var _len2 = arguments.length, topics = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        topics[_key2 - 1] = arguments[_key2];
+      }
+      if (this.topics.has(roomId)) {
+        var _this$topics$get2;
+        (_this$topics$get2 = this.topics.get(roomId)).set.apply(_this$topics$get2, topics);
+      } else {
+        this.topics.set([roomId, new ObservableIndexedObjectCollection('id', topics)]);
+      }
+      (_this$topicsMessages2 = this.topicsMessages).set.apply(_this$topicsMessages2, RoomsManager_toConsumableArray(topics.map(function (topic) {
+        return [topic.id, new ObservableIndexedObjectCollection('id')];
+      })));
+    }
+  }, {
+    key: "handleRoomJoined",
+    value: function handleRoomJoined(ev) {
+      this.addJoinedRooms(ev.room);
+    }
+  }, {
+    key: "addJoinedRooms",
+    value: function addJoinedRooms() {
+      var _this$list2;
+      for (var _len3 = arguments.length, rooms = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        rooms[_key3] = arguments[_key3];
+      }
+      for (var _i2 = 0, _rooms = rooms; _i2 < _rooms.length; _i2++) {
+        var room = _rooms[_i2];
+        this.addJoinedRoomTopics.apply(this, [room.id].concat(RoomsManager_toConsumableArray(room.topics)));
+      }
+      (_this$list2 = this.list).set.apply(_this$list2, rooms);
+    }
+  }, {
+    key: "handleRoomLeft",
+    value: function handleRoomLeft(ev) {
+      this._delete(ev.id);
+    }
+  }, {
+    key: "handleRoomMemberJoined",
+    value: function handleRoomMemberJoined(ev) {
+      if (this.members.has(ev.roomId)) {
+        this.members.get(ev.roomId).set(ev.member);
+      }
+    }
+  }, {
+    key: "handleRoomMemberLeft",
+    value: function handleRoomMemberLeft(ev) {
+      if (this.members.has(ev.roomId)) {
+        this.members.get(ev.roomId)["delete"](ev.userId);
+      }
+    }
+  }, {
+    key: "handleRoomMembers",
+    value: function handleRoomMembers(ev) {
+      if (!this.members.has(ev.id)) {
+        this.members.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
+          var _member$user$id2, _member$user2;
+          return (_member$user$id2 = (_member$user2 = member.user) === null || _member$user2 === void 0 ? void 0 : _member$user2.id) !== null && _member$user$id2 !== void 0 ? _member$user$id2 : member.spaceMember.user.id;
+        }, ev.members)]);
+      }
+    }
+  }, {
+    key: "handleSession",
+    value: function handleSession(ev) {
+      this.list.deleteAll();
+      this.topics.deleteAll();
+      this.members.deleteAll();
+      this.addJoinedRooms.apply(this, RoomsManager_toConsumableArray(ev.state.rooms));
+      this.deferredSession.resolve();
+    }
+  }]);
+  return RoomsManager;
+}();
+;// CONCATENATED MODULE: ./src/state-tracker/SpacesManager.ts
+function SpacesManager_typeof(obj) { "@babel/helpers - typeof"; return SpacesManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, SpacesManager_typeof(obj); }
+function SpacesManager_toConsumableArray(arr) { return SpacesManager_arrayWithoutHoles(arr) || SpacesManager_iterableToArray(arr) || SpacesManager_unsupportedIterableToArray(arr) || SpacesManager_nonIterableSpread(); }
+function SpacesManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function SpacesManager_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return SpacesManager_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return SpacesManager_arrayLikeToArray(o, minLen); }
+function SpacesManager_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function SpacesManager_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return SpacesManager_arrayLikeToArray(arr); }
+function SpacesManager_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function SpacesManager_regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ SpacesManager_regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == SpacesManager_typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
+function SpacesManager_asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function SpacesManager_asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { SpacesManager_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { SpacesManager_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+function SpacesManager_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function SpacesManager_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, SpacesManager_toPropertyKey(descriptor.key), descriptor); } }
+function SpacesManager_createClass(Constructor, protoProps, staticProps) { if (protoProps) SpacesManager_defineProperties(Constructor.prototype, protoProps); if (staticProps) SpacesManager_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function SpacesManager_defineProperty(obj, key, value) { key = SpacesManager_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function SpacesManager_toPropertyKey(arg) { var key = SpacesManager_toPrimitive(arg, "string"); return SpacesManager_typeof(key) === "symbol" ? key : String(key); }
+function SpacesManager_toPrimitive(input, hint) { if (SpacesManager_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (SpacesManager_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+
+var SpacesManager = /*#__PURE__*/function () {
+  function SpacesManager(tracker) {
+    var _this = this;
+    SpacesManager_classCallCheck(this, SpacesManager);
+    this.tracker = tracker;
+    SpacesManager_defineProperty(this, "list", new ObservableIndexedObjectCollection('id'));
+    SpacesManager_defineProperty(this, "roles", new IndexedCollection());
+    SpacesManager_defineProperty(this, "rooms", new IndexedCollection());
+    SpacesManager_defineProperty(this, "members", new IndexedCollection());
+    SpacesManager_defineProperty(this, "deferredSession", new DeferredTask());
+    this.tracker.client.on('NewRoom', function (ev) {
+      return _this.handleNewRoom(ev);
+    });
+    this.tracker.client.on('RoomDeleted', function (ev) {
+      return _this.handleRoomDeleted(ev);
+    });
+    this.tracker.client.on('SpaceDeleted', function (ev) {
+      return _this.handleSpaceDeleted(ev);
+    });
+    this.tracker.client.on('SpaceJoined', function (ev) {
+      return _this.handleSpaceJoined(ev);
+    });
+    this.tracker.client.on('SpaceLeft', function (ev) {
+      return _this.handleSpaceLeft(ev);
+    });
+    this.tracker.client.on('SpaceMemberJoined', function (ev) {
+      return _this.handleSpaceMemberJoined(ev);
+    });
+    this.tracker.client.on('SpaceMemberLeft', function (ev) {
+      return _this.handleSpaceMemberLeft(ev);
+    });
+    this.tracker.client.on('SpaceMembers', function (ev) {
+      return _this.handleSpaceMembers(ev);
+    });
+    this.tracker.client.on('SpaceRooms', function (ev) {
+      return _this.handleSpaceRooms(ev);
+    });
+    this.tracker.client.on('SpaceMemberUpdated', function (ev) {
+      return _this.handleSpaceMemberUpdated(ev);
+    });
+    this.tracker.client.on('NewRole', function (ev) {
+      return _this.handleNewRole(ev);
+    });
+    this.tracker.client.on('RoleDeleted', function (ev) {
+      return _this.handleRoleDeleted(ev);
+    });
+    this.tracker.client.on('RoleUpdated', function (ev) {
+      return _this.handleRoleUpdated(ev);
+    });
+    this.tracker.client.on('Session', function (ev) {
+      return _this.handleSession(ev);
+    });
+  }
+
+  /**
+   * Get collection of all the spaces you are in.
+   */
+  SpacesManager_createClass(SpacesManager, [{
+    key: "get",
+    value: function () {
+      var _get = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee() {
+        return SpacesManager_regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.deferredSession.promise;
+              case 2:
+                return _context.abrupt("return", this.list);
+              case 3:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+      function get() {
+        return _get.apply(this, arguments);
+      }
+      return get;
+    }()
+    /**
+     * Get collection of space roles.
+     */
+  }, {
+    key: "getRoles",
+    value: function () {
+      var _getRoles = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee2(spaceId) {
+        return SpacesManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this.deferredSession.promise;
+              case 2:
+                return _context2.abrupt("return", this.roles.get(spaceId));
+              case 3:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+      function getRoles(_x) {
+        return _getRoles.apply(this, arguments);
+      }
+      return getRoles;
+    }()
+    /**
+     * Get collection of the all available rooms inside given space.
+     */
+  }, {
+    key: "getRooms",
+    value: function () {
+      var _getRooms = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee3(spaceId) {
+        var result;
+        return SpacesManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (this.rooms.has(spaceId)) {
+                  _context3.next = 7;
+                  break;
+                }
+                _context3.next = 3;
+                return this.tracker.client.send('GetSpaceRooms', {
+                  id: spaceId
+                });
+              case 3:
+                result = _context3.sent;
+                if (!result.error) {
+                  _context3.next = 6;
+                  break;
+                }
+                throw result.error;
+              case 6:
+                this.handleSpaceRooms(result.data);
+              case 7:
+                return _context3.abrupt("return", this.rooms.get(spaceId));
+              case 8:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+      function getRooms(_x2) {
+        return _getRooms.apply(this, arguments);
+      }
+      return getRooms;
+    }()
+    /**
+     * Get collection of space members.
+     */
+  }, {
+    key: "getMembers",
+    value: function () {
+      var _getMembers = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee4(spaceId) {
+        var result;
+        return SpacesManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (this.members.has(spaceId)) {
+                  _context4.next = 7;
+                  break;
+                }
+                _context4.next = 3;
+                return this.tracker.client.send('GetSpaceMembers', {
+                  id: spaceId
+                });
+              case 3:
+                result = _context4.sent;
+                if (!result.error) {
+                  _context4.next = 6;
+                  break;
+                }
+                throw result.error;
+              case 6:
+                this.handleSpaceMembers(result.data);
+              case 7:
+                return _context4.abrupt("return", this.members.get(spaceId));
+              case 8:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+      function getMembers(_x3) {
+        return _getMembers.apply(this, arguments);
+      }
+      return getMembers;
+    }()
+    /**
+     * Get a space member representing the current user.
+     */
+  }, {
+    key: "getMe",
+    value: function () {
+      var _getMe = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee5(spaceId) {
+        var userId, members;
+        return SpacesManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this.tracker.getMe();
+              case 2:
+                userId = _context5.sent.id;
+                _context5.next = 5;
+                return this.getMembers(spaceId);
+              case 5:
+                members = _context5.sent;
+                if (members) {
+                  _context5.next = 8;
+                  break;
+                }
+                return _context5.abrupt("return", null);
+              case 8:
+                return _context5.abrupt("return", members.items.find(function (member) {
+                  return member.user.id === userId;
+                }));
+              case 9:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+      function getMe(_x4) {
+        return _getMe.apply(this, arguments);
+      }
+      return getMe;
+    }()
+  }, {
+    key: "handleNewRole",
+    value: function handleNewRole(ev) {
+      var collection = this.roles.get(ev.spaceId);
+      collection.set(ev.role);
+      this.list.get(ev.spaceId).roles = collection.items;
+    }
+  }, {
+    key: "handleNewRoom",
+    value: function handleNewRoom(ev) {
+      var _this$rooms$get;
+      (_this$rooms$get = this.rooms.get(ev.spaceId)) === null || _this$rooms$get === void 0 ? void 0 : _this$rooms$get.set(ev.summary);
+    }
+  }, {
+    key: "handleRoomDeleted",
+    value: function handleRoomDeleted(ev) {
+      if (ev.spaceId) {
+        this.rooms.get(ev.spaceId)["delete"](ev.id);
+      }
+      this.tracker.rooms._delete(ev.id);
+    }
+  }, {
+    key: "handleRoleDeleted",
+    value: function handleRoleDeleted(ev) {
+      var collection = this.roles.get(ev.spaceId);
+      collection["delete"](ev.id);
+      this.list.get(ev.spaceId).roles = collection.items;
+    }
+  }, {
+    key: "handleSpaceDeleted",
+    value: function handleSpaceDeleted(ev) {
+      this.tracker.rooms._deleteBySpaceId(ev.id);
+      this.roles["delete"](ev.id);
+      this.members["delete"](ev.id);
+      this.rooms["delete"](ev.id);
+      this.list["delete"](ev.id);
+    }
+  }, {
+    key: "handleSpaceJoined",
+    value: function handleSpaceJoined(ev) {
+      this.addJoinedSpaces(ev.space);
+    }
+  }, {
+    key: "addJoinedSpaces",
+    value: function addJoinedSpaces() {
+      var _this$roles, _this$list;
+      for (var _len = arguments.length, spaces = new Array(_len), _key = 0; _key < _len; _key++) {
+        spaces[_key] = arguments[_key];
+      }
+      (_this$roles = this.roles).set.apply(_this$roles, SpacesManager_toConsumableArray(spaces.map(function (space) {
+        return [space.id, new ObservableIndexedObjectCollection('id', space.roles)];
+      })));
+      (_this$list = this.list).set.apply(_this$list, spaces);
+    }
+  }, {
+    key: "handleSpaceLeft",
+    value: function handleSpaceLeft(ev) {
+      this.handleSpaceDeleted(ev);
+    }
+  }, {
+    key: "handleSpaceMemberJoined",
+    value: function handleSpaceMemberJoined(ev) {
+      if (this.members.has(ev.spaceId)) {
+        this.members.get(ev.spaceId).set(ev.member);
+      }
+    }
+  }, {
+    key: "handleSpaceMemberLeft",
+    value: function handleSpaceMemberLeft(ev) {
+      if (this.members.has(ev.spaceId)) {
+        this.members.get(ev.spaceId)["delete"](ev.userId);
+      }
+    }
+  }, {
+    key: "handleSpaceMembers",
+    value: function handleSpaceMembers(ev) {
+      if (!this.members.has(ev.id)) {
+        this.members.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
+          return member === null || member === void 0 ? void 0 : member.user.id;
+        }, ev.members)]);
+      }
+    }
+  }, {
+    key: "handleSpaceRooms",
+    value: function handleSpaceRooms(ev) {
+      if (!this.rooms.has(ev.id)) {
+        this.rooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
+      }
+    }
+  }, {
+    key: "handleSpaceMemberUpdated",
+    value: function handleSpaceMemberUpdated(ev) {
+      if (this.members.has(ev.spaceId)) {
+        this.members.get(ev.spaceId).set(ev.member);
+      }
+      this.tracker.rooms._handleSpaceMemberUpdate(ev.spaceId, ev.member);
+    }
+  }, {
+    key: "handleRoleUpdated",
+    value: function handleRoleUpdated(ev) {
+      this.roles.get(ev.spaceId).set(ev.role);
+    }
+  }, {
+    key: "handleSession",
+    value: function handleSession(ev) {
+      this.list.deleteAll();
+      this.roles.deleteAll();
+      this.rooms.deleteAll();
+      this.members.deleteAll();
+      this.addJoinedSpaces.apply(this, SpacesManager_toConsumableArray(ev.state.spaces));
+      this.deferredSession.resolve();
+    }
+  }]);
+  return SpacesManager;
+}();
+;// CONCATENATED MODULE: ./src/Permission.ts
+var Permission;
+(function (Permission) {
+  Permission[Permission["Root"] = 1] = "Root";
+  Permission[Permission["CreateSpaces"] = 2] = "CreateSpaces";
+  Permission[Permission["ManageSpaces"] = 4] = "ManageSpaces";
+  Permission[Permission["ManageRoles"] = 8] = "ManageRoles";
+  Permission[Permission["ChangeNick"] = 16] = "ChangeNick";
+  Permission[Permission["ManageRooms"] = 32] = "ManageRooms";
+  Permission[Permission["ManageTopics"] = 64] = "ManageTopics";
+  Permission[Permission["ManageMembers"] = 128] = "ManageMembers";
+  Permission[Permission["SendMessages"] = 256] = "SendMessages";
+  Permission[Permission["ViewMessages"] = 512] = "ViewMessages";
+  Permission[Permission["ChangeMessages"] = 1024] = "ChangeMessages";
+  Permission[Permission["ManageMessages"] = 2048] = "ManageMessages";
+  Permission[Permission["ManagePermissions"] = 4096] = "ManagePermissions";
+})(Permission || (Permission = {}));
+;// CONCATENATED MODULE: ./src/state-tracker/PermissionsManager.ts
+function PermissionsManager_typeof(obj) { "@babel/helpers - typeof"; return PermissionsManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, PermissionsManager_typeof(obj); }
+function PermissionsManager_createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = PermissionsManager_unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+function PermissionsManager_toConsumableArray(arr) { return PermissionsManager_arrayWithoutHoles(arr) || PermissionsManager_iterableToArray(arr) || PermissionsManager_unsupportedIterableToArray(arr) || PermissionsManager_nonIterableSpread(); }
+function PermissionsManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function PermissionsManager_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return PermissionsManager_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return PermissionsManager_arrayLikeToArray(o, minLen); }
+function PermissionsManager_iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function PermissionsManager_arrayWithoutHoles(arr) { if (Array.isArray(arr)) return PermissionsManager_arrayLikeToArray(arr); }
+function PermissionsManager_arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+function PermissionsManager_regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ PermissionsManager_regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == PermissionsManager_typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
+function PermissionsManager_asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function PermissionsManager_asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { PermissionsManager_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { PermissionsManager_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+function PermissionsManager_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function PermissionsManager_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, PermissionsManager_toPropertyKey(descriptor.key), descriptor); } }
+function PermissionsManager_createClass(Constructor, protoProps, staticProps) { if (protoProps) PermissionsManager_defineProperties(Constructor.prototype, protoProps); if (staticProps) PermissionsManager_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function PermissionsManager_get() { if (typeof Reflect !== "undefined" && Reflect.get) { PermissionsManager_get = Reflect.get.bind(); } else { PermissionsManager_get = function _get(target, property, receiver) { var base = PermissionsManager_superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(arguments.length < 3 ? target : receiver); } return desc.value; }; } return PermissionsManager_get.apply(this, arguments); }
+function PermissionsManager_superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = PermissionsManager_getPrototypeOf(object); if (object === null) break; } return object; }
+function PermissionsManager_inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) PermissionsManager_setPrototypeOf(subClass, superClass); }
+function PermissionsManager_setPrototypeOf(o, p) { PermissionsManager_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return PermissionsManager_setPrototypeOf(o, p); }
+function PermissionsManager_createSuper(Derived) { var hasNativeReflectConstruct = PermissionsManager_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = PermissionsManager_getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = PermissionsManager_getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return PermissionsManager_possibleConstructorReturn(this, result); }; }
+function PermissionsManager_possibleConstructorReturn(self, call) { if (call && (PermissionsManager_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return PermissionsManager_assertThisInitialized(self); }
+function PermissionsManager_assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+function PermissionsManager_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function PermissionsManager_getPrototypeOf(o) { PermissionsManager_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return PermissionsManager_getPrototypeOf(o); }
+function PermissionsManager_defineProperty(obj, key, value) { key = PermissionsManager_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function PermissionsManager_toPropertyKey(arg) { var key = PermissionsManager_toPrimitive(arg, "string"); return PermissionsManager_typeof(key) === "symbol" ? key : String(key); }
+function PermissionsManager_toPrimitive(input, hint) { if (PermissionsManager_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (PermissionsManager_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+
+
+var getOvId = function getOvId(layer, layerId, target, targetId) {
+  return layer + (layerId !== null && layerId !== void 0 ? layerId : '') + target + targetId;
+};
+var getOvIdByObject = function getOvIdByObject(overwrites) {
+  return getOvId(overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId);
+};
+var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
+  PermissionsManager_inherits(PermissionsManager, _EventTarget);
+  var _super = PermissionsManager_createSuper(PermissionsManager);
+  function PermissionsManager(tracker) {
+    var _this;
+    PermissionsManager_classCallCheck(this, PermissionsManager);
+    _this = _super.call(this);
+    _this.tracker = tracker;
+    PermissionsManager_defineProperty(PermissionsManager_assertThisInitialized(_this), "overwrites", new IndexedCollection());
+    _this.tracker.client.on('PermissionOverwrites', function (ev) {
+      return _this.handlePermissionOverwrites(ev);
+    });
+    _this.tracker.client.on('PermissionOverwritesChanged', function (ev) {
+      return _this.handlePermissionOverwrites(ev);
+    });
+    return _this;
+  }
+  PermissionsManager_createClass(PermissionsManager, [{
+    key: "getOverwrites",
+    value: function () {
+      var _getOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee(layer, layerId, target, targetId) {
+        var id, result;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                id = getOvId(layer, layerId, target, targetId);
+                if (!this.overwrites.has(id)) {
+                  _context.next = 3;
+                  break;
+                }
+                return _context.abrupt("return", this.overwrites.get(id));
+              case 3:
+                _context.next = 5;
+                return this.tracker.client.send('GetPermissionOverwrites', {
+                  layer: layer,
+                  layerId: layerId,
+                  target: target,
+                  targetId: targetId
+                });
+              case 5:
+                result = _context.sent;
+                return _context.abrupt("return", result.error ? null : result.data);
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+      function getOverwrites(_x, _x2, _x3, _x4) {
+        return _getOverwrites.apply(this, arguments);
+      }
+      return getOverwrites;
+    }()
+  }, {
+    key: "on",
+    value: function on(eventName, handler) {
+      return PermissionsManager_get(PermissionsManager_getPrototypeOf(PermissionsManager.prototype), "on", this).call(this, eventName, handler);
+    }
+  }, {
+    key: "check",
+    value: function () {
+      var _check = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee2(permissionNames, spaceId, roomId, topicId) {
+        var ownedPermissions, missing;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this.calculatePermissions(spaceId, roomId, topicId);
+              case 2:
+                ownedPermissions = _context2.sent;
+                missing = [];
+                permissionNames.forEach(function (name) {
+                  if (~ownedPermissions & Permission[name]) {
+                    missing.push(name);
+                  }
+                });
+                return _context2.abrupt("return", {
+                  ok: missing.length === 0,
+                  missing: missing
+                });
+              case 6:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+      function check(_x5, _x6, _x7, _x8) {
+        return _check.apply(this, arguments);
+      }
+      return check;
+    }()
+  }, {
+    key: "calculatePermissions",
+    value: function () {
+      var _calculatePermissions = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee3(spaceId, roomId, topicId) {
+        var userId, userRoles, promises, roomMember;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (!(topicId && !roomId || roomId && !spaceId)) {
+                  _context3.next = 2;
+                  break;
+                }
+                throw new Error('Corrupted arguments hierarchy');
+              case 2:
+                _context3.next = 4;
+                return this.tracker.getMe();
+              case 4:
+                userId = _context3.sent.id;
+                userRoles = [];
+                promises = [
+                // Global user overwrites
+                this.getOverwrites('Global', null, 'User', userId).then(function (v) {
+                  return v.overwrites;
+                })];
+                if (!spaceId) {
+                  _context3.next = 18;
+                  break;
+                }
+                _context3.t0 = userRoles.push;
+                _context3.t1 = userRoles;
+                _context3.t2 = PermissionsManager_toConsumableArray;
+                _context3.next = 13;
+                return this.tracker.spaces.getMe(spaceId);
+              case 13:
+                _context3.t3 = _context3.sent.roles;
+                _context3.t4 = (0, _context3.t2)(_context3.t3);
+                _context3.t0.apply.call(_context3.t0, _context3.t1, _context3.t4);
+                promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
+                promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(function (v) {
+                  return v.overwrites;
+                }));
+              case 18:
+                if (!roomId) {
+                  _context3.next = 24;
+                  break;
+                }
+                _context3.next = 21;
+                return this.tracker.rooms.getMe(roomId);
+              case 21:
+                roomMember = _context3.sent;
+                if (roomMember.roles !== null) {
+                  // Room overwrites from roles (only for space rooms)
+                  userRoles.push.apply(userRoles, PermissionsManager_toConsumableArray(roomMember.roles));
+                  promises.push(this.collectRoleOverwrites(spaceId, 'Room', roomId, userRoles));
+                }
+                promises.push(this.getOverwrites('Room', roomId, 'User', userId).then(function (v) {
+                  return v.overwrites;
+                }));
+              case 24:
+                if (topicId) {
+                  if (userRoles.length) {
+                    promises.push(this.collectRoleOverwrites(spaceId, 'Topic', topicId, userRoles));
+                  }
+                  promises.push(this.getOverwrites('Topic', topicId, 'User', userId).then(function (v) {
+                    return v.overwrites;
+                  }));
+                }
+                _context3.t5 = this;
+                _context3.next = 28;
+                return Promise.all(promises);
+              case 28:
+                _context3.t6 = _context3.sent;
+                return _context3.abrupt("return", _context3.t5.resolveOverwritesHierarchy.call(_context3.t5, _context3.t6));
+              case 30:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+      function calculatePermissions(_x9, _x10, _x11) {
+        return _calculatePermissions.apply(this, arguments);
+      }
+      return calculatePermissions;
+    }()
+  }, {
+    key: "handlePermissionOverwrites",
+    value: function handlePermissionOverwrites(ev) {
+      this.overwrites.set([getOvIdByObject(ev), ev]);
+      this.emit('change');
+    }
+  }, {
+    key: "collectRoleOverwrites",
+    value: function () {
+      var _collectRoleOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee4(spaceId, layer, layerId, userRoles) {
+        var _this2 = this;
+        var roleOverwrites;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return Promise.all(userRoles.map(function (roleId) {
+                  return _this2.getOverwrites(layer, layerId, 'Role', roleId);
+                }));
+              case 2:
+                roleOverwrites = _context4.sent;
+                return _context4.abrupt("return", this.resolveOverwritesFromRolesByOrder(spaceId, roleOverwrites));
+              case 4:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+      function collectRoleOverwrites(_x12, _x13, _x14, _x15) {
+        return _collectRoleOverwrites.apply(this, arguments);
+      }
+      return collectRoleOverwrites;
+    }()
+  }, {
+    key: "resolveOverwritesFromRolesByOrder",
+    value: function () {
+      var _resolveOverwritesFromRolesByOrder = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee5(spaceId, overwrites) {
+        var allows, denies, roles, sortedOverwrites, permissionsLength;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                allows = 0, denies = 0;
+                _context5.next = 3;
+                return this.tracker.spaces.getRoles(spaceId);
+              case 3:
+                roles = _context5.sent;
+                sortedOverwrites = overwrites.sort(function (a, b) {
+                  return roles.get(a.targetId).priority - roles.get(b.targetId).priority;
+                }); // Max length of bit word
+                permissionsLength = overwrites.reduce(function (previousValue, currentValue) {
+                  return Math.max(previousValue, currentValue.overwrites.allow.toString(2).length, currentValue.overwrites.deny.toString(2).length);
+                }, 0);
+                sortedOverwrites.forEach(function (overwriteEvent) {
+                  var overwrites = overwriteEvent.overwrites;
+                  var revDecDenies = overwrites.deny.toString(2).split('').reverse().join('');
+                  var revDecAllows = overwrites.allow.toString(2).split('').reverse().join('');
+                  for (var i = 0; i < permissionsLength; i++) {
+                    var _revDecDenies$i, _revDecAllows$i;
+                    var deny = parseInt((_revDecDenies$i = revDecDenies[i]) !== null && _revDecDenies$i !== void 0 ? _revDecDenies$i : '0');
+                    var allow = parseInt((_revDecAllows$i = revDecAllows[i]) !== null && _revDecAllows$i !== void 0 ? _revDecAllows$i : '0');
+                    if (deny) {
+                      denies |= 1 << i;
+                    }
+                    if (allow) {
+                      allows |= 1 << i;
+                    }
+                  }
+                });
+                return _context5.abrupt("return", {
+                  allow: allows,
+                  deny: denies
+                });
+              case 8:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+      function resolveOverwritesFromRolesByOrder(_x16, _x17) {
+        return _resolveOverwritesFromRolesByOrder.apply(this, arguments);
+      }
+      return resolveOverwritesFromRolesByOrder;
+    }()
+  }, {
+    key: "resolveOverwritesHierarchy",
+    value: function resolveOverwritesHierarchy(permissionOverwritesValues) {
+      var result = 0;
+      var _iterator = PermissionsManager_createForOfIteratorHelper(permissionOverwritesValues),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var value = _step.value;
+          if (value.allow & Permission.Root) {
+            return this.getRootAccessValue();
+          }
+          result = result & ~value.deny | value.allow;
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+      return result;
+    }
+  }, {
+    key: "getRootAccessValue",
+    value: function getRootAccessValue() {
+      var result = 0;
+      var _iterator2 = PermissionsManager_createForOfIteratorHelper(this.getPermissionNames()),
+        _step2;
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var name = _step2.value;
+          result |= Permission[name];
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+      return result;
+    }
+  }, {
+    key: "getPermissionNames",
+    value: function getPermissionNames() {
+      return Object.keys(Permission).filter(function (key) {
+        return Number.isNaN(parseInt(key));
+      });
+    }
+  }]);
+  return PermissionsManager;
+}(EventTarget);
+;// CONCATENATED MODULE: ./src/state-tracker/ChatStateTracker.ts
+function ChatStateTracker_typeof(obj) { "@babel/helpers - typeof"; return ChatStateTracker_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, ChatStateTracker_typeof(obj); }
+function ChatStateTracker_regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ ChatStateTracker_regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == ChatStateTracker_typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
+function ChatStateTracker_asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function ChatStateTracker_asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { ChatStateTracker_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { ChatStateTracker_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 function ChatStateTracker_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function ChatStateTracker_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, ChatStateTracker_toPropertyKey(descriptor.key), descriptor); } }
 function ChatStateTracker_createClass(Constructor, protoProps, staticProps) { if (protoProps) ChatStateTracker_defineProperties(Constructor.prototype, protoProps); if (staticProps) ChatStateTracker_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
@@ -579,38 +1724,45 @@ function ChatStateTracker_defineProperty(obj, key, value) { key = ChatStateTrack
 function ChatStateTracker_toPropertyKey(arg) { var key = ChatStateTracker_toPrimitive(arg, "string"); return ChatStateTracker_typeof(key) === "symbol" ? key : String(key); }
 function ChatStateTracker_toPrimitive(input, hint) { if (ChatStateTracker_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (ChatStateTracker_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-var ChatStateTracker = /*#__PURE__*/function () {
-  // Temporary not lazy loaded; server must implement GetTopicMessages command.
 
-  // lazy loaded collections
+
+
+var ChatStateTracker = /*#__PURE__*/function () {
+  /**
+   * State of the rooms you are in.
+   */
+
+  /**
+   * State of the spaces you are in.
+   */
+
+  /**
+   * State of your permissions.
+   */
 
   function ChatStateTracker(client) {
+    var _this = this;
     ChatStateTracker_classCallCheck(this, ChatStateTracker);
     this.client = client;
-    ChatStateTracker_defineProperty(this, "joinedSpaces", new ObservableIndexedObjectCollection('id'));
-    ChatStateTracker_defineProperty(this, "joinedRooms", new ObservableIndexedObjectCollection('id'));
-    ChatStateTracker_defineProperty(this, "spacesRoles", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "roomsTopics", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "topicsMessages", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "spacesRooms", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "spacesMembers", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "roomsMembers", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "deferredGetters", new IndexedCollection());
-    ChatStateTracker_defineProperty(this, "reconnecting", false);
+    ChatStateTracker_defineProperty(this, "rooms", new RoomsManager(this));
+    ChatStateTracker_defineProperty(this, "spaces", new SpacesManager(this));
+    ChatStateTracker_defineProperty(this, "permissions", new PermissionsManager(this));
     ChatStateTracker_defineProperty(this, "me", null);
-    this.createDeferredGetter('session');
-    this.bind();
+    ChatStateTracker_defineProperty(this, "deferredSession", new DeferredTask());
+    this.client.on('Session', function (ev) {
+      return _this.handleSession(ev);
+    });
   }
   ChatStateTracker_createClass(ChatStateTracker, [{
     key: "getMe",
     value: function () {
-      var _getMe = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-        return _regeneratorRuntime().wrap(function _callee$(_context) {
+      var _getMe = ChatStateTracker_asyncToGenerator( /*#__PURE__*/ChatStateTracker_regeneratorRuntime().mark(function _callee() {
+        return ChatStateTracker_regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 _context.next = 2;
-                return this.deferredGetterReadiness('session');
+                return this.deferredSession.promise;
               case 2:
                 return _context.abrupt("return", this.me);
               case 3:
@@ -626,567 +1778,10 @@ var ChatStateTracker = /*#__PURE__*/function () {
       return getMe;
     }()
   }, {
-    key: "getJoinedSpaces",
-    value: function () {
-      var _getJoinedSpaces = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.next = 2;
-                return this.deferredGetterReadiness('session');
-              case 2:
-                return _context2.abrupt("return", this.joinedSpaces);
-              case 3:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-      function getJoinedSpaces() {
-        return _getJoinedSpaces.apply(this, arguments);
-      }
-      return getJoinedSpaces;
-    }()
-  }, {
-    key: "getJoinedRooms",
-    value: function () {
-      var _getJoinedRooms = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                _context3.next = 2;
-                return this.deferredGetterReadiness('session');
-              case 2:
-                return _context3.abrupt("return", this.joinedRooms);
-              case 3:
-              case "end":
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-      function getJoinedRooms() {
-        return _getJoinedRooms.apply(this, arguments);
-      }
-      return getJoinedRooms;
-    }()
-  }, {
-    key: "getSpaceRoles",
-    value: function () {
-      var _getSpaceRoles = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(spaceId) {
-        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                _context4.next = 2;
-                return this.deferredGetterReadiness('session');
-              case 2:
-                return _context4.abrupt("return", this.spacesRoles.get(spaceId));
-              case 3:
-              case "end":
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-      function getSpaceRoles(_x) {
-        return _getSpaceRoles.apply(this, arguments);
-      }
-      return getSpaceRoles;
-    }()
-  }, {
-    key: "getRoomTopics",
-    value: function () {
-      var _getRoomTopics = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(roomId) {
-        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                _context5.next = 2;
-                return this.deferredGetterReadiness('session');
-              case 2:
-                return _context5.abrupt("return", this.roomsTopics.get(roomId));
-              case 3:
-              case "end":
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-      function getRoomTopics(_x2) {
-        return _getRoomTopics.apply(this, arguments);
-      }
-      return getRoomTopics;
-    }()
-  }, {
-    key: "getTopicMessages",
-    value: function () {
-      var _getTopicMessages = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(topicId) {
-        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-          while (1) {
-            switch (_context6.prev = _context6.next) {
-              case 0:
-                return _context6.abrupt("return", this.topicsMessages.get(topicId));
-              case 1:
-              case "end":
-                return _context6.stop();
-            }
-          }
-        }, _callee6, this);
-      }));
-      function getTopicMessages(_x3) {
-        return _getTopicMessages.apply(this, arguments);
-      }
-      return getTopicMessages;
-    }()
-  }, {
-    key: "getSpaceRooms",
-    value: function () {
-      var _getSpaceRooms = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(spaceId) {
-        var deferredGetterName;
-        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                deferredGetterName = "spaces-rooms-".concat(spaceId);
-                if (!this.spacesRooms.has(spaceId) && !this.deferredGetters.has(deferredGetterName)) {
-                  this.createDeferredGetter(deferredGetterName);
-                  this.client.send('GetSpaceRooms', {
-                    id: spaceId
-                  });
-                }
-                _context7.next = 4;
-                return this.deferredGetterReadiness(deferredGetterName);
-              case 4:
-                return _context7.abrupt("return", this.spacesRooms.get(spaceId));
-              case 5:
-              case "end":
-                return _context7.stop();
-            }
-          }
-        }, _callee7, this);
-      }));
-      function getSpaceRooms(_x4) {
-        return _getSpaceRooms.apply(this, arguments);
-      }
-      return getSpaceRooms;
-    }()
-  }, {
-    key: "getSpaceMembers",
-    value: function () {
-      var _getSpaceMembers = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(spaceId) {
-        var deferredGetterName;
-        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-          while (1) {
-            switch (_context8.prev = _context8.next) {
-              case 0:
-                deferredGetterName = "spaces-members-".concat(spaceId);
-                if (!this.spacesMembers.has(spaceId) && !this.deferredGetters.has(deferredGetterName)) {
-                  this.createDeferredGetter(deferredGetterName);
-                  this.client.send('GetSpaceMembers', {
-                    id: spaceId
-                  });
-                }
-                _context8.next = 4;
-                return this.deferredGetterReadiness(deferredGetterName);
-              case 4:
-                return _context8.abrupt("return", this.spacesMembers.get(spaceId));
-              case 5:
-              case "end":
-                return _context8.stop();
-            }
-          }
-        }, _callee8, this);
-      }));
-      function getSpaceMembers(_x5) {
-        return _getSpaceMembers.apply(this, arguments);
-      }
-      return getSpaceMembers;
-    }()
-  }, {
-    key: "getRoomMembers",
-    value: function () {
-      var _getRoomMembers = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(roomId) {
-        var deferredGetterName;
-        return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                deferredGetterName = "rooms-members-".concat(roomId);
-                if (!this.roomsMembers.has(roomId) && !this.deferredGetters.has(deferredGetterName)) {
-                  this.createDeferredGetter(deferredGetterName);
-                  this.client.send('GetRoomMembers', {
-                    id: roomId
-                  });
-                }
-                _context9.next = 4;
-                return this.deferredGetterReadiness(deferredGetterName);
-              case 4:
-                return _context9.abrupt("return", this.roomsMembers.get(roomId));
-              case 5:
-              case "end":
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-      function getRoomMembers(_x6) {
-        return _getRoomMembers.apply(this, arguments);
-      }
-      return getRoomMembers;
-    }()
-  }, {
-    key: "deferredGetterReadiness",
-    value: function () {
-      var _deferredGetterReadiness = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10(name) {
-        return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                if (!this.deferredGetters.has(name)) {
-                  _context10.next = 3;
-                  break;
-                }
-                _context10.next = 3;
-                return this.deferredGetters.get(name).promise;
-              case 3:
-              case "end":
-                return _context10.stop();
-            }
-          }
-        }, _callee10, this);
-      }));
-      function deferredGetterReadiness(_x7) {
-        return _deferredGetterReadiness.apply(this, arguments);
-      }
-      return deferredGetterReadiness;
-    }()
-  }, {
-    key: "bind",
-    value: function bind() {
-      var _this = this;
-      this.client.on(this.client.Event.disconnect, function (ev) {
-        return _this.handleDisconnect(ev);
-      });
-      this.client.on('NewMessage', function (ev) {
-        return _this.handleNewMessage(ev);
-      });
-      this.client.on('NewRole', function (ev) {
-        return _this.handleNewRole(ev);
-      });
-      this.client.on('NewRoom', function (ev) {
-        return _this.handleNewRoom(ev);
-      });
-      this.client.on('NewTopic', function (ev) {
-        return _this.handleNewTopic(ev);
-      });
-      this.client.on('RoleDeleted', function (ev) {
-        return _this.handleRoleDeleted(ev);
-      });
-      this.client.on('RoomDeleted', function (ev) {
-        return _this.handleRoomDeleted(ev);
-      });
-      this.client.on('RoomJoined', function (ev) {
-        return _this.handleRoomJoined(ev);
-      });
-      this.client.on('RoomLeft', function (ev) {
-        return _this.handleRoomLeft(ev);
-      });
-      this.client.on('RoomMemberJoined', function (ev) {
-        return _this.handleRoomMemberJoined(ev);
-      });
-      this.client.on('RoomMemberLeft', function (ev) {
-        return _this.handleRoomMemberLeft(ev);
-      });
-      this.client.on('RoomMembers', function (ev) {
-        return _this.handleRoomMembers(ev);
-      });
-      this.client.on('Session', function (ev) {
-        return _this.handleSession(ev);
-      });
-      this.client.on('SpaceDeleted', function (ev) {
-        return _this.handleSpaceDeleted(ev);
-      });
-      this.client.on('SpaceJoined', function (ev) {
-        return _this.handleSpaceJoined(ev);
-      });
-      this.client.on('SpaceLeft', function (ev) {
-        return _this.handleSpaceLeft(ev);
-      });
-      this.client.on('SpaceMemberJoined', function (ev) {
-        return _this.handleSpaceMemberJoined(ev);
-      });
-      this.client.on('SpaceMemberLeft', function (ev) {
-        return _this.handleSpaceMemberLeft(ev);
-      });
-      this.client.on('SpaceMembers', function (ev) {
-        return _this.handleSpaceMembers(ev);
-      });
-      this.client.on('SpaceRooms', function (ev) {
-        return _this.handleSpaceRooms(ev);
-      });
-      this.client.on('SpaceMemberUpdate', function (ev) {
-        return _this.handleSpaceMemberUpdate(ev);
-      });
-      this.client.on('TopicDeleted', function (ev) {
-        return _this.handleTopicDeleted(ev);
-      });
-    }
-  }, {
-    key: "createDeferredGetter",
-    value: function createDeferredGetter(name) {
-      var _this2 = this;
-      if (this.deferredGetters.has(name)) {
-        return;
-      }
-      var deferred = {
-        promise: undefined,
-        resolver: undefined
-      };
-      deferred.promise = new Promise(function (resolve) {
-        return deferred.resolver = function () {
-          _this2.deferredGetters["delete"](name);
-          resolve();
-        };
-      });
-      this.deferredGetters.set([name, deferred]);
-    }
-  }, {
-    key: "handleDisconnect",
-    value: function handleDisconnect(reconnect) {
-      if (reconnect) {
-        this.reconnecting = true;
-        return;
-      }
-    }
-  }, {
-    key: "handleNewMessage",
-    value: function handleNewMessage(ev) {
-      this.topicsMessages.get(ev.topicId).set(ev.message);
-    }
-  }, {
-    key: "handleNewRole",
-    value: function handleNewRole(ev) {
-      var collection = this.spacesRoles.get(ev.spaceId);
-      collection.set(ev.role);
-      this.joinedSpaces.get(ev.spaceId).roles = collection.items;
-    }
-  }, {
-    key: "handleNewRoom",
-    value: function handleNewRoom(ev) {
-      var _this$spacesRooms$get;
-      (_this$spacesRooms$get = this.spacesRooms.get(ev.spaceId)) === null || _this$spacesRooms$get === void 0 ? void 0 : _this$spacesRooms$get.set(ev.summary);
-    }
-  }, {
-    key: "handleNewTopic",
-    value: function handleNewTopic(ev) {
-      this.addJoinedRoomTopics(ev.roomId, ev.topic);
-      this.joinedRooms.get(ev.roomId).topics.push(ev.topic);
-    }
-  }, {
-    key: "addJoinedRoomTopics",
-    value: function addJoinedRoomTopics(roomId) {
-      var _this$topicsMessages;
-      for (var _len = arguments.length, topics = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        topics[_key - 1] = arguments[_key];
-      }
-      if (this.roomsTopics.has(roomId)) {
-        var _this$roomsTopics$get;
-        (_this$roomsTopics$get = this.roomsTopics.get(roomId)).set.apply(_this$roomsTopics$get, topics);
-      } else {
-        this.roomsTopics.set([roomId, new ObservableIndexedObjectCollection('id', topics)]);
-      }
-      (_this$topicsMessages = this.topicsMessages).set.apply(_this$topicsMessages, ChatStateTracker_toConsumableArray(topics.map(function (topic) {
-        return [topic.id, new ObservableIndexedObjectCollection('id')];
-      })));
-    }
-  }, {
-    key: "handleRoleDeleted",
-    value: function handleRoleDeleted(ev) {
-      var collection = this.spacesRoles.get(ev.spaceId);
-      collection["delete"](ev.id);
-      this.joinedSpaces.get(ev.spaceId).roles = collection.items;
-    }
-  }, {
-    key: "handleRoomDeleted",
-    value: function handleRoomDeleted(ev) {
-      if (ev.spaceId) {
-        this.spacesRooms.get(ev.spaceId)["delete"](ev.id);
-      }
-      this.deleteJoinedRooms(ev.id);
-    }
-  }, {
-    key: "handleRoomJoined",
-    value: function handleRoomJoined(ev) {
-      this.addJoinedRooms(ev.room);
-    }
-  }, {
-    key: "addJoinedRooms",
-    value: function addJoinedRooms() {
-      var _this$joinedRooms;
-      for (var _len2 = arguments.length, rooms = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        rooms[_key2] = arguments[_key2];
-      }
-      for (var _i = 0, _rooms = rooms; _i < _rooms.length; _i++) {
-        var room = _rooms[_i];
-        this.addJoinedRoomTopics.apply(this, [room.id].concat(ChatStateTracker_toConsumableArray(room.topics)));
-      }
-      (_this$joinedRooms = this.joinedRooms).set.apply(_this$joinedRooms, rooms);
-    }
-  }, {
-    key: "handleRoomLeft",
-    value: function handleRoomLeft(ev) {
-      this.deleteJoinedRooms(ev.id);
-    }
-  }, {
-    key: "deleteJoinedRooms",
-    value: function deleteJoinedRooms() {
-      var _this$joinedRooms2, _this$roomsMembers, _this$topicsMessages2, _this$roomsTopics;
-      for (var _len3 = arguments.length, roomIds = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        roomIds[_key3] = arguments[_key3];
-      }
-      (_this$joinedRooms2 = this.joinedRooms)["delete"].apply(_this$joinedRooms2, roomIds);
-      (_this$roomsMembers = this.roomsMembers)["delete"].apply(_this$roomsMembers, roomIds);
-      var topicIds = [];
-      for (var _i2 = 0, _roomIds = roomIds; _i2 < _roomIds.length; _i2++) {
-        var _this$roomsTopics$get2, _this$roomsTopics$get3;
-        var roomId = _roomIds[_i2];
-        topicIds.push.apply(topicIds, ChatStateTracker_toConsumableArray((_this$roomsTopics$get2 = (_this$roomsTopics$get3 = this.roomsTopics.get(roomId)) === null || _this$roomsTopics$get3 === void 0 ? void 0 : _this$roomsTopics$get3.map(function (topic) {
-          return topic.id;
-        })) !== null && _this$roomsTopics$get2 !== void 0 ? _this$roomsTopics$get2 : []));
-      }
-      (_this$topicsMessages2 = this.topicsMessages)["delete"].apply(_this$topicsMessages2, topicIds);
-      (_this$roomsTopics = this.roomsTopics)["delete"].apply(_this$roomsTopics, roomIds);
-    }
-  }, {
-    key: "handleRoomMemberJoined",
-    value: function handleRoomMemberJoined(ev) {
-      if (this.roomsMembers.has(ev.roomId)) {
-        this.roomsMembers.get(ev.roomId).set(ev.member);
-      }
-    }
-  }, {
-    key: "handleRoomMemberLeft",
-    value: function handleRoomMemberLeft(ev) {
-      if (this.roomsMembers.has(ev.roomId)) {
-        this.roomsMembers.get(ev.roomId)["delete"](ev.userId);
-      }
-    }
-  }, {
-    key: "handleRoomMembers",
-    value: function handleRoomMembers(ev) {
-      if (!this.roomsMembers.has(ev.id)) {
-        var _this$deferredGetters;
-        this.roomsMembers.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
-          var _member$user$id, _member$user;
-          return (_member$user$id = (_member$user = member.user) === null || _member$user === void 0 ? void 0 : _member$user.id) !== null && _member$user$id !== void 0 ? _member$user$id : member.spaceMember.user.id;
-        }, ev.members)]);
-        (_this$deferredGetters = this.deferredGetters.get("rooms-members-".concat(ev.id))) === null || _this$deferredGetters === void 0 ? void 0 : _this$deferredGetters.resolver();
-      }
-    }
-  }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      var _this$deferredGetters2;
-      if (this.me && !this.reconnecting) {
-        return;
-      }
       this.me = ev.user;
-      this.reconnecting = false;
-      this.joinedRooms.deleteAll();
-      this.roomsTopics.deleteAll();
-      this.roomsMembers.deleteAll();
-      this.joinedSpaces.deleteAll();
-      this.spacesRoles.deleteAll();
-      this.spacesRooms.deleteAll();
-      this.spacesMembers.deleteAll();
-      this.addJoinedRooms.apply(this, ChatStateTracker_toConsumableArray(ev.state.rooms));
-      this.addJoinedSpaces.apply(this, ChatStateTracker_toConsumableArray(ev.state.spaces));
-      (_this$deferredGetters2 = this.deferredGetters.get('session')) === null || _this$deferredGetters2 === void 0 ? void 0 : _this$deferredGetters2.resolver();
-    }
-  }, {
-    key: "handleSpaceDeleted",
-    value: function handleSpaceDeleted(ev) {
-      this.deleteJoinedRooms.apply(this, ChatStateTracker_toConsumableArray(this.joinedRooms.findBy('spaceId', ev.id).map(function (room) {
-        return room.id;
-      })));
-      this.spacesRoles["delete"](ev.id);
-      this.spacesMembers["delete"](ev.id);
-      this.spacesRooms["delete"](ev.id);
-      this.joinedSpaces["delete"](ev.id);
-    }
-  }, {
-    key: "handleSpaceJoined",
-    value: function handleSpaceJoined(ev) {
-      this.addJoinedSpaces(ev.space);
-    }
-  }, {
-    key: "addJoinedSpaces",
-    value: function addJoinedSpaces() {
-      var _this$spacesRoles, _this$joinedSpaces;
-      for (var _len4 = arguments.length, spaces = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        spaces[_key4] = arguments[_key4];
-      }
-      (_this$spacesRoles = this.spacesRoles).set.apply(_this$spacesRoles, ChatStateTracker_toConsumableArray(spaces.map(function (space) {
-        return [space.id, new ObservableIndexedObjectCollection('id', space.roles)];
-      })));
-      (_this$joinedSpaces = this.joinedSpaces).set.apply(_this$joinedSpaces, spaces);
-    }
-  }, {
-    key: "handleSpaceLeft",
-    value: function handleSpaceLeft(ev) {
-      this.handleSpaceDeleted(ev);
-    }
-  }, {
-    key: "handleSpaceMemberJoined",
-    value: function handleSpaceMemberJoined(ev) {
-      if (this.spacesMembers.has(ev.spaceId)) {
-        this.spacesMembers.get(ev.spaceId).set(ev.member);
-      }
-    }
-  }, {
-    key: "handleSpaceMemberLeft",
-    value: function handleSpaceMemberLeft(ev) {
-      if (this.spacesMembers.has(ev.spaceId)) {
-        this.spacesMembers.get(ev.spaceId)["delete"](ev.userId);
-      }
-    }
-  }, {
-    key: "handleSpaceMembers",
-    value: function handleSpaceMembers(ev) {
-      if (!this.spacesMembers.has(ev.id)) {
-        var _this$deferredGetters3;
-        this.spacesMembers.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
-          return member === null || member === void 0 ? void 0 : member.user.id;
-        }, ev.members)]);
-        (_this$deferredGetters3 = this.deferredGetters.get("spaces-members-".concat(ev.id))) === null || _this$deferredGetters3 === void 0 ? void 0 : _this$deferredGetters3.resolver();
-      }
-    }
-  }, {
-    key: "handleSpaceRooms",
-    value: function handleSpaceRooms(ev) {
-      if (!this.spacesRooms.has(ev.id)) {
-        var _this$deferredGetters4;
-        this.spacesRooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
-        (_this$deferredGetters4 = this.deferredGetters.get("spaces-rooms-".concat(ev.id))) === null || _this$deferredGetters4 === void 0 ? void 0 : _this$deferredGetters4.resolver();
-      }
-    }
-  }, {
-    key: "handleSpaceMemberUpdate",
-    value: function handleSpaceMemberUpdate(ev) {
-      if (this.spacesMembers.has(ev.spaceId)) {
-        this.spacesMembers.get(ev.spaceId).set(ev.member);
-      }
-    }
-  }, {
-    key: "handleTopicDeleted",
-    value: function handleTopicDeleted(ev) {
-      var collection = this.roomsTopics.get(ev.roomId);
-      collection["delete"](ev.id);
-      this.joinedRooms.get(ev.roomId).topics = collection.items;
+      this.deferredSession.resolve();
     }
   }]);
   return ChatStateTracker;
@@ -1793,6 +2388,7 @@ var AuthClient = /*#__PURE__*/function (_AbstractRestClient) {
   return AuthClient;
 }(AbstractRestClient);
 ;// CONCATENATED MODULE: ./src/index.ts
+
 
 
 

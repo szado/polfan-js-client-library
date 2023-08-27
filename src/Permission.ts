@@ -1,0 +1,15 @@
+export enum Permission {
+    Root = 1 << 0,
+    CreateSpaces = 1 << 1,
+    ManageSpaces = 1 << 2,
+    ManageRoles = 1 << 3,
+    ChangeNick = 1 << 4,
+    ManageRooms = 1 << 5,
+    ManageTopics = 1 << 6,
+    ManageMembers = 1 << 7,
+    SendMessages = 1 << 8,
+    ViewMessages = 1 << 9,
+    ChangeMessages = 1 << 10,
+    ManageMessages = 1 << 11,
+    ManagePermissions = 1 << 12,
+}

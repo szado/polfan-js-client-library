@@ -1,4 +1,4 @@
-import { Bye, GetSession, JoinSpace, Ok, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdate, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetUserPermissions, SetUserPermissions, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetRolePermissions, GetRolePermissions, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope } from "pserv-ts-types";
+import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesChanged, RoomMemberUpdated, UpdateRole, RoleUpdated } from "pserv-ts-types";
 import { EventTarget } from "./EventTarget";
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 export declare abstract class AbstractChatClient extends EventTarget {
@@ -21,24 +21,27 @@ export type CommandResult<ResultT> = {
  */
 export type EventsMap = {
     Bye: Bye;
-    Ok: Ok;
     Error: ErrorType;
     Session: Session;
     Permissions: Permissions;
+    PermissionOverwrites: PermissionOverwrites;
+    PermissionOverwritesChanged: PermissionOverwritesChanged;
     SpaceJoined: SpaceJoined;
     SpaceLeft: SpaceLeft;
     SpaceMemberJoined: SpaceMemberJoined;
     SpaceMemberLeft: SpaceMemberLeft;
-    SpaceMemberUpdate: SpaceMemberUpdate;
+    SpaceMemberUpdated: SpaceMemberUpdated;
     SpaceDeleted: SpaceDeleted;
     SpaceMembers: SpaceMembers;
     SpaceRooms: SpaceRooms;
     NewRole: NewRole;
     RoleDeleted: RoomDeleted;
+    RoleUpdated: RoleUpdated;
     RoomJoined: RoomJoined;
     RoomLeft: RoomLeft;
     RoomMemberJoined: RoomMemberJoined;
     RoomMemberLeft: RoomMemberLeft;
+    RoomMemberUpdated: RoomMemberUpdated;
     RoomMembers: RoomMembers;
     NewRoom: NewRoom;
     RoomDeleted: RoomDeleted;
@@ -51,8 +54,8 @@ export type EventsMap = {
  */
 export type CommandsMap = {
     GetSession: [GetSession, EventsMap['Session']];
-    SetUserPermissions: [SetUserPermissions, EventsMap['Permissions']];
-    GetUserPermissions: [GetUserPermissions, EventsMap['Permissions']];
+    SetPermissionOverwrites: [SetPermissionOverwrites, EventsMap['PermissionOverwritesChanged']];
+    GetPermissionOverwrites: [GetPermissionOverwrites, EventsMap['PermissionOverwrites']];
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']];
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']];
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']];
@@ -62,10 +65,9 @@ export type CommandsMap = {
     GetSpaceRooms: [GetSpaceRooms, EventsMap['SpaceRooms']];
     CreateRole: [CreateRole, EventsMap['NewRole']];
     DeleteRole: [DeleteRole, EventsMap['RoleDeleted']];
-    AssignRole: [AssignRole, EventsMap['SpaceMemberUpdate']];
-    DeassignRole: [DeassignRole, EventsMap['SpaceMemberUpdate']];
-    SetRolePermissions: [SetRolePermissions, EventsMap['Permissions']];
-    GetRolePermissions: [GetRolePermissions, EventsMap['Permissions']];
+    UpdateRole: [UpdateRole, EventsMap['RoleUpdated']];
+    AssignRole: [AssignRole, EventsMap['SpaceMemberUpdated'] | EventsMap['RoomMemberUpdated']];
+    DeassignRole: [DeassignRole, EventsMap['SpaceMemberUpdated'] | EventsMap['RoomMemberUpdated']];
     JoinRoom: [JoinRoom, EventsMap['RoomJoined']];
     LeaveRoom: [LeaveRoom, EventsMap['RoomLeft']];
     CreateRoom: [CreateRoom, EventsMap['NewRoom']];

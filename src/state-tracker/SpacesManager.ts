@@ -10,12 +10,14 @@ import {
     SpaceDeleted, SpaceJoined, SpaceLeft,
     SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms
 } from "pserv-ts-types";
+import {DeferredTask} from "./DeferredTask";
 
 export class SpacesManager {
     private readonly list = new ObservableIndexedObjectCollection<Space>('id');
     private readonly roles = new IndexedCollection<string, ObservableIndexedObjectCollection<Role>>();
     private readonly rooms = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomSummary>>();
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<SpaceMember>>();
+    private readonly deferredSession = new DeferredTask();
 
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('NewRoom', ev => this.handleNewRoom(ev));
@@ -38,7 +40,7 @@ export class SpacesManager {
      * Get collection of all the spaces you are in.
      */
     public async get(): Promise<ObservableIndexedObjectCollection<Space>> {
-        await this.tracker.deferred.task('session');
+        await this.deferredSession.promise;
         return this.list;
     }
 
@@ -46,7 +48,7 @@ export class SpacesManager {
      * Get collection of space roles.
      */
     public async getRoles(spaceId: string): Promise<ObservableIndexedObjectCollection<Role> | null> {
-        await this.tracker.deferred.task('session');
+        await this.deferredSession.promise;
         return this.roles.get(spaceId);
     }
 
@@ -54,14 +56,15 @@ export class SpacesManager {
      * Get collection of the all available rooms inside given space.
      */
     public async getRooms(spaceId: string): Promise<ObservableIndexedObjectCollection<RoomSummary> | null> {
-        const deferredGetterName = `spaces-rooms-${spaceId}`;
+        if (! this.rooms.has(spaceId)) {
+            const result = await this.tracker.client.send('GetSpaceRooms', {id: spaceId});
 
-        if (! this.rooms.has(spaceId) && ! this.tracker.deferred.exists(deferredGetterName)) {
-            this.tracker.deferred.create(deferredGetterName);
-            this.tracker.client.send('GetSpaceRooms', {id: spaceId});
+            if (result.error) {
+                throw result.error;
+            }
+
+            this.handleSpaceRooms(result.data);
         }
-
-        await this.tracker.deferred.task(deferredGetterName);
 
         return this.rooms.get(spaceId);
     }
@@ -70,16 +73,32 @@ export class SpacesManager {
      * Get collection of space members.
      */
     public async getMembers(spaceId: string): Promise<ObservableIndexedObjectCollection<SpaceMember> | null> {
-        const deferredGetterName = `spaces-members-${spaceId}`;
+        if (! this.members.has(spaceId)) {
+            const result = await this.tracker.client.send('GetSpaceMembers', {id: spaceId});
 
-        if (! this.members.has(spaceId) && ! this.tracker.deferred.exists(deferredGetterName)) {
-            this.tracker.deferred.create(deferredGetterName);
-            this.tracker.client.send('GetSpaceMembers', {id: spaceId});
+            if (result.error) {
+                throw result.error;
+            }
+
+            this.handleSpaceMembers(result.data);
         }
 
-        await this.tracker.deferred.task(deferredGetterName);
-
         return this.members.get(spaceId);
+    }
+
+    /**
+     * Get a space member representing the current user.
+     */
+    public async getMe(spaceId: string): Promise<SpaceMember | null> {
+        const userId = (await this.tracker.getMe()).id;
+        const members = await this.getMembers(spaceId);
+
+        if (! members) {
+            // User is not in passed space.
+            return null;
+        }
+
+        return members.items.find(member => member.user.id === userId);
     }
 
     private handleNewRole(ev: NewRole): void {
@@ -148,16 +167,12 @@ export class SpacesManager {
                 ev.id,
                 new ObservableIndexedObjectCollection(member => member?.user.id, ev.members)
             ]);
-
-            this.tracker.deferred.complete(`spaces-members-${ev.id}`);
         }
     }
 
     private handleSpaceRooms(ev: SpaceRooms): void {
         if (! this.rooms.has(ev.id)) {
             this.rooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
-
-            this.tracker.deferred.complete(`spaces-rooms-${ev.id}`);
         }
     }
 
@@ -180,5 +195,7 @@ export class SpacesManager {
         this.members.deleteAll();
 
         this.addJoinedSpaces(...ev.state.spaces);
+
+        this.deferredSession.resolve();
     }
 }

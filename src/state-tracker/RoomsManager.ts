@@ -10,6 +10,7 @@ import {
     TopicDeleted
 } from "pserv-ts-types";
 import {ChatStateTracker} from "./ChatStateTracker";
+import {DeferredTask} from "./DeferredTask";
 
 export class RoomsManager {
     private readonly list = new ObservableIndexedObjectCollection<Room>('id');
@@ -17,6 +18,7 @@ export class RoomsManager {
     // Temporary not lazy loaded; server must implement GetTopicMessages command.
     private readonly topicsMessages = new IndexedCollection<string, ObservableIndexedObjectCollection<Message>>();
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomMember>>();
+    private readonly deferredSession = new DeferredTask();
 
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('NewMessage', ev => this.handleNewMessage(ev));
@@ -35,23 +37,39 @@ export class RoomsManager {
      * Get collection of room members.
      */
     public async getMembers(roomId: string): Promise<ObservableIndexedObjectCollection<RoomMember> | null> {
-        const deferredGetterName = `rooms-members-${roomId}`;
+        if (! this.members.has(roomId)) {
+            const result = await this.tracker.client.send('GetRoomMembers', {id: roomId});
 
-        if (! this.members.has(roomId) && ! this.tracker.deferred.exists(deferredGetterName)) {
-            this.tracker.deferred.create(deferredGetterName);
-            this.tracker.client.send('GetRoomMembers', {id: roomId});
+            if (result.error) {
+                throw result.error;
+            }
+
+            this.handleRoomMembers(result.data);
         }
 
-        await this.tracker.deferred.task(deferredGetterName);
-
         return this.members.get(roomId);
+    }
+
+    /**
+     * Get a room member representing the current user.
+     */
+    public async getMe(roomId: string): Promise<RoomMember | null> {
+        const userId = (await this.tracker.getMe()).id;
+        const members = await this.getMembers(roomId);
+
+        if (! members) {
+            // User is not in passed room.
+            return null;
+        }
+
+        return members.items.find(member => (member.user?.id ?? member.spaceMember.user.id) === userId);
     }
 
     /**
      * Get collection of all the rooms you are in.
      */
     public async get(): Promise<ObservableIndexedObjectCollection<Room>> {
-        await this.tracker.deferred.task('session');
+        await this.deferredSession.promise;
         return this.list;
     }
 
@@ -59,7 +77,7 @@ export class RoomsManager {
      * Get collection of room topics.
      */
     public async getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | null> {
-        await this.tracker.deferred.task('session');
+        await this.deferredSession.promise;
         return this.topics.get(roomId);
     }
 
@@ -71,7 +89,7 @@ export class RoomsManager {
     }
 
     /**
-     * Method for internal use. If you want to leave the room, execute a proper command on client object.
+     * For internal use. If you want to leave the room, execute a proper command on client object.
      * @internal
      */
     public _delete(...roomIds: string[]): void {
@@ -88,7 +106,7 @@ export class RoomsManager {
     }
 
     /**
-     * Method for internal use. If you want to leave the room, execute a proper command on client object.
+     * For internal use. If you want to leave the room, execute a proper command on client object.
      * @internal
      */
     public _deleteBySpaceId(spaceId: string): void {
@@ -98,7 +116,7 @@ export class RoomsManager {
     }
 
     /**
-     * Method for internal use.
+     * For internal use.
      * @internal
      */
     public _handleSpaceMemberUpdate(spaceId: string, member: SpaceMember): void {
@@ -189,8 +207,6 @@ export class RoomsManager {
                     ev.members,
                 )
             ]);
-
-            this.tracker.deferred.complete(`rooms-members-${ev.id}`);
         }
     }
 
@@ -200,5 +216,7 @@ export class RoomsManager {
         this.members.deleteAll();
 
         this.addJoinedRooms(...ev.state.rooms);
+
+        this.deferredSession.resolve();
     }
 }
