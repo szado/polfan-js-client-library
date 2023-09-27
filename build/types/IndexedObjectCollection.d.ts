@@ -5,7 +5,7 @@ export declare class IndexedCollection<KeyT, ValueT> {
     get items(): Map<KeyT, ValueT>;
     get length(): number;
     set(...items: [KeyT, ValueT][]): void;
-    get(id: KeyT): ValueT | null;
+    get(id: KeyT): ValueT | undefined;
     has(id: KeyT): boolean;
     delete(...ids: KeyT[]): void;
     deleteAll(): void;
@@ -19,8 +19,8 @@ export declare class IndexedObjectCollection<T> {
     get items(): T[];
     get length(): number;
     set(...items: T[]): void;
-    get(id: any): T | null;
-    getAt(index: number): T | null;
+    get(id: any): T | undefined;
+    getAt(index: number): T | undefined;
     has(id: any): boolean;
     delete(...ids: any[]): void;
     deleteAll(): void;

@@ -21,7 +21,7 @@ export class IndexedCollection<KeyT, ValueT> {
         }
     }
 
-    public get(id: KeyT): ValueT | null {
+    public get(id: KeyT): ValueT | undefined {
         return this.items.get(id);
     }
 
@@ -81,11 +81,11 @@ export class IndexedObjectCollection<T> {
         this._items.set(...(items.map(item => [this.getId(item), item] as [string, T])));
     }
 
-    public get(id: any): T | null {
+    public get(id: any): T | undefined {
         return this._items.get(id);
     }
 
-    public getAt(index: number): T|null {
+    public getAt(index: number): T | undefined {
         return this.items[index];
     }
 

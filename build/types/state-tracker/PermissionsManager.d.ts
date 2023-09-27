@@ -6,7 +6,7 @@ export declare class PermissionsManager extends EventTarget {
     private tracker;
     private readonly overwrites;
     constructor(tracker: ChatStateTracker);
-    getOverwrites(layer: PermissionOverwrites['layer'], layerId: PermissionOverwrites['layerId'], target: PermissionOverwrites['target'], targetId: PermissionOverwrites['targetId']): Promise<PermissionOverwrites | null>;
+    getOverwrites(layer: PermissionOverwrites['layer'], layerId: PermissionOverwrites['layerId'], target: PermissionOverwrites['target'], targetId: PermissionOverwrites['targetId']): Promise<PermissionOverwrites | undefined>;
     on(eventName: 'change', handler: EventHandler<any>): this;
     check(permissionNames: (keyof typeof Permission)[], spaceId?: string, roomId?: string, topicId?: string): Promise<{
         ok: boolean;

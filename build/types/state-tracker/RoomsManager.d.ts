@@ -12,11 +12,11 @@ export declare class RoomsManager {
     /**
      * Get collection of room members.
      */
-    getMembers(roomId: string): Promise<ObservableIndexedObjectCollection<RoomMember> | null>;
+    getMembers(roomId: string): Promise<ObservableIndexedObjectCollection<RoomMember> | undefined>;
     /**
      * Get a room member representing the current user.
      */
-    getMe(roomId: string): Promise<RoomMember | null>;
+    getMe(roomId: string): Promise<RoomMember | undefined>;
     /**
      * Get collection of all the rooms you are in.
      */
@@ -24,11 +24,11 @@ export declare class RoomsManager {
     /**
      * Get collection of room topics.
      */
-    getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | null>;
+    getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | undefined>;
     /**
      * Get collection of the messages written in topic.
      */
-    getMessages(topicId: string): Promise<ObservableIndexedObjectCollection<Message> | null>;
+    getMessages(topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
     /**
      * For internal use. If you want to leave the room, execute a proper command on client object.
      * @internal

@@ -36,7 +36,7 @@ export class RoomsManager {
     /**
      * Get collection of room members.
      */
-    public async getMembers(roomId: string): Promise<ObservableIndexedObjectCollection<RoomMember> | null> {
+    public async getMembers(roomId: string): Promise<ObservableIndexedObjectCollection<RoomMember> | undefined> {
         if (! this.members.has(roomId)) {
             const result = await this.tracker.client.send('GetRoomMembers', {id: roomId});
 
@@ -53,13 +53,13 @@ export class RoomsManager {
     /**
      * Get a room member representing the current user.
      */
-    public async getMe(roomId: string): Promise<RoomMember | null> {
+    public async getMe(roomId: string): Promise<RoomMember | undefined> {
         const userId = (await this.tracker.getMe()).id;
         const members = await this.getMembers(roomId);
 
         if (! members) {
             // User is not in passed room.
-            return null;
+            return undefined;
         }
 
         return members.items.find(member => (member.user?.id ?? member.spaceMember.user.id) === userId);
@@ -76,7 +76,7 @@ export class RoomsManager {
     /**
      * Get collection of room topics.
      */
-    public async getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | null> {
+    public async getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | undefined> {
         await this.deferredSession.promise;
         return this.topics.get(roomId);
     }
@@ -84,7 +84,7 @@ export class RoomsManager {
     /**
      * Get collection of the messages written in topic.
      */
-    public async getMessages(topicId: string): Promise<ObservableIndexedObjectCollection<Message> | null> {
+    public async getMessages(topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined> {
         return this.topicsMessages.get(topicId);
     }
 

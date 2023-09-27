@@ -16,19 +16,19 @@ export declare class SpacesManager {
     /**
      * Get collection of space roles.
      */
-    getRoles(spaceId: string): Promise<ObservableIndexedObjectCollection<Role> | null>;
+    getRoles(spaceId: string): Promise<ObservableIndexedObjectCollection<Role> | undefined>;
     /**
      * Get collection of the all available rooms inside given space.
      */
-    getRooms(spaceId: string): Promise<ObservableIndexedObjectCollection<RoomSummary> | null>;
+    getRooms(spaceId: string): Promise<ObservableIndexedObjectCollection<RoomSummary> | undefined>;
     /**
      * Get collection of space members.
      */
-    getMembers(spaceId: string): Promise<ObservableIndexedObjectCollection<SpaceMember> | null>;
+    getMembers(spaceId: string): Promise<ObservableIndexedObjectCollection<SpaceMember> | undefined>;
     /**
      * Get a space member representing the current user.
      */
-    getMe(spaceId: string): Promise<SpaceMember | null>;
+    getMe(spaceId: string): Promise<SpaceMember | undefined>;
     private handleNewRole;
     private handleNewRoom;
     private handleRoomDeleted;

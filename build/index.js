@@ -710,7 +710,7 @@ var RoomsManager = /*#__PURE__*/function () {
                   _context2.next = 8;
                   break;
                 }
-                return _context2.abrupt("return", null);
+                return _context2.abrupt("return", undefined);
               case 8:
                 return _context2.abrupt("return", members.items.find(function (member) {
                   var _member$user$id, _member$user;
@@ -1210,7 +1210,7 @@ var SpacesManager = /*#__PURE__*/function () {
                   _context5.next = 8;
                   break;
                 }
-                return _context5.abrupt("return", null);
+                return _context5.abrupt("return", undefined);
               case 8:
                 return _context5.abrupt("return", members.items.find(function (member) {
                   return member.user.id === userId;

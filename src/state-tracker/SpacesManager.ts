@@ -47,7 +47,7 @@ export class SpacesManager {
     /**
      * Get collection of space roles.
      */
-    public async getRoles(spaceId: string): Promise<ObservableIndexedObjectCollection<Role> | null> {
+    public async getRoles(spaceId: string): Promise<ObservableIndexedObjectCollection<Role> | undefined> {
         await this.deferredSession.promise;
         return this.roles.get(spaceId);
     }
@@ -55,7 +55,7 @@ export class SpacesManager {
     /**
      * Get collection of the all available rooms inside given space.
      */
-    public async getRooms(spaceId: string): Promise<ObservableIndexedObjectCollection<RoomSummary> | null> {
+    public async getRooms(spaceId: string): Promise<ObservableIndexedObjectCollection<RoomSummary> | undefined> {
         if (! this.rooms.has(spaceId)) {
             const result = await this.tracker.client.send('GetSpaceRooms', {id: spaceId});
 
@@ -72,7 +72,7 @@ export class SpacesManager {
     /**
      * Get collection of space members.
      */
-    public async getMembers(spaceId: string): Promise<ObservableIndexedObjectCollection<SpaceMember> | null> {
+    public async getMembers(spaceId: string): Promise<ObservableIndexedObjectCollection<SpaceMember> | undefined> {
         if (! this.members.has(spaceId)) {
             const result = await this.tracker.client.send('GetSpaceMembers', {id: spaceId});
 
@@ -89,13 +89,13 @@ export class SpacesManager {
     /**
      * Get a space member representing the current user.
      */
-    public async getMe(spaceId: string): Promise<SpaceMember | null> {
+    public async getMe(spaceId: string): Promise<SpaceMember | undefined> {
         const userId = (await this.tracker.getMe()).id;
         const members = await this.getMembers(spaceId);
 
         if (! members) {
             // User is not in passed space.
-            return null;
+            return undefined;
         }
 
         return members.items.find(member => member.user.id === userId);

@@ -34,7 +34,7 @@ export class PermissionsManager extends EventTarget {
         layerId: PermissionOverwrites['layerId'],
         target: PermissionOverwrites['target'],
         targetId: PermissionOverwrites['targetId'],
-    ): Promise<PermissionOverwrites | null> {
+    ): Promise<PermissionOverwrites | undefined> {
         const id = getOvId(layer, layerId, target, targetId);
 
         if (this.overwrites.has(id)) {
