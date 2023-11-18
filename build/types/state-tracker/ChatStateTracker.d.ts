@@ -17,9 +17,10 @@ export declare class ChatStateTracker {
      * State of your permissions.
      */
     readonly permissions: PermissionsManager;
-    private me;
+    private _me;
     private readonly deferredSession;
     constructor(client: WebSocketChatClient);
+    get me(): User | null;
     getMe(): Promise<User>;
     private handleSession;
 }

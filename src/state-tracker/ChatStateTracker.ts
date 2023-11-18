@@ -19,20 +19,24 @@ export class ChatStateTracker {
      */
     public readonly permissions = new PermissionsManager(this);
 
-    private me: User = null;
+    private _me: User = null;
     private readonly deferredSession = new DeferredTask();
 
     public constructor(public readonly client: WebSocketChatClient) {
         this.client.on('Session', ev => this.handleSession(ev));
     }
 
+    public get me(): User | null {
+        return this._me;
+    }
+
     public async getMe(): Promise<User> {
         await this.deferredSession.promise;
-        return this.me;
+        return this._me;
     }
 
     private handleSession(ev: Session): void {
-        this.me = ev.user;
+        this._me = ev.user;
         this.deferredSession.resolve();
     }
 }

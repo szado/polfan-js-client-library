@@ -1,4 +1,4 @@
-import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesChanged, RoomMemberUpdated, UpdateRole, RoleUpdated } from "pserv-ts-types";
+import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesChanged, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, AckMessage, GetAckReports } from "pserv-ts-types";
 import { EventTarget } from "./EventTarget";
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 export declare abstract class AbstractChatClient extends EventTarget {
@@ -48,6 +48,7 @@ export type EventsMap = {
     NewTopic: NewTopic;
     TopicDeleted: TopicDeleted;
     NewMessage: NewMessage;
+    AckReports: AckReports;
 };
 /**
  * Map of commands and their corresponding events.
@@ -76,5 +77,7 @@ export type CommandsMap = {
     CreateTopic: [CreateTopic, EventsMap['NewTopic']];
     DeleteTopic: [DeleteTopic, EventsMap['TopicDeleted']];
     CreateMessage: [CreateMessage, EventsMap['NewMessage']];
+    AckMessage: [AckMessage, EventsMap['AckReports']];
+    GetAckReports: [GetAckReports, EventsMap['AckReports']];
 };
 export {};

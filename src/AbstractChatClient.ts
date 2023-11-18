@@ -49,6 +49,9 @@ import {
     RoomMemberUpdated,
     UpdateRole,
     RoleUpdated,
+    AckReports,
+    AckMessage,
+    GetAckReports,
 } from "pserv-ts-types";
 import {EventTarget} from "./EventTarget";
 
@@ -143,6 +146,7 @@ export type EventsMap = {
     NewTopic: NewTopic,
     TopicDeleted: TopicDeleted,
     NewMessage: NewMessage,
+    AckReports: AckReports,
 };
 
 /**
@@ -176,4 +180,6 @@ export type CommandsMap = {
     CreateTopic: [CreateTopic, EventsMap['NewTopic']],
     DeleteTopic: [DeleteTopic, EventsMap['TopicDeleted']],
     CreateMessage: [CreateMessage, EventsMap['NewMessage']],
+    AckMessage: [AckMessage, EventsMap['AckReports']],
+    GetAckReports: [GetAckReports, EventsMap['AckReports']],
 }

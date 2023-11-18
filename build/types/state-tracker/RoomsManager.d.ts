@@ -1,11 +1,12 @@
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
-import { Message, Room, RoomMember, SpaceMember, Topic } from "pserv-ts-types";
+import { Room, RoomMember, SpaceMember, Topic } from "pserv-ts-types";
 import { ChatStateTracker } from "./ChatStateTracker";
+import { MessagesManager } from "./MessagesManager";
 export declare class RoomsManager {
     private tracker;
+    readonly messages: MessagesManager;
     private readonly list;
     private readonly topics;
-    private readonly topicsMessages;
     private readonly members;
     private readonly deferredSession;
     constructor(tracker: ChatStateTracker);
@@ -26,10 +27,6 @@ export declare class RoomsManager {
      */
     getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | undefined>;
     /**
-     * Get collection of the messages written in topic.
-     */
-    getMessages(topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
-    /**
      * For internal use. If you want to leave the room, execute a proper command on client object.
      * @internal
      */
@@ -46,7 +43,6 @@ export declare class RoomsManager {
     _handleSpaceMemberUpdate(spaceId: string, member: SpaceMember): void;
     private handleRoomMemberUpdated;
     private handleTopicDeleted;
-    private handleNewMessage;
     private handleNewTopic;
     private addJoinedRoomTopics;
     private handleRoomJoined;

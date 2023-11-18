@@ -1,6 +1,6 @@
 import {IndexedCollection, ObservableIndexedObjectCollection} from "../IndexedObjectCollection";
 import {
-    Message, NewMessage, NewTopic,
+    NewTopic,
     Room,
     RoomJoined, RoomLeft,
     RoomMember, RoomMemberJoined, RoomMemberLeft, RoomMembers,
@@ -11,17 +11,19 @@ import {
 } from "pserv-ts-types";
 import {ChatStateTracker} from "./ChatStateTracker";
 import {DeferredTask} from "./DeferredTask";
+import {MessagesManager} from "./MessagesManager";
 
 export class RoomsManager {
+    public readonly messages: MessagesManager;
+
     private readonly list = new ObservableIndexedObjectCollection<Room>('id');
     private readonly topics = new IndexedCollection<string, ObservableIndexedObjectCollection<Topic>>();
-    // Temporary not lazy loaded; server must implement GetTopicMessages command.
-    private readonly topicsMessages = new IndexedCollection<string, ObservableIndexedObjectCollection<Message>>();
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomMember>>();
     private readonly deferredSession = new DeferredTask();
 
     public constructor(private tracker: ChatStateTracker) {
-        this.tracker.client.on('NewMessage', ev => this.handleNewMessage(ev));
+        this.messages = new MessagesManager(tracker);
+
         this.tracker.client.on('NewTopic', ev => this.handleNewTopic(ev));
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
         this.tracker.client.on('RoomJoined', ev => this.handleRoomJoined(ev));
@@ -82,13 +84,6 @@ export class RoomsManager {
     }
 
     /**
-     * Get collection of the messages written in topic.
-     */
-    public async getMessages(topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined> {
-        return this.topicsMessages.get(topicId);
-    }
-
-    /**
      * For internal use. If you want to leave the room, execute a proper command on client object.
      * @internal
      */
@@ -96,11 +91,10 @@ export class RoomsManager {
         this.list.delete(...roomIds);
         this.members.delete(...roomIds);
 
-        const topicIds: string[] = [];
         for (const roomId of roomIds) {
-            topicIds.push(...(this.topics.get(roomId)?.map(topic => topic.id) ?? []));
+            const topicIds: string[] = this.topics.get(roomId)?.map(topic => topic.id) ?? [];
+            this.messages._deleteByTopicIds(roomId, ...topicIds);
         }
-        this.topicsMessages.delete(...topicIds);
 
         this.topics.delete(...roomIds);
     }
@@ -149,10 +143,6 @@ export class RoomsManager {
         this.list.get(ev.roomId).topics = collection.items;
     }
 
-    private handleNewMessage(ev: NewMessage): void {
-        this.topicsMessages.get(ev.topicId).set(ev.message);
-    }
-
     private handleNewTopic(ev: NewTopic): void {
         this.addJoinedRoomTopics(ev.roomId, ev.topic);
         this.list.get(ev.roomId).topics.push(ev.topic);
@@ -165,10 +155,7 @@ export class RoomsManager {
             this.topics.set([roomId, new ObservableIndexedObjectCollection<Topic>('id', topics)]);
         }
 
-        this.topicsMessages.set(...topics.map<[string, ObservableIndexedObjectCollection<Message>]>(topic => [
-            topic.id,
-            new ObservableIndexedObjectCollection<Message>('id')
-        ]));
+        this.messages._handleNewTopics(roomId, ...topics);
     }
 
     private handleRoomJoined(ev: RoomJoined): void {
