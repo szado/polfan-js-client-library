@@ -120,7 +120,7 @@ export class MessagesManager {
         }
 
         const newReports: AckReport[] = topics.map(topic => ({
-            roomId, topicId: topic.id, lastAckMessageId: null, missed: null, missedMoreThan: null
+            roomId, topicId: topic.id, lastAckMessageId: null, missed: 0, missedMoreThan: null
         }));
 
         ackReports.set(...newReports);
@@ -144,8 +144,8 @@ export class MessagesManager {
         } else {
             // ...add 1 otherwise
             update = {
-                missed: currentAckReport.missed ? currentAckReport.missed + 1 : null,
-                missedMoreThan: currentAckReport.missedMoreThan ? currentAckReport.missedMoreThan : null,
+                missed: currentAckReport.missed === null ? null : currentAckReport.missed + 1,
+                missedMoreThan: currentAckReport.missedMoreThan === null ? null : currentAckReport.missedMoreThan,
             };
         }
 

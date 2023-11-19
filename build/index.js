@@ -830,7 +830,7 @@ var MessagesManager = /*#__PURE__*/function () {
           roomId: roomId,
           topicId: topic.id,
           lastAckMessageId: null,
-          missed: null,
+          missed: 0,
           missedMoreThan: null
         };
       });
@@ -857,8 +857,8 @@ var MessagesManager = /*#__PURE__*/function () {
       } else {
         // ...add 1 otherwise
         update = {
-          missed: currentAckReport.missed ? currentAckReport.missed + 1 : null,
-          missedMoreThan: currentAckReport.missedMoreThan ? currentAckReport.missedMoreThan : null
+          missed: currentAckReport.missed === null ? null : currentAckReport.missed + 1,
+          missedMoreThan: currentAckReport.missedMoreThan === null ? null : currentAckReport.missedMoreThan
         };
       }
       ackReports.set(_objectSpread(_objectSpread({}, currentAckReport), update));
