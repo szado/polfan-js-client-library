@@ -31,7 +31,7 @@ export class MessagesManager {
      */
     public async cacheSpaceAckReports(spaceId: string): Promise<void> {
         if (! (await this.tracker.spaces.get()).has(spaceId)) {
-            return undefined;
+            throw `You are not in space ${spaceId}`;
         }
 
         const roomIds = (await this.tracker.rooms.get()).findBy('spaceId', spaceId).map(room => room.id);
