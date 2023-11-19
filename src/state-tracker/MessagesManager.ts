@@ -99,7 +99,7 @@ export class MessagesManager {
 
     private handleNewMessage(ev: NewMessage): void {
         this.list.get(getCombinedId(ev.roomId, ev.topicId)).set(ev.message);
-        this.updateLocallyAckReportOnNewMessage(ev.roomId, ev.topicId, ev.message.author.id);
+        this.updateLocallyAckReportOnNewMessage(ev);
     }
 
     private handleAckReports(ev: AckReports): void {
@@ -126,21 +126,21 @@ export class MessagesManager {
         ackReports.set(...newReports);
     }
 
-    private updateLocallyAckReportOnNewMessage(roomId: string, topicId: string, authorId: string): void {
-        const ackReports = this.acks.get(roomId);
+    private updateLocallyAckReportOnNewMessage(ev: NewMessage): void {
+        const ackReports = this.acks.get(ev.roomId);
 
         if (! ackReports) {
             // If we don't follow ack reports for this room, skip
             return;
         }
 
-        const isMe = authorId === this.tracker.me?.id;
-        const currentAckReport = ackReports.get(topicId);
+        const isMe = ev.message.author.id === this.tracker.me?.id;
+        const currentAckReport = ackReports.get(ev.topicId);
         let update: Partial<AckReport>;
 
         if (isMe) {
             // Reset missed messages count if new message is authored by me
-            update = {missed: 0, missedMoreThan: null};
+            update = {missed: 0, missedMoreThan: null, lastAckMessageId: ev.message.id};
         } else {
             // ...add 1 otherwise
             update = {

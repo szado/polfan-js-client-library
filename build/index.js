@@ -804,7 +804,7 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "handleNewMessage",
     value: function handleNewMessage(ev) {
       this.list.get(getCombinedId(ev.roomId, ev.topicId)).set(ev.message);
-      this.updateLocallyAckReportOnNewMessage(ev.roomId, ev.topicId, ev.message.author.id);
+      this.updateLocallyAckReportOnNewMessage(ev);
     }
   }, {
     key: "handleAckReports",
@@ -838,21 +838,22 @@ var MessagesManager = /*#__PURE__*/function () {
     }
   }, {
     key: "updateLocallyAckReportOnNewMessage",
-    value: function updateLocallyAckReportOnNewMessage(roomId, topicId, authorId) {
+    value: function updateLocallyAckReportOnNewMessage(ev) {
       var _this$tracker$me;
-      var ackReports = this.acks.get(roomId);
+      var ackReports = this.acks.get(ev.roomId);
       if (!ackReports) {
         // If we don't follow ack reports for this room, skip
         return;
       }
-      var isMe = authorId === ((_this$tracker$me = this.tracker.me) === null || _this$tracker$me === void 0 ? void 0 : _this$tracker$me.id);
-      var currentAckReport = ackReports.get(topicId);
+      var isMe = ev.message.author.id === ((_this$tracker$me = this.tracker.me) === null || _this$tracker$me === void 0 ? void 0 : _this$tracker$me.id);
+      var currentAckReport = ackReports.get(ev.topicId);
       var update;
       if (isMe) {
         // Reset missed messages count if new message is authored by me
         update = {
           missed: 0,
-          missedMoreThan: null
+          missedMoreThan: null,
+          lastAckMessageId: ev.message.id
         };
       } else {
         // ...add 1 otherwise
