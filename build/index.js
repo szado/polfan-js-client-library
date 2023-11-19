@@ -647,13 +647,14 @@ var MessagesManager = /*#__PURE__*/function () {
       return get;
     }()
     /**
-     * Get ack reports for rooms you are in the given space.
-     * @param spaceId
+     * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
+     * Then you can get the reports using getRoomAckReports().
+     * @see getRoomAckReports
      */
   }, {
-    key: "getSpaceAckReports",
+    key: "cacheSpaceAckReports",
     value: function () {
-      var _getSpaceAckReports = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(spaceId) {
+      var _cacheSpaceAckReports = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(spaceId) {
         var _this2 = this;
         var roomIds, missingRoomIds, result;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
@@ -701,20 +702,16 @@ var MessagesManager = /*#__PURE__*/function () {
                   _this2.acks.set([roomId, new ObservableIndexedObjectCollection('topicId', reports)]);
                 });
               case 15:
-                return _context2.abrupt("return", new IndexedCollection(Array.from(this.acks.items).filter(function (collection) {
-                  return roomIds.includes(collection[0]);
-                })));
-              case 16:
               case "end":
                 return _context2.stop();
             }
           }
         }, _callee2, this);
       }));
-      function getSpaceAckReports(_x3) {
-        return _getSpaceAckReports.apply(this, arguments);
+      function cacheSpaceAckReports(_x3) {
+        return _cacheSpaceAckReports.apply(this, arguments);
       }
-      return getSpaceAckReports;
+      return cacheSpaceAckReports;
     }()
     /**
      * Get ack reports for the given room. Undefined if you are not in the room.

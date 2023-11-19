@@ -25,11 +25,11 @@ export class MessagesManager {
     }
 
     /**
-     * Get ack reports for rooms you are in the given space.
-     * @param spaceId
+     * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
+     * Then you can get the reports using getRoomAckReports().
+     * @see getRoomAckReports
      */
-    public async getSpaceAckReports(spaceId: string)
-        : Promise<IndexedCollection<string, ObservableIndexedObjectCollection<AckReport>> | undefined> {
+    public async cacheSpaceAckReports(spaceId: string): Promise<void> {
         if (! (await this.tracker.spaces.get()).has(spaceId)) {
             return undefined;
         }
@@ -50,10 +50,6 @@ export class MessagesManager {
                 this.acks.set([roomId, new ObservableIndexedObjectCollection('topicId', reports)]);
             });
         }
-
-        return new IndexedCollection<string, ObservableIndexedObjectCollection<AckReport>>(
-            Array.from(this.acks.items).filter(collection => roomIds.includes(collection[0]))
-        );
     }
 
     /**

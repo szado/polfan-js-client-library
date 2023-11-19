@@ -1,6 +1,6 @@
 import { ChatStateTracker } from "./ChatStateTracker";
 import { AckReport, Message, Topic } from "pserv-ts-types";
-import { IndexedCollection, ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
+import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
 export declare const getCombinedId: (...ids: string[]) => string;
 export declare class MessagesManager {
     private tracker;
@@ -12,10 +12,11 @@ export declare class MessagesManager {
      */
     get(roomId: string, topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
     /**
-     * Get ack reports for rooms you are in the given space.
-     * @param spaceId
+     * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
+     * Then you can get the reports using getRoomAckReports().
+     * @see getRoomAckReports
      */
-    getSpaceAckReports(spaceId: string): Promise<IndexedCollection<string, ObservableIndexedObjectCollection<AckReport>> | undefined>;
+    cacheSpaceAckReports(spaceId: string): Promise<void>;
     /**
      * Get ack reports for the given room. Undefined if you are not in the room.
      * @param roomId
