@@ -668,7 +668,7 @@ var MessagesManager = /*#__PURE__*/function () {
                   _context2.next = 4;
                   break;
                 }
-                return _context2.abrupt("return", undefined);
+                throw "You are not in space ".concat(spaceId);
               case 4:
                 _context2.next = 6;
                 return this.tracker.rooms.get();
@@ -2429,6 +2429,7 @@ var AbstractRestClient = /*#__PURE__*/function () {
     key: "send",
     value: function () {
       var _send = AbstractRestClient_asyncToGenerator( /*#__PURE__*/AbstractRestClient_regeneratorRuntime().mark(function _callee(method, uri) {
+        var _result$headers$get;
         var data,
           headers,
           url,
@@ -2466,16 +2467,29 @@ var AbstractRestClient = /*#__PURE__*/function () {
                 result = _context.sent;
                 _context.t0 = result.ok;
                 _context.t1 = result.status;
-                _context.next = 13;
+                if (!((_result$headers$get = result.headers.get('content-type')) !== null && _result$headers$get !== void 0 && _result$headers$get.includes('json'))) {
+                  _context.next = 17;
+                  break;
+                }
+                _context.next = 14;
                 return result.json();
-              case 13:
+              case 14:
                 _context.t2 = _context.sent;
+                _context.next = 20;
+                break;
+              case 17:
+                _context.next = 19;
+                return result.text();
+              case 19:
+                _context.t2 = _context.sent;
+              case 20:
+                _context.t3 = _context.t2;
                 return _context.abrupt("return", {
                   ok: _context.t0,
                   status: _context.t1,
-                  data: _context.t2
+                  data: _context.t3
                 });
-              case 15:
+              case 22:
               case "end":
                 return _context.stop();
             }

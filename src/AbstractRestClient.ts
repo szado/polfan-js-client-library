@@ -48,7 +48,7 @@ export abstract class AbstractRestClient {
         return {
             ok: result.ok,
             status: result.status,
-            data: await result.json(),
+            data: result.headers.get('content-type')?.includes('json') ? await result.json() : await result.text(),
         };
     }
 
