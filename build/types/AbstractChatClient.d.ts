@@ -1,4 +1,4 @@
-import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesChanged, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, Ack, GetAckReports } from "pserv-ts-types";
+import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesChanged, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, Ack, GetAckReports, UserChanged } from "pserv-ts-types";
 import { EventTarget } from "./EventTarget";
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 export declare abstract class AbstractChatClient extends EventTarget {
@@ -49,6 +49,7 @@ export type EventsMap = {
     TopicDeleted: TopicDeleted;
     NewMessage: NewMessage;
     AckReports: AckReports;
+    UserChanged: UserChanged;
 };
 /**
  * Map of commands and their corresponding events.

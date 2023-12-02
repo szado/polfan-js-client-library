@@ -869,6 +869,8 @@ var MessagesManager = /*#__PURE__*/function () {
 }();
 ;// CONCATENATED MODULE: ./src/state-tracker/RoomsManager.ts
 function RoomsManager_typeof(obj) { "@babel/helpers - typeof"; return RoomsManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, RoomsManager_typeof(obj); }
+function RoomsManager_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function RoomsManager_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? RoomsManager_ownKeys(Object(source), !0).forEach(function (key) { RoomsManager_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : RoomsManager_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 function RoomsManager_createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = RoomsManager_unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
 function RoomsManager_toConsumableArray(arr) { return RoomsManager_arrayWithoutHoles(arr) || RoomsManager_iterableToArray(arr) || RoomsManager_unsupportedIterableToArray(arr) || RoomsManager_nonIterableSpread(); }
 function RoomsManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -922,6 +924,9 @@ var RoomsManager = /*#__PURE__*/function () {
     });
     this.tracker.client.on('RoomMemberUpdated', function (ev) {
       return _this.handleRoomMemberUpdated(ev);
+    });
+    this.tracker.client.on('UserChanged', function (ev) {
+      return _this.handleUserChanged(ev);
     });
     this.tracker.client.on('Session', function (ev) {
       return _this.handleSession(ev);
@@ -1223,11 +1228,31 @@ var RoomsManager = /*#__PURE__*/function () {
       this.addJoinedRooms.apply(this, RoomsManager_toConsumableArray(ev.state.rooms));
       this.deferredSession.resolve();
     }
+  }, {
+    key: "handleUserChanged",
+    value: function handleUserChanged(ev) {
+      this.members.items.forEach(function (members) {
+        var member = members.get(ev.user.id);
+        if (!member) {
+          // Skip room; updated user is not here
+          return;
+        }
+        var newMember = RoomsManager_objectSpread({}, member);
+        if (member.user) {
+          newMember.user = ev.user;
+        } else {
+          newMember.spaceMember.user = ev.user;
+        }
+        members.set(newMember);
+      });
+    }
   }]);
   return RoomsManager;
 }();
 ;// CONCATENATED MODULE: ./src/state-tracker/SpacesManager.ts
 function SpacesManager_typeof(obj) { "@babel/helpers - typeof"; return SpacesManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, SpacesManager_typeof(obj); }
+function SpacesManager_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function SpacesManager_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? SpacesManager_ownKeys(Object(source), !0).forEach(function (key) { SpacesManager_defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : SpacesManager_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 function SpacesManager_toConsumableArray(arr) { return SpacesManager_arrayWithoutHoles(arr) || SpacesManager_iterableToArray(arr) || SpacesManager_unsupportedIterableToArray(arr) || SpacesManager_nonIterableSpread(); }
 function SpacesManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function SpacesManager_unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return SpacesManager_arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return SpacesManager_arrayLikeToArray(o, minLen); }
@@ -1284,6 +1309,9 @@ var SpacesManager = /*#__PURE__*/function () {
     });
     this.tracker.client.on('SpaceMemberUpdated', function (ev) {
       return _this.handleSpaceMemberUpdated(ev);
+    });
+    this.tracker.client.on('UserChanged', function (ev) {
+      return _this.handleUserChanged(ev);
     });
     this.tracker.client.on('NewRole', function (ev) {
       return _this.handleNewRole(ev);
@@ -1591,6 +1619,20 @@ var SpacesManager = /*#__PURE__*/function () {
       this.members.deleteAll();
       this.addJoinedSpaces.apply(this, SpacesManager_toConsumableArray(ev.state.spaces));
       this.deferredSession.resolve();
+    }
+  }, {
+    key: "handleUserChanged",
+    value: function handleUserChanged(ev) {
+      this.members.items.forEach(function (members) {
+        var member = members.get(ev.user.id);
+        if (!member) {
+          // Skip space; updated user is not here
+          return;
+        }
+        members.set(SpacesManager_objectSpread(SpacesManager_objectSpread({}, member), {}, {
+          user: ev.user
+        }));
+      });
     }
   }]);
   return SpacesManager;

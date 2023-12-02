@@ -52,6 +52,7 @@ import {
     AckReports,
     Ack,
     GetAckReports,
+    UserChanged,
 } from "pserv-ts-types";
 import {EventTarget} from "./EventTarget";
 
@@ -147,6 +148,7 @@ export type EventsMap = {
     TopicDeleted: TopicDeleted,
     NewMessage: NewMessage,
     AckReports: AckReports,
+    UserChanged: UserChanged,
 };
 
 /**

@@ -7,7 +7,8 @@ import {
     RoomMemberUpdated, Session,
     SpaceMember,
     Topic,
-    TopicDeleted
+    TopicDeleted,
+    UserChanged,
 } from "pserv-ts-types";
 import {ChatStateTracker} from "./ChatStateTracker";
 import {DeferredTask} from "./DeferredTask";
@@ -32,6 +33,7 @@ export class RoomsManager {
         this.tracker.client.on('RoomMemberLeft', ev => this.handleRoomMemberLeft(ev));
         this.tracker.client.on('RoomMembers', ev => this.handleRoomMembers(ev));
         this.tracker.client.on('RoomMemberUpdated', ev => this.handleRoomMemberUpdated(ev));
+        this.tracker.client.on('UserChanged', ev => this.handleUserChanged(ev));
         this.tracker.client.on('Session', ev => this.handleSession(ev));
     }
 
@@ -197,7 +199,7 @@ export class RoomsManager {
         }
     }
 
-    private handleSession(ev: Session) {
+    private handleSession(ev: Session): void {
         this.list.deleteAll();
         this.topics.deleteAll();
         this.members.deleteAll();
@@ -205,5 +207,26 @@ export class RoomsManager {
         this.addJoinedRooms(...ev.state.rooms);
 
         this.deferredSession.resolve();
+    }
+
+    private handleUserChanged(ev: UserChanged): void {
+        this.members.items.forEach((members) => {
+            const member = members.get(ev.user.id);
+
+            if (! member) {
+                // Skip room; updated user is not here
+                return;
+            }
+
+            const newMember: RoomMember = {...member};
+
+            if (member.user) {
+                newMember.user = ev.user;
+            } else {
+                newMember.spaceMember.user = ev.user;
+            }
+
+            members.set(newMember);
+        });
     }
 }

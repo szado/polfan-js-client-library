@@ -52,4 +52,5 @@ export declare class RoomsManager {
     private handleRoomMemberLeft;
     private handleRoomMembers;
     private handleSession;
+    private handleUserChanged;
 }

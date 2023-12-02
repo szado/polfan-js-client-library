@@ -8,7 +8,7 @@ import {
     RoomSummary, Session,
     Space,
     SpaceDeleted, SpaceJoined, SpaceLeft,
-    SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms
+    SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, UserChanged
 } from "pserv-ts-types";
 import {DeferredTask} from "./DeferredTask";
 
@@ -30,6 +30,7 @@ export class SpacesManager {
         this.tracker.client.on('SpaceMembers', ev => this.handleSpaceMembers(ev));
         this.tracker.client.on('SpaceRooms', ev => this.handleSpaceRooms(ev));
         this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
+        this.tracker.client.on('UserChanged', ev => this.handleUserChanged(ev));
         this.tracker.client.on('NewRole', ev => this.handleNewRole(ev));
         this.tracker.client.on('RoleDeleted', ev => this.handleRoleDeleted(ev));
         this.tracker.client.on('RoleUpdated', ev => this.handleRoleUpdated(ev));
@@ -188,7 +189,7 @@ export class SpacesManager {
         this.roles.get(ev.spaceId).set(ev.role);
     }
 
-    private handleSession(ev: Session) {
+    private handleSession(ev: Session): void {
         this.list.deleteAll();
         this.roles.deleteAll();
         this.rooms.deleteAll();
@@ -197,5 +198,18 @@ export class SpacesManager {
         this.addJoinedSpaces(...ev.state.spaces);
 
         this.deferredSession.resolve();
+    }
+
+    private handleUserChanged(ev: UserChanged): void {
+        this.members.items.forEach((members) => {
+            const member = members.get(ev.user.id);
+
+            if (! member) {
+                // Skip space; updated user is not here
+                return;
+            }
+
+            members.set({...member, user: ev.user});
+        });
     }
 }
