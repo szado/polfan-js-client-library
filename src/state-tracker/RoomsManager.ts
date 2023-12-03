@@ -5,7 +5,7 @@ import {
     RoomJoined, RoomLeft,
     RoomMember, RoomMemberJoined, RoomMemberLeft, RoomMembers,
     RoomMemberUpdated, Session,
-    SpaceMember,
+    SpaceMemberUpdated,
     Topic,
     TopicDeleted,
     UserChanged,
@@ -33,6 +33,7 @@ export class RoomsManager {
         this.tracker.client.on('RoomMemberLeft', ev => this.handleRoomMemberLeft(ev));
         this.tracker.client.on('RoomMembers', ev => this.handleRoomMembers(ev));
         this.tracker.client.on('RoomMemberUpdated', ev => this.handleRoomMemberUpdated(ev));
+        this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
         this.tracker.client.on('UserChanged', ev => this.handleUserChanged(ev));
         this.tracker.client.on('Session', ev => this.handleSession(ev));
     }
@@ -111,13 +112,9 @@ export class RoomsManager {
         );
     }
 
-    /**
-     * For internal use.
-     * @internal
-     */
-    public _handleSpaceMemberUpdate(spaceId: string, member: SpaceMember): void {
+    private handleSpaceMemberUpdated(ev: SpaceMemberUpdated): void {
         // Update members of rooms related to this space
-        for (const room of this.list.findBy('spaceId', spaceId).items) {
+        for (const room of this.list.findBy('spaceId', ev.spaceId).items) {
             const roomMembers = this.members.get(room.id);
 
             if (! roomMembers) {
@@ -125,18 +122,33 @@ export class RoomsManager {
                 continue;
             }
 
-            const roomMember = roomMembers.get(member.user.id);
-            roomMember.spaceMember = member;
+            const roomMember = roomMembers.get(ev.userId);
+            const user = roomMember.spaceMember.user;
+
+            // Update space member but first fill user object (it's null in event object)
+            roomMember.spaceMember = {...ev.member, user};
             roomMembers.set(roomMember);
         }
     }
 
     private handleRoomMemberUpdated(ev: RoomMemberUpdated): void {
         if (! this.members.has(ev.roomId)) {
+            // We do not track member list for this room.
             return;
         }
 
-        this.members.get(ev.roomId).set(ev.member);
+        const members = this.members.get(ev.roomId);
+        const member = members.get(ev.userId);
+        const newMember = ev.member;
+        const user = member.spaceMember?.user ?? member.user;
+
+        if (newMember.spaceMember) {
+            newMember.spaceMember.user = user;
+        } else {
+            newMember.user = user;
+        }
+
+        members.set(newMember);
     }
 
     private handleTopicDeleted(ev: TopicDeleted): void {

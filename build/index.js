@@ -925,6 +925,9 @@ var RoomsManager = /*#__PURE__*/function () {
     this.tracker.client.on('RoomMemberUpdated', function (ev) {
       return _this.handleRoomMemberUpdated(ev);
     });
+    this.tracker.client.on('SpaceMemberUpdated', function (ev) {
+      return _this.handleSpaceMemberUpdated(ev);
+    });
     this.tracker.client.on('UserChanged', function (ev) {
       return _this.handleUserChanged(ev);
     });
@@ -1107,16 +1110,11 @@ var RoomsManager = /*#__PURE__*/function () {
         return room.id;
       })));
     }
-
-    /**
-     * For internal use.
-     * @internal
-     */
   }, {
-    key: "_handleSpaceMemberUpdate",
-    value: function _handleSpaceMemberUpdate(spaceId, member) {
+    key: "handleSpaceMemberUpdated",
+    value: function handleSpaceMemberUpdated(ev) {
       // Update members of rooms related to this space
-      var _iterator = RoomsManager_createForOfIteratorHelper(this.list.findBy('spaceId', spaceId).items),
+      var _iterator = RoomsManager_createForOfIteratorHelper(this.list.findBy('spaceId', ev.spaceId).items),
         _step;
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
@@ -1126,8 +1124,13 @@ var RoomsManager = /*#__PURE__*/function () {
             // Skip update if member list for this room is not loaded
             continue;
           }
-          var roomMember = roomMembers.get(member.user.id);
-          roomMember.spaceMember = member;
+          var roomMember = roomMembers.get(ev.userId);
+          var user = roomMember.spaceMember.user;
+
+          // Update space member but first fill user object (it's null in event object)
+          roomMember.spaceMember = RoomsManager_objectSpread(RoomsManager_objectSpread({}, ev.member), {}, {
+            user: user
+          });
           roomMembers.set(roomMember);
         }
       } catch (err) {
@@ -1139,10 +1142,21 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "handleRoomMemberUpdated",
     value: function handleRoomMemberUpdated(ev) {
+      var _member$spaceMember$u, _member$spaceMember;
       if (!this.members.has(ev.roomId)) {
+        // We do not track member list for this room.
         return;
       }
-      this.members.get(ev.roomId).set(ev.member);
+      var members = this.members.get(ev.roomId);
+      var member = members.get(ev.userId);
+      var newMember = ev.member;
+      var user = (_member$spaceMember$u = (_member$spaceMember = member.spaceMember) === null || _member$spaceMember === void 0 ? void 0 : _member$spaceMember.user) !== null && _member$spaceMember$u !== void 0 ? _member$spaceMember$u : member.user;
+      if (newMember.spaceMember) {
+        newMember.spaceMember.user = user;
+      } else {
+        newMember.user = user;
+      }
+      members.set(newMember);
     }
   }, {
     key: "handleTopicDeleted",
@@ -1601,9 +1615,12 @@ var SpacesManager = /*#__PURE__*/function () {
     key: "handleSpaceMemberUpdated",
     value: function handleSpaceMemberUpdated(ev) {
       if (this.members.has(ev.spaceId)) {
-        this.members.get(ev.spaceId).set(ev.member);
+        var members = this.members.get(ev.spaceId);
+        var member = members.get(ev.userId);
+        members.set(SpacesManager_objectSpread(SpacesManager_objectSpread({}, ev.member), {}, {
+          user: member.user
+        }));
       }
-      this.tracker.rooms._handleSpaceMemberUpdate(ev.spaceId, ev.member);
     }
   }, {
     key: "handleRoleUpdated",

@@ -1,5 +1,5 @@
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
-import { Room, RoomMember, SpaceMember, Topic } from "pserv-ts-types";
+import { Room, RoomMember, Topic } from "pserv-ts-types";
 import { ChatStateTracker } from "./ChatStateTracker";
 import { MessagesManager } from "./MessagesManager";
 export declare class RoomsManager {
@@ -36,11 +36,7 @@ export declare class RoomsManager {
      * @internal
      */
     _deleteBySpaceId(spaceId: string): void;
-    /**
-     * For internal use.
-     * @internal
-     */
-    _handleSpaceMemberUpdate(spaceId: string, member: SpaceMember): void;
+    private handleSpaceMemberUpdated;
     private handleRoomMemberUpdated;
     private handleTopicDeleted;
     private handleNewTopic;

@@ -179,10 +179,10 @@ export class SpacesManager {
 
     private handleSpaceMemberUpdated(ev: SpaceMemberUpdated): void {
         if (this.members.has(ev.spaceId)) {
-            this.members.get(ev.spaceId).set(ev.member);
+            const members = this.members.get(ev.spaceId);
+            const member = members.get(ev.userId);
+            members.set({...ev.member, user: member.user});
         }
-
-        this.tracker.rooms._handleSpaceMemberUpdate(ev.spaceId, ev.member);
     }
 
     private handleRoleUpdated(ev: RoleUpdated): void {
