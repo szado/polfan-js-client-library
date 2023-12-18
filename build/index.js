@@ -1263,6 +1263,21 @@ var RoomsManager = /*#__PURE__*/function () {
   }]);
   return RoomsManager;
 }();
+;// CONCATENATED MODULE: ./src/state-tracker/functions.ts
+function reorderRolesOnPriorityUpdate(allRoles, oldRole, updatedRole) {
+  // If the priority has changed, adjust the rest of roles
+  var increased = updatedRole.priority - oldRole.priority > 0;
+  var decreased = !increased;
+  var changedRoles = [];
+  allRoles.forEach(function (role) {
+    if (role.id !== updatedRole.id // Skip the updated role
+    && (increased && role.priority <= updatedRole.priority || decreased && role.priority >= updatedRole.priority)) {
+      role.priority++;
+      changedRoles.push(role);
+    }
+  });
+  return changedRoles;
+}
 ;// CONCATENATED MODULE: ./src/state-tracker/SpacesManager.ts
 function SpacesManager_typeof(obj) { "@babel/helpers - typeof"; return SpacesManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, SpacesManager_typeof(obj); }
 function SpacesManager_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -1282,6 +1297,7 @@ function SpacesManager_createClass(Constructor, protoProps, staticProps) { if (p
 function SpacesManager_defineProperty(obj, key, value) { key = SpacesManager_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 function SpacesManager_toPropertyKey(arg) { var key = SpacesManager_toPrimitive(arg, "string"); return SpacesManager_typeof(key) === "symbol" ? key : String(key); }
 function SpacesManager_toPrimitive(input, hint) { if (SpacesManager_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (SpacesManager_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
 
 
 var SpacesManager = /*#__PURE__*/function () {
@@ -1625,7 +1641,15 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleRoleUpdated",
     value: function handleRoleUpdated(ev) {
-      this.roles.get(ev.spaceId).set(ev.role);
+      var _this$roles$get;
+      var roles = this.roles.get(ev.spaceId);
+      var oldRole = roles.get(ev.role.id);
+      var newRole = ev.role;
+      var rolesToUpdate = [newRole];
+      if (oldRole.priority !== newRole.priority) {
+        rolesToUpdate.push.apply(rolesToUpdate, SpacesManager_toConsumableArray(reorderRolesOnPriorityUpdate(roles.items, oldRole, newRole)));
+      }
+      (_this$roles$get = this.roles.get(ev.spaceId)).set.apply(_this$roles$get, rolesToUpdate);
     }
   }, {
     key: "handleSession",

@@ -11,6 +11,7 @@ import {
     SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, UserChanged
 } from "pserv-ts-types";
 import {DeferredTask} from "./DeferredTask";
+import {reorderRolesOnPriorityUpdate} from "./functions";
 
 export class SpacesManager {
     private readonly list = new ObservableIndexedObjectCollection<Space>('id');
@@ -186,7 +187,18 @@ export class SpacesManager {
     }
 
     private handleRoleUpdated(ev: RoleUpdated): void {
-        this.roles.get(ev.spaceId).set(ev.role);
+        const roles = this.roles.get(ev.spaceId);
+        const oldRole = roles.get(ev.role.id);
+        const newRole = ev.role;
+        const rolesToUpdate = [newRole];
+
+        if (oldRole.priority !== newRole.priority) {
+            rolesToUpdate.push(
+                ...reorderRolesOnPriorityUpdate(roles.items, oldRole, newRole)
+            );
+        }
+
+        this.roles.get(ev.spaceId).set(...rolesToUpdate);
     }
 
     private handleSession(ev: Session): void {
