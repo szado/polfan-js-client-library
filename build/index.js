@@ -1270,8 +1270,15 @@ function reorderRolesOnPriorityUpdate(allRoles, oldRole, updatedRole) {
   var decreased = !increased;
   var changedRoles = [];
   allRoles.forEach(function (role) {
-    if (role.id !== updatedRole.id // Skip the updated role
-    && (increased && role.priority <= updatedRole.priority || decreased && role.priority >= updatedRole.priority)) {
+    if (role.id === updatedRole.id) {
+      // Skip the updated role
+      return;
+    }
+    if (increased && oldRole.priority <= role.priority) {
+      role.priority--;
+      changedRoles.push(role);
+    }
+    if (decreased && updatedRole.priority <= role.priority) {
       role.priority++;
       changedRoles.push(role);
     }
