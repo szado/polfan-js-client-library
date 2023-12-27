@@ -117,8 +117,9 @@ export class RoomsManager {
         for (const room of this.list.findBy('spaceId', ev.spaceId).items) {
             const roomMembers = this.members.get(room.id);
 
-            if (! roomMembers) {
+            if (! roomMembers || ! roomMembers.has(ev.userId)) {
                 // Skip update if member list for this room is not loaded
+                // or user is not in room
                 continue;
             }
 

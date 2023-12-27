@@ -1120,8 +1120,9 @@ var RoomsManager = /*#__PURE__*/function () {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var room = _step.value;
           var roomMembers = this.members.get(room.id);
-          if (!roomMembers) {
+          if (!roomMembers || !roomMembers.has(ev.userId)) {
             // Skip update if member list for this room is not loaded
+            // or user is not in room
             continue;
           }
           var roomMember = roomMembers.get(ev.userId);
