@@ -10,7 +10,7 @@ import {
     SpaceDeleted, SpaceJoined, SpaceLeft,
     SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, UserChanged
 } from "pserv-ts-types";
-import {DeferredTask} from "./DeferredTask";
+import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {reorderRolesOnPriorityUpdate} from "./functions";
 
 export class SpacesManager {
@@ -19,6 +19,8 @@ export class SpacesManager {
     private readonly rooms = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomSummary>>();
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<SpaceMember>>();
     private readonly deferredSession = new DeferredTask();
+    private readonly roomsPromises = new PromiseRegistry();
+    private readonly membersPromises = new PromiseRegistry();
 
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('NewRoom', ev => this.handleNewRoom(ev));
@@ -58,16 +60,17 @@ export class SpacesManager {
      * Get collection of the all available rooms inside given space.
      */
     public async getRooms(spaceId: string): Promise<ObservableIndexedObjectCollection<RoomSummary> | undefined> {
-        if (! this.rooms.has(spaceId)) {
-            const result = await this.tracker.client.send('GetSpaceRooms', {id: spaceId});
-
-            if (result.error) {
-                throw result.error;
-            }
-
-            this.handleSpaceRooms(result.data);
+        if (this.roomsPromises.notExist(spaceId)) {
+            this.roomsPromises.registerByFunction(async () => {
+                const result = await this.tracker.client.send('GetSpaceRooms', {id: spaceId});
+                if (result.error) {
+                    throw result.error;
+                }
+                this.handleSpaceRooms(result.data);
+            }, spaceId);
         }
 
+        await this.roomsPromises.get(spaceId);
         return this.rooms.get(spaceId);
     }
 
@@ -75,16 +78,17 @@ export class SpacesManager {
      * Get collection of space members.
      */
     public async getMembers(spaceId: string): Promise<ObservableIndexedObjectCollection<SpaceMember> | undefined> {
-        if (! this.members.has(spaceId)) {
-            const result = await this.tracker.client.send('GetSpaceMembers', {id: spaceId});
-
-            if (result.error) {
-                throw result.error;
-            }
-
-            this.handleSpaceMembers(result.data);
+        if (this.membersPromises.notExist(spaceId)) {
+            this.membersPromises.registerByFunction(async () => {
+                const result = await this.tracker.client.send('GetSpaceMembers', {id: spaceId});
+                if (result.error) {
+                    throw result.error;
+                }
+                this.handleSpaceMembers(result.data);
+            }, spaceId);
         }
 
+        await this.membersPromises.get(spaceId);
         return this.members.get(spaceId);
     }
 
@@ -131,7 +135,9 @@ export class SpacesManager {
         this.tracker.rooms._deleteBySpaceId(ev.id);
         this.roles.delete(ev.id);
         this.members.delete(ev.id);
+        this.membersPromises.forget(ev.id);
         this.rooms.delete(ev.id);
+        this.roomsPromises.forget(ev.id);
         this.list.delete(ev.id);
     }
 

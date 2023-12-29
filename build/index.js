@@ -562,23 +562,63 @@ var ObservableIndexedObjectCollection = /*#__PURE__*/function (_IndexedObjectCol
   }]);
   return ObservableIndexedObjectCollection;
 }(IndexedObjectCollection);
-;// CONCATENATED MODULE: ./src/state-tracker/DeferredTask.ts
-function DeferredTask_typeof(obj) { "@babel/helpers - typeof"; return DeferredTask_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, DeferredTask_typeof(obj); }
-function DeferredTask_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, DeferredTask_toPropertyKey(descriptor.key), descriptor); } }
-function DeferredTask_createClass(Constructor, protoProps, staticProps) { if (protoProps) DeferredTask_defineProperties(Constructor.prototype, protoProps); if (staticProps) DeferredTask_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-function DeferredTask_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-function DeferredTask_defineProperty(obj, key, value) { key = DeferredTask_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function DeferredTask_toPropertyKey(arg) { var key = DeferredTask_toPrimitive(arg, "string"); return DeferredTask_typeof(key) === "symbol" ? key : String(key); }
-function DeferredTask_toPrimitive(input, hint) { if (DeferredTask_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (DeferredTask_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-var DeferredTask = /*#__PURE__*/DeferredTask_createClass(function DeferredTask() {
+;// CONCATENATED MODULE: ./src/state-tracker/AsyncUtils.ts
+function AsyncUtils_typeof(obj) { "@babel/helpers - typeof"; return AsyncUtils_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, AsyncUtils_typeof(obj); }
+function AsyncUtils_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, AsyncUtils_toPropertyKey(descriptor.key), descriptor); } }
+function AsyncUtils_createClass(Constructor, protoProps, staticProps) { if (protoProps) AsyncUtils_defineProperties(Constructor.prototype, protoProps); if (staticProps) AsyncUtils_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function AsyncUtils_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function AsyncUtils_defineProperty(obj, key, value) { key = AsyncUtils_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function AsyncUtils_toPropertyKey(arg) { var key = AsyncUtils_toPrimitive(arg, "string"); return AsyncUtils_typeof(key) === "symbol" ? key : String(key); }
+function AsyncUtils_toPrimitive(input, hint) { if (AsyncUtils_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (AsyncUtils_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+var DeferredTask = /*#__PURE__*/AsyncUtils_createClass(function DeferredTask() {
   var _this = this;
-  DeferredTask_classCallCheck(this, DeferredTask);
-  DeferredTask_defineProperty(this, "promise", void 0);
-  DeferredTask_defineProperty(this, "resolve", void 0);
+  AsyncUtils_classCallCheck(this, DeferredTask);
+  AsyncUtils_defineProperty(this, "promise", void 0);
+  AsyncUtils_defineProperty(this, "resolve", void 0);
   this.promise = new Promise(function (resolve) {
     return _this.resolve = resolve;
   });
 });
+var PromiseRegistry = /*#__PURE__*/function () {
+  function PromiseRegistry() {
+    AsyncUtils_classCallCheck(this, PromiseRegistry);
+    AsyncUtils_defineProperty(this, "promises", new IndexedCollection());
+  }
+  AsyncUtils_createClass(PromiseRegistry, [{
+    key: "register",
+    value: function register(promise, key) {
+      this.promises.set([key, promise]);
+    }
+  }, {
+    key: "registerByFunction",
+    value: function registerByFunction(fn, key) {
+      this.register(fn(), key);
+    }
+  }, {
+    key: "get",
+    value: function get(key) {
+      return this.promises.get(key);
+    }
+  }, {
+    key: "has",
+    value: function has(key) {
+      return this.promises.has(key);
+    }
+  }, {
+    key: "notExist",
+    value: function notExist(key) {
+      return !this.has(key);
+    }
+  }, {
+    key: "forget",
+    value: function forget() {
+      var _this$promises;
+      (_this$promises = this.promises)["delete"].apply(_this$promises, arguments);
+    }
+  }]);
+  return PromiseRegistry;
+}();
 ;// CONCATENATED MODULE: ./src/state-tracker/MessagesManager.ts
 function MessagesManager_typeof(obj) { "@babel/helpers - typeof"; return MessagesManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, MessagesManager_typeof(obj); }
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -900,6 +940,7 @@ var RoomsManager = /*#__PURE__*/function () {
     RoomsManager_defineProperty(this, "topics", new IndexedCollection());
     RoomsManager_defineProperty(this, "members", new IndexedCollection());
     RoomsManager_defineProperty(this, "deferredSession", new DeferredTask());
+    RoomsManager_defineProperty(this, "membersPromises", new PromiseRegistry());
     this.messages = new MessagesManager(tracker);
     this.tracker.client.on('NewTopic', function (ev) {
       return _this.handleNewTopic(ev);
@@ -942,37 +983,50 @@ var RoomsManager = /*#__PURE__*/function () {
   RoomsManager_createClass(RoomsManager, [{
     key: "getMembers",
     value: function () {
-      var _getMembers = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee(roomId) {
-        var result;
-        return RoomsManager_regeneratorRuntime().wrap(function _callee$(_context) {
+      var _getMembers = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee2(roomId) {
+        var _this2 = this;
+        return RoomsManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                if (this.members.has(roomId)) {
-                  _context.next = 7;
-                  break;
+                if (this.membersPromises.notExist(roomId)) {
+                  this.membersPromises.registerByFunction( /*#__PURE__*/RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee() {
+                    var result;
+                    return RoomsManager_regeneratorRuntime().wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.next = 2;
+                            return _this2.tracker.client.send('GetRoomMembers', {
+                              id: roomId
+                            });
+                          case 2:
+                            result = _context.sent;
+                            if (!result.error) {
+                              _context.next = 5;
+                              break;
+                            }
+                            throw result.error;
+                          case 5:
+                            _this2.handleRoomMembers(result.data);
+                          case 6:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  })), roomId);
                 }
-                _context.next = 3;
-                return this.tracker.client.send('GetRoomMembers', {
-                  id: roomId
-                });
+                _context2.next = 3;
+                return this.membersPromises.get(roomId);
               case 3:
-                result = _context.sent;
-                if (!result.error) {
-                  _context.next = 6;
-                  break;
-                }
-                throw result.error;
-              case 6:
-                this.handleRoomMembers(result.data);
-              case 7:
-                return _context.abrupt("return", this.members.get(roomId));
-              case 8:
+                return _context2.abrupt("return", this.members.get(roomId));
+              case 4:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
       function getMembers(_x) {
         return _getMembers.apply(this, arguments);
@@ -985,36 +1039,36 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "getMe",
     value: function () {
-      var _getMe = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee2(roomId) {
+      var _getMe = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee3(roomId) {
         var userId, members;
-        return RoomsManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
+        return RoomsManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                _context2.next = 2;
+                _context3.next = 2;
                 return this.tracker.getMe();
               case 2:
-                userId = _context2.sent.id;
-                _context2.next = 5;
+                userId = _context3.sent.id;
+                _context3.next = 5;
                 return this.getMembers(roomId);
               case 5:
-                members = _context2.sent;
+                members = _context3.sent;
                 if (members) {
-                  _context2.next = 8;
+                  _context3.next = 8;
                   break;
                 }
-                return _context2.abrupt("return", undefined);
+                return _context3.abrupt("return", undefined);
               case 8:
-                return _context2.abrupt("return", members.items.find(function (member) {
+                return _context3.abrupt("return", members.items.find(function (member) {
                   var _member$user$id, _member$user;
                   return ((_member$user$id = (_member$user = member.user) === null || _member$user === void 0 ? void 0 : _member$user.id) !== null && _member$user$id !== void 0 ? _member$user$id : member.spaceMember.user.id) === userId;
                 }));
               case 9:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
       function getMe(_x2) {
         return _getMe.apply(this, arguments);
@@ -1027,21 +1081,21 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "get",
     value: function () {
-      var _get = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee3() {
-        return RoomsManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
+      var _get = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee4() {
+        return RoomsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.next = 2;
+                _context4.next = 2;
                 return this.deferredSession.promise;
               case 2:
-                return _context3.abrupt("return", this.list);
+                return _context4.abrupt("return", this.list);
               case 3:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
       function get() {
         return _get.apply(this, arguments);
@@ -1054,21 +1108,21 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "getTopics",
     value: function () {
-      var _getTopics = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee4(roomId) {
-        return RoomsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
+      var _getTopics = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee5(roomId) {
+        return RoomsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                _context4.next = 2;
+                _context5.next = 2;
                 return this.deferredSession.promise;
               case 2:
-                return _context4.abrupt("return", this.topics.get(roomId));
+                return _context5.abrupt("return", this.topics.get(roomId));
               case 3:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
       function getTopics(_x3) {
         return _getTopics.apply(this, arguments);
@@ -1082,12 +1136,13 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "_delete",
     value: function _delete() {
-      var _this$list, _this$members, _this$topics;
+      var _this$list, _this$members, _this$membersPromises, _this$topics;
       for (var _len = arguments.length, roomIds = new Array(_len), _key = 0; _key < _len; _key++) {
         roomIds[_key] = arguments[_key];
       }
       (_this$list = this.list)["delete"].apply(_this$list, roomIds);
       (_this$members = this.members)["delete"].apply(_this$members, roomIds);
+      (_this$membersPromises = this.membersPromises).forget.apply(_this$membersPromises, roomIds);
       for (var _i = 0, _roomIds = roomIds; _i < _roomIds.length; _i++) {
         var _this$topics$get$map, _this$topics$get, _this$messages;
         var roomId = _roomIds[_i];
@@ -1318,6 +1373,8 @@ var SpacesManager = /*#__PURE__*/function () {
     SpacesManager_defineProperty(this, "rooms", new IndexedCollection());
     SpacesManager_defineProperty(this, "members", new IndexedCollection());
     SpacesManager_defineProperty(this, "deferredSession", new DeferredTask());
+    SpacesManager_defineProperty(this, "roomsPromises", new PromiseRegistry());
+    SpacesManager_defineProperty(this, "membersPromises", new PromiseRegistry());
     this.tracker.client.on('NewRoom', function (ev) {
       return _this.handleNewRoom(ev);
     });
@@ -1425,37 +1482,50 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "getRooms",
     value: function () {
-      var _getRooms = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee3(spaceId) {
-        var result;
-        return SpacesManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
+      var _getRooms = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee4(spaceId) {
+        var _this2 = this;
+        return SpacesManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                if (this.rooms.has(spaceId)) {
-                  _context3.next = 7;
-                  break;
+                if (this.roomsPromises.notExist(spaceId)) {
+                  this.roomsPromises.registerByFunction( /*#__PURE__*/SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee3() {
+                    var result;
+                    return SpacesManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
+                      while (1) {
+                        switch (_context3.prev = _context3.next) {
+                          case 0:
+                            _context3.next = 2;
+                            return _this2.tracker.client.send('GetSpaceRooms', {
+                              id: spaceId
+                            });
+                          case 2:
+                            result = _context3.sent;
+                            if (!result.error) {
+                              _context3.next = 5;
+                              break;
+                            }
+                            throw result.error;
+                          case 5:
+                            _this2.handleSpaceRooms(result.data);
+                          case 6:
+                          case "end":
+                            return _context3.stop();
+                        }
+                      }
+                    }, _callee3);
+                  })), spaceId);
                 }
-                _context3.next = 3;
-                return this.tracker.client.send('GetSpaceRooms', {
-                  id: spaceId
-                });
+                _context4.next = 3;
+                return this.roomsPromises.get(spaceId);
               case 3:
-                result = _context3.sent;
-                if (!result.error) {
-                  _context3.next = 6;
-                  break;
-                }
-                throw result.error;
-              case 6:
-                this.handleSpaceRooms(result.data);
-              case 7:
-                return _context3.abrupt("return", this.rooms.get(spaceId));
-              case 8:
+                return _context4.abrupt("return", this.rooms.get(spaceId));
+              case 4:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
       function getRooms(_x2) {
         return _getRooms.apply(this, arguments);
@@ -1468,37 +1538,50 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "getMembers",
     value: function () {
-      var _getMembers = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee4(spaceId) {
-        var result;
-        return SpacesManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
+      var _getMembers = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee6(spaceId) {
+        var _this3 = this;
+        return SpacesManager_regeneratorRuntime().wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                if (this.members.has(spaceId)) {
-                  _context4.next = 7;
-                  break;
+                if (this.membersPromises.notExist(spaceId)) {
+                  this.membersPromises.registerByFunction( /*#__PURE__*/SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee5() {
+                    var result;
+                    return SpacesManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+                      while (1) {
+                        switch (_context5.prev = _context5.next) {
+                          case 0:
+                            _context5.next = 2;
+                            return _this3.tracker.client.send('GetSpaceMembers', {
+                              id: spaceId
+                            });
+                          case 2:
+                            result = _context5.sent;
+                            if (!result.error) {
+                              _context5.next = 5;
+                              break;
+                            }
+                            throw result.error;
+                          case 5:
+                            _this3.handleSpaceMembers(result.data);
+                          case 6:
+                          case "end":
+                            return _context5.stop();
+                        }
+                      }
+                    }, _callee5);
+                  })), spaceId);
                 }
-                _context4.next = 3;
-                return this.tracker.client.send('GetSpaceMembers', {
-                  id: spaceId
-                });
+                _context6.next = 3;
+                return this.membersPromises.get(spaceId);
               case 3:
-                result = _context4.sent;
-                if (!result.error) {
-                  _context4.next = 6;
-                  break;
-                }
-                throw result.error;
-              case 6:
-                this.handleSpaceMembers(result.data);
-              case 7:
-                return _context4.abrupt("return", this.members.get(spaceId));
-              case 8:
+                return _context6.abrupt("return", this.members.get(spaceId));
+              case 4:
               case "end":
-                return _context4.stop();
+                return _context6.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee6, this);
       }));
       function getMembers(_x3) {
         return _getMembers.apply(this, arguments);
@@ -1511,35 +1594,35 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "getMe",
     value: function () {
-      var _getMe = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee5(spaceId) {
+      var _getMe = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee7(spaceId) {
         var userId, members;
-        return SpacesManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+        return SpacesManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                _context5.next = 2;
+                _context7.next = 2;
                 return this.tracker.getMe();
               case 2:
-                userId = _context5.sent.id;
-                _context5.next = 5;
+                userId = _context7.sent.id;
+                _context7.next = 5;
                 return this.getMembers(spaceId);
               case 5:
-                members = _context5.sent;
+                members = _context7.sent;
                 if (members) {
-                  _context5.next = 8;
+                  _context7.next = 8;
                   break;
                 }
-                return _context5.abrupt("return", undefined);
+                return _context7.abrupt("return", undefined);
               case 8:
-                return _context5.abrupt("return", members.items.find(function (member) {
+                return _context7.abrupt("return", members.items.find(function (member) {
                   return member.user.id === userId;
                 }));
               case 9:
               case "end":
-                return _context5.stop();
+                return _context7.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee7, this);
       }));
       function getMe(_x4) {
         return _getMe.apply(this, arguments);
@@ -1580,7 +1663,9 @@ var SpacesManager = /*#__PURE__*/function () {
       this.tracker.rooms._deleteBySpaceId(ev.id);
       this.roles["delete"](ev.id);
       this.members["delete"](ev.id);
+      this.membersPromises.forget(ev.id);
       this.rooms["delete"](ev.id);
+      this.roomsPromises.forget(ev.id);
       this.list["delete"](ev.id);
     }
   }, {
@@ -1733,8 +1818,9 @@ function PermissionsManager_toPrimitive(input, hint) { if (PermissionsManager_ty
 
 
 
+
 var getOvId = function getOvId(layer, layerId, target, targetId) {
-  return layer + (layerId !== null && layerId !== void 0 ? layerId : '') + target + targetId;
+  return layer + (layerId !== null && layerId !== void 0 ? layerId : '') + (target !== null && target !== void 0 ? target : '') + (targetId !== null && targetId !== void 0 ? targetId : '');
 };
 var getOvIdByObject = function getOvIdByObject(overwrites) {
   return getOvId(overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId);
@@ -1748,46 +1834,85 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
     _this = _super.call(this);
     _this.tracker = tracker;
     PermissionsManager_defineProperty(PermissionsManager_assertThisInitialized(_this), "overwrites", new IndexedCollection());
+    PermissionsManager_defineProperty(PermissionsManager_assertThisInitialized(_this), "overwritesPromises", new PromiseRegistry());
     _this.tracker.client.on('PermissionOverwrites', function (ev) {
       return _this.handlePermissionOverwrites(ev);
     });
     _this.tracker.client.on('PermissionOverwritesChanged', function (ev) {
       return _this.handlePermissionOverwrites(ev);
     });
+    _this.tracker.client.on('SpaceDeleted', function (ev) {
+      return _this.handleSpaceDeleted(ev);
+    });
+    _this.tracker.client.on('SpaceLeft', function (ev) {
+      return _this.handleSpaceDeleted(ev);
+    });
+    _this.tracker.client.on('RoomDeleted', function (ev) {
+      return _this.handleRoomDeleted(ev);
+    });
+    _this.tracker.client.on('RoomLeft', function (ev) {
+      return _this.handleRoomDeleted(ev);
+    });
+    _this.tracker.client.on('TopicDeleted', function (ev) {
+      return _this.handleTopicDeleted(ev);
+    });
+    _this.tracker.client.on('RoleDeleted', function (ev) {
+      return _this.handleRoleDeleted(ev);
+    });
     return _this;
   }
   PermissionsManager_createClass(PermissionsManager, [{
     key: "getOverwrites",
     value: function () {
-      var _getOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee(layer, layerId, target, targetId) {
-        var id, result;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee$(_context) {
+      var _getOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee2(layer, layerId, target, targetId) {
+        var _this2 = this;
+        var id;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
                 id = getOvId(layer, layerId, target, targetId);
-                if (!this.overwrites.has(id)) {
-                  _context.next = 3;
-                  break;
+                if (this.overwritesPromises.notExist(id)) {
+                  this.overwritesPromises.registerByFunction( /*#__PURE__*/PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee() {
+                    var result;
+                    return PermissionsManager_regeneratorRuntime().wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.next = 2;
+                            return _this2.tracker.client.send('GetPermissionOverwrites', {
+                              layer: layer,
+                              layerId: layerId,
+                              target: target,
+                              targetId: targetId
+                            });
+                          case 2:
+                            result = _context.sent;
+                            if (!result.error) {
+                              _context.next = 5;
+                              break;
+                            }
+                            throw result.error;
+                          case 5:
+                            _this2.handlePermissionOverwrites(result.data);
+                          case 6:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  })), id);
                 }
-                return _context.abrupt("return", this.overwrites.get(id));
-              case 3:
-                _context.next = 5;
-                return this.tracker.client.send('GetPermissionOverwrites', {
-                  layer: layer,
-                  layerId: layerId,
-                  target: target,
-                  targetId: targetId
-                });
+                _context2.next = 4;
+                return this.overwritesPromises.get(id);
+              case 4:
+                return _context2.abrupt("return", this.overwrites.get(id));
               case 5:
-                result = _context.sent;
-                return _context.abrupt("return", result.error ? null : result.data);
-              case 7:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
       function getOverwrites(_x, _x2, _x3, _x4) {
         return _getOverwrites.apply(this, arguments);
@@ -1802,32 +1927,32 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "check",
     value: function () {
-      var _check = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee2(permissionNames, spaceId, roomId, topicId) {
+      var _check = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee3(permissionNames, spaceId, roomId, topicId) {
         var ownedPermissions, missing;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                _context2.next = 2;
+                _context3.next = 2;
                 return this.calculatePermissions(spaceId, roomId, topicId);
               case 2:
-                ownedPermissions = _context2.sent;
+                ownedPermissions = _context3.sent;
                 missing = [];
                 permissionNames.forEach(function (name) {
                   if (~ownedPermissions & Permission[name]) {
                     missing.push(name);
                   }
                 });
-                return _context2.abrupt("return", {
+                return _context3.abrupt("return", {
                   ok: missing.length === 0,
                   missing: missing
                 });
               case 6:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
       function check(_x5, _x6, _x7, _x8) {
         return _check.apply(this, arguments);
@@ -1837,22 +1962,22 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "calculatePermissions",
     value: function () {
-      var _calculatePermissions = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee3(spaceId, roomId, topicId) {
+      var _calculatePermissions = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee4(spaceId, roomId, topicId) {
         var userId, userRoles, promises, roomMember;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
                 if (!(topicId && !roomId || roomId && !spaceId)) {
-                  _context3.next = 2;
+                  _context4.next = 2;
                   break;
                 }
                 throw new Error('Corrupted arguments hierarchy');
               case 2:
-                _context3.next = 4;
+                _context4.next = 4;
                 return this.tracker.getMe();
               case 4:
-                userId = _context3.sent.id;
+                userId = _context4.sent.id;
                 userRoles = [];
                 promises = [
                 // Global user overwrites
@@ -1860,31 +1985,31 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                   return v.overwrites;
                 })];
                 if (!spaceId) {
-                  _context3.next = 18;
+                  _context4.next = 18;
                   break;
                 }
-                _context3.t0 = userRoles.push;
-                _context3.t1 = userRoles;
-                _context3.t2 = PermissionsManager_toConsumableArray;
-                _context3.next = 13;
+                _context4.t0 = userRoles.push;
+                _context4.t1 = userRoles;
+                _context4.t2 = PermissionsManager_toConsumableArray;
+                _context4.next = 13;
                 return this.tracker.spaces.getMe(spaceId);
               case 13:
-                _context3.t3 = _context3.sent.roles;
-                _context3.t4 = (0, _context3.t2)(_context3.t3);
-                _context3.t0.apply.call(_context3.t0, _context3.t1, _context3.t4);
+                _context4.t3 = _context4.sent.roles;
+                _context4.t4 = (0, _context4.t2)(_context4.t3);
+                _context4.t0.apply.call(_context4.t0, _context4.t1, _context4.t4);
                 promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
                 promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(function (v) {
                   return v.overwrites;
                 }));
               case 18:
                 if (!roomId) {
-                  _context3.next = 24;
+                  _context4.next = 24;
                   break;
                 }
-                _context3.next = 21;
+                _context4.next = 21;
                 return this.tracker.rooms.getMe(roomId);
               case 21:
-                roomMember = _context3.sent;
+                roomMember = _context4.sent;
                 if (roomMember.roles !== null) {
                   // Room overwrites from roles (only for space rooms)
                   userRoles.push.apply(userRoles, PermissionsManager_toConsumableArray(roomMember.roles));
@@ -1902,18 +2027,18 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                     return v.overwrites;
                   }));
                 }
-                _context3.t5 = this;
-                _context3.next = 28;
+                _context4.t5 = this;
+                _context4.next = 28;
                 return Promise.all(promises);
               case 28:
-                _context3.t6 = _context3.sent;
-                return _context3.abrupt("return", _context3.t5.resolveOverwritesHierarchy.call(_context3.t5, _context3.t6));
+                _context4.t6 = _context4.sent;
+                return _context4.abrupt("return", _context4.t5.resolveOverwritesHierarchy.call(_context4.t5, _context4.t6));
               case 30:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
       function calculatePermissions(_x9, _x10, _x11) {
         return _calculatePermissions.apply(this, arguments);
@@ -1927,28 +2052,74 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
       this.emit('change');
     }
   }, {
+    key: "handleSpaceDeleted",
+    value: function handleSpaceDeleted(ev) {
+      var _this$overwritesPromi;
+      var ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.id));
+      (_this$overwritesPromi = this.overwritesPromises).forget.apply(_this$overwritesPromi, PermissionsManager_toConsumableArray(ids));
+    }
+  }, {
+    key: "handleRoomDeleted",
+    value: function handleRoomDeleted(ev) {
+      var _this$overwritesPromi2;
+      var ids = this.deleteOverwritesByIdPrefix(getOvId('Room', ev.id));
+      (_this$overwritesPromi2 = this.overwritesPromises).forget.apply(_this$overwritesPromi2, PermissionsManager_toConsumableArray(ids));
+    }
+  }, {
+    key: "handleTopicDeleted",
+    value: function handleTopicDeleted(ev) {
+      var _this$overwritesPromi3;
+      var ids = this.deleteOverwritesByIdPrefix(getOvId('Topic', ev.id));
+      (_this$overwritesPromi3 = this.overwritesPromises).forget.apply(_this$overwritesPromi3, PermissionsManager_toConsumableArray(ids));
+    }
+  }, {
+    key: "handleRoleDeleted",
+    value: function handleRoleDeleted(ev) {
+      var _this$overwritesPromi4;
+      var ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.spaceId, 'Role', ev.id));
+      (_this$overwritesPromi4 = this.overwritesPromises).forget.apply(_this$overwritesPromi4, PermissionsManager_toConsumableArray(ids));
+    }
+
+    /**
+     * @return Matched and deleted ids
+     */
+  }, {
+    key: "deleteOverwritesByIdPrefix",
+    value: function deleteOverwritesByIdPrefix(prefix) {
+      var _this3 = this;
+      var ids = [];
+      this.overwrites.items.forEach(function (overwrites) {
+        var id = getOvIdByObject(overwrites);
+        if (id.startsWith(prefix)) {
+          ids.push(id);
+          _this3.overwrites["delete"](id);
+        }
+      });
+      return ids;
+    }
+  }, {
     key: "collectRoleOverwrites",
     value: function () {
-      var _collectRoleOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee4(spaceId, layer, layerId, userRoles) {
-        var _this2 = this;
+      var _collectRoleOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee5(spaceId, layer, layerId, userRoles) {
+        var _this4 = this;
         var roleOverwrites;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                _context4.next = 2;
+                _context5.next = 2;
                 return Promise.all(userRoles.map(function (roleId) {
-                  return _this2.getOverwrites(layer, layerId, 'Role', roleId);
+                  return _this4.getOverwrites(layer, layerId, 'Role', roleId);
                 }));
               case 2:
-                roleOverwrites = _context4.sent;
-                return _context4.abrupt("return", this.resolveOverwritesFromRolesByOrder(spaceId, roleOverwrites));
+                roleOverwrites = _context5.sent;
+                return _context5.abrupt("return", this.resolveOverwritesFromRolesByOrder(spaceId, roleOverwrites));
               case 4:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
       function collectRoleOverwrites(_x12, _x13, _x14, _x15) {
         return _collectRoleOverwrites.apply(this, arguments);
@@ -1958,17 +2129,17 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "resolveOverwritesFromRolesByOrder",
     value: function () {
-      var _resolveOverwritesFromRolesByOrder = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee5(spaceId, overwrites) {
+      var _resolveOverwritesFromRolesByOrder = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee6(spaceId, overwrites) {
         var allows, denies, roles, sortedOverwrites, permissionsLength;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 allows = 0, denies = 0;
-                _context5.next = 3;
+                _context6.next = 3;
                 return this.tracker.spaces.getRoles(spaceId);
               case 3:
-                roles = _context5.sent;
+                roles = _context6.sent;
                 sortedOverwrites = overwrites.sort(function (a, b) {
                   return roles.get(a.targetId).priority - roles.get(b.targetId).priority;
                 }); // Max length of bit word
@@ -1991,16 +2162,16 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                     }
                   }
                 });
-                return _context5.abrupt("return", {
+                return _context6.abrupt("return", {
                   allow: allows,
                   deny: denies
                 });
               case 8:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
       function resolveOverwritesFromRolesByOrder(_x16, _x17) {
         return _resolveOverwritesFromRolesByOrder.apply(this, arguments);

@@ -2,19 +2,19 @@ import {ChatStateTracker} from "./ChatStateTracker";
 import {
     PermissionOverwrites,
     PermissionOverwritesChanged,
-    PermissionOverwritesValue,
-    Role
+    PermissionOverwritesValue, RoleDeleted, RoomDeleted, RoomLeft, SpaceDeleted, SpaceLeft, TopicDeleted,
 } from "pserv-ts-types";
 import {EventHandler, EventTarget} from "../EventTarget";
 import {IndexedCollection} from "../IndexedObjectCollection";
 import {Permission} from "../Permission";
+import {PromiseRegistry} from "./AsyncUtils";
 
 const getOvId = (
     layer: PermissionOverwrites['layer'],
     layerId: PermissionOverwrites['layerId'],
-    target: PermissionOverwrites['target'],
-    targetId: PermissionOverwrites['targetId'],
-) => layer + (layerId ?? '') + target + targetId;
+    target?: PermissionOverwrites['target'],
+    targetId?: PermissionOverwrites['targetId'],
+) => layer + (layerId ?? '') + (target ?? '') + (targetId ?? '');
 
 const getOvIdByObject = (overwrites: PermissionOverwrites | PermissionOverwritesChanged): string => getOvId(
     overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId
@@ -22,11 +22,18 @@ const getOvIdByObject = (overwrites: PermissionOverwrites | PermissionOverwrites
 
 export class PermissionsManager extends EventTarget {
     private readonly overwrites = new IndexedCollection<string, PermissionOverwrites>();
+    private readonly overwritesPromises = new PromiseRegistry();
 
     public constructor(private tracker: ChatStateTracker) {
         super();
         this.tracker.client.on('PermissionOverwrites', ev => this.handlePermissionOverwrites(ev));
         this.tracker.client.on('PermissionOverwritesChanged', ev => this.handlePermissionOverwrites(ev));
+        this.tracker.client.on('SpaceDeleted', ev => this.handleSpaceDeleted(ev));
+        this.tracker.client.on('SpaceLeft', ev => this.handleSpaceDeleted(ev));
+        this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
+        this.tracker.client.on('RoomLeft', ev => this.handleRoomDeleted(ev));
+        this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
+        this.tracker.client.on('RoleDeleted', ev => this.handleRoleDeleted(ev));
     }
 
     public async getOverwrites(
@@ -37,16 +44,21 @@ export class PermissionsManager extends EventTarget {
     ): Promise<PermissionOverwrites | undefined> {
         const id = getOvId(layer, layerId, target, targetId);
 
-        if (this.overwrites.has(id)) {
-            return this.overwrites.get(id);
+        if (this.overwritesPromises.notExist(id)) {
+            this.overwritesPromises.registerByFunction(async () => {
+                const result = await this.tracker.client.send(
+                    'GetPermissionOverwrites',
+                    {layer, layerId, target, targetId},
+                );
+                if (result.error) {
+                    throw result.error;
+                }
+                this.handlePermissionOverwrites(result.data);
+            }, id);
         }
 
-        const result = await this.tracker.client.send(
-            'GetPermissionOverwrites',
-            {layer, layerId, target, targetId},
-        );
-
-        return result.error ? null : result.data;
+        await this.overwritesPromises.get(id);
+        return this.overwrites.get(id);
     }
 
     public on(eventName: 'change', handler: EventHandler<any>): this {
@@ -113,9 +125,44 @@ export class PermissionsManager extends EventTarget {
         return this.resolveOverwritesHierarchy(await Promise.all(promises));
     }
 
-    private handlePermissionOverwrites(ev: PermissionOverwritesChanged | PermissionOverwrites) {
+    private handlePermissionOverwrites(ev: PermissionOverwritesChanged | PermissionOverwrites): void {
         this.overwrites.set([getOvIdByObject(ev), ev]);
         this.emit('change');
+    }
+
+    private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {
+        const ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.id));
+        this.overwritesPromises.forget(...ids);
+    }
+
+    private handleRoomDeleted(ev: RoomDeleted | RoomLeft): void {
+        const ids = this.deleteOverwritesByIdPrefix(getOvId('Room', ev.id));
+        this.overwritesPromises.forget(...ids);
+    }
+
+    private handleTopicDeleted(ev: TopicDeleted): void {
+        const ids = this.deleteOverwritesByIdPrefix(getOvId('Topic', ev.id));
+        this.overwritesPromises.forget(...ids);
+    }
+
+    private handleRoleDeleted(ev: RoleDeleted): void {
+        const ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.spaceId, 'Role', ev.id));
+        this.overwritesPromises.forget(...ids);
+    }
+
+    /**
+     * @return Matched and deleted ids
+     */
+    private deleteOverwritesByIdPrefix(prefix: string): string[] {
+        const ids: string[] = [];
+        this.overwrites.items.forEach((overwrites) => {
+            const id = getOvIdByObject(overwrites);
+            if (id.startsWith(prefix)) {
+                ids.push(id);
+                this.overwrites.delete(id);
+            }
+        });
+        return ids;
     }
 
     private async collectRoleOverwrites(

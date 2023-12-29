@@ -11,7 +11,7 @@ import {
     UserChanged,
 } from "pserv-ts-types";
 import {ChatStateTracker} from "./ChatStateTracker";
-import {DeferredTask} from "./DeferredTask";
+import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {MessagesManager} from "./MessagesManager";
 
 export class RoomsManager {
@@ -21,6 +21,7 @@ export class RoomsManager {
     private readonly topics = new IndexedCollection<string, ObservableIndexedObjectCollection<Topic>>();
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomMember>>();
     private readonly deferredSession = new DeferredTask();
+    private readonly membersPromises = new PromiseRegistry();
 
     public constructor(private tracker: ChatStateTracker) {
         this.messages = new MessagesManager(tracker);
@@ -42,16 +43,17 @@ export class RoomsManager {
      * Get collection of room members.
      */
     public async getMembers(roomId: string): Promise<ObservableIndexedObjectCollection<RoomMember> | undefined> {
-        if (! this.members.has(roomId)) {
-            const result = await this.tracker.client.send('GetRoomMembers', {id: roomId});
-
-            if (result.error) {
-                throw result.error;
-            }
-
-            this.handleRoomMembers(result.data);
+        if (this.membersPromises.notExist(roomId)) {
+            this.membersPromises.registerByFunction(async () => {
+                const result = await this.tracker.client.send('GetRoomMembers', {id: roomId});
+                if (result.error) {
+                    throw result.error;
+                }
+                this.handleRoomMembers(result.data);
+            }, roomId);
         }
 
+        await this.membersPromises.get(roomId);
         return this.members.get(roomId);
     }
 
@@ -93,6 +95,7 @@ export class RoomsManager {
     public _delete(...roomIds: string[]): void {
         this.list.delete(...roomIds);
         this.members.delete(...roomIds);
+        this.membersPromises.forget(...roomIds);
 
         for (const roomId of roomIds) {
             const topicIds: string[] = this.topics.get(roomId)?.map(topic => topic.id) ?? [];

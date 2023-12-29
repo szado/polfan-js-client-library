@@ -8,6 +8,8 @@ export declare class SpacesManager {
     private readonly rooms;
     private readonly members;
     private readonly deferredSession;
+    private readonly roomsPromises;
+    private readonly membersPromises;
     constructor(tracker: ChatStateTracker);
     /**
      * Get collection of all the spaces you are in.

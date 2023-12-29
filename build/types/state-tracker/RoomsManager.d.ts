@@ -9,6 +9,7 @@ export declare class RoomsManager {
     private readonly topics;
     private readonly members;
     private readonly deferredSession;
+    private readonly membersPromises;
     constructor(tracker: ChatStateTracker);
     /**
      * Get collection of room members.

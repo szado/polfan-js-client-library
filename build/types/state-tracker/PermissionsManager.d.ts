@@ -5,6 +5,7 @@ import { Permission } from "../Permission";
 export declare class PermissionsManager extends EventTarget {
     private tracker;
     private readonly overwrites;
+    private readonly overwritesPromises;
     constructor(tracker: ChatStateTracker);
     getOverwrites(layer: PermissionOverwrites['layer'], layerId: PermissionOverwrites['layerId'], target: PermissionOverwrites['target'], targetId: PermissionOverwrites['targetId']): Promise<PermissionOverwrites | undefined>;
     on(eventName: 'change', handler: EventHandler<any>): this;
@@ -14,6 +15,14 @@ export declare class PermissionsManager extends EventTarget {
     }>;
     calculatePermissions(spaceId?: string, roomId?: string, topicId?: string): Promise<number>;
     private handlePermissionOverwrites;
+    private handleSpaceDeleted;
+    private handleRoomDeleted;
+    private handleTopicDeleted;
+    private handleRoleDeleted;
+    /**
+     * @return Matched and deleted ids
+     */
+    private deleteOverwritesByIdPrefix;
     private collectRoleOverwrites;
     private resolveOverwritesFromRolesByOrder;
     private resolveOverwritesHierarchy;

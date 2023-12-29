@@ -3,7 +3,7 @@ import {Session, User} from "pserv-ts-types";
 import {RoomsManager} from "./RoomsManager";
 import {SpacesManager} from "./SpacesManager";
 import {PermissionsManager} from "./PermissionsManager";
-import {DeferredTask} from "./DeferredTask";
+import {DeferredTask} from "./AsyncUtils";
 
 export class ChatStateTracker {
     /**
