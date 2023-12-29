@@ -954,6 +954,9 @@ var RoomsManager = /*#__PURE__*/function () {
     this.tracker.client.on('RoomLeft', function (ev) {
       return _this.handleRoomLeft(ev);
     });
+    this.tracker.client.on('RoomDeleted', function (ev) {
+      return _this.handleRoomDeleted(ev);
+    });
     this.tracker.client.on('RoomMemberJoined', function (ev) {
       return _this.handleRoomMemberJoined(ev);
     });
@@ -966,8 +969,17 @@ var RoomsManager = /*#__PURE__*/function () {
     this.tracker.client.on('RoomMemberUpdated', function (ev) {
       return _this.handleRoomMemberUpdated(ev);
     });
+    this.tracker.client.on('SpaceMemberLeft', function (ev) {
+      return _this.handleSpaceMemberLeft(ev);
+    });
     this.tracker.client.on('SpaceMemberUpdated', function (ev) {
       return _this.handleSpaceMemberUpdated(ev);
+    });
+    this.tracker.client.on('SpaceDeleted', function (ev) {
+      return _this.handleSpaceDeleted(ev);
+    });
+    this.tracker.client.on('SpaceLeft', function (ev) {
+      return _this.handleSpaceDeleted(ev);
     });
     this.tracker.client.on('UserChanged', function (ev) {
       return _this.handleUserChanged(ev);
@@ -1129,13 +1141,9 @@ var RoomsManager = /*#__PURE__*/function () {
       }
       return getTopics;
     }()
-    /**
-     * For internal use. If you want to leave the room, execute a proper command on client object.
-     * @internal
-     */
   }, {
-    key: "_delete",
-    value: function _delete() {
+    key: "deleteRoom",
+    value: function deleteRoom() {
       var _this$list, _this$members, _this$membersPromises, _this$topics;
       for (var _len = arguments.length, roomIds = new Array(_len), _key = 0; _key < _len; _key++) {
         roomIds[_key] = arguments[_key];
@@ -1153,15 +1161,10 @@ var RoomsManager = /*#__PURE__*/function () {
       }
       (_this$topics = this.topics)["delete"].apply(_this$topics, roomIds);
     }
-
-    /**
-     * For internal use. If you want to leave the room, execute a proper command on client object.
-     * @internal
-     */
   }, {
-    key: "_deleteBySpaceId",
-    value: function _deleteBySpaceId(spaceId) {
-      this._delete.apply(this, RoomsManager_toConsumableArray(this.list.findBy('spaceId', spaceId).map(function (room) {
+    key: "deleteRoomsBySpaceId",
+    value: function deleteRoomsBySpaceId(spaceId) {
+      this.deleteRoom.apply(this, RoomsManager_toConsumableArray(this.list.findBy('spaceId', spaceId).map(function (room) {
         return room.id;
       })));
     }
@@ -1196,6 +1199,15 @@ var RoomsManager = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "handleSpaceMemberLeft",
+    value: function handleSpaceMemberLeft(ev) {
+      var _this3 = this;
+      this.list.findBy('spaceId', ev.spaceId).items.forEach(function (room) {
+        var _this3$members$get;
+        return (_this3$members$get = _this3.members.get(room.id)) === null || _this3$members$get === void 0 ? void 0 : _this3$members$get["delete"](ev.userId);
+      });
+    }
+  }, {
     key: "handleRoomMemberUpdated",
     value: function handleRoomMemberUpdated(ev) {
       var _member$spaceMember$u, _member$spaceMember;
@@ -1213,6 +1225,11 @@ var RoomsManager = /*#__PURE__*/function () {
         newMember.user = user;
       }
       members.set(newMember);
+    }
+  }, {
+    key: "handleSpaceDeleted",
+    value: function handleSpaceDeleted(ev) {
+      this.deleteRoomsBySpaceId(ev.id);
     }
   }, {
     key: "handleTopicDeleted",
@@ -1248,6 +1265,11 @@ var RoomsManager = /*#__PURE__*/function () {
       this.addJoinedRooms(ev.room);
     }
   }, {
+    key: "handleRoomDeleted",
+    value: function handleRoomDeleted(ev) {
+      this.deleteRoom(ev.id);
+    }
+  }, {
     key: "addJoinedRooms",
     value: function addJoinedRooms() {
       var _this$list2;
@@ -1263,7 +1285,7 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "handleRoomLeft",
     value: function handleRoomLeft(ev) {
-      this._delete(ev.id);
+      this.deleteRoom(ev.id);
     }
   }, {
     key: "handleRoomMemberJoined",
@@ -1388,7 +1410,7 @@ var SpacesManager = /*#__PURE__*/function () {
       return _this.handleSpaceJoined(ev);
     });
     this.tracker.client.on('SpaceLeft', function (ev) {
-      return _this.handleSpaceLeft(ev);
+      return _this.handleSpaceDeleted(ev);
     });
     this.tracker.client.on('SpaceMemberJoined', function (ev) {
       return _this.handleSpaceMemberJoined(ev);
@@ -1648,7 +1670,6 @@ var SpacesManager = /*#__PURE__*/function () {
       if (ev.spaceId) {
         this.rooms.get(ev.spaceId)["delete"](ev.id);
       }
-      this.tracker.rooms._delete(ev.id);
     }
   }, {
     key: "handleRoleDeleted",
@@ -1660,7 +1681,6 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceDeleted",
     value: function handleSpaceDeleted(ev) {
-      this.tracker.rooms._deleteBySpaceId(ev.id);
       this.roles["delete"](ev.id);
       this.members["delete"](ev.id);
       this.membersPromises.forget(ev.id);
@@ -1684,11 +1704,6 @@ var SpacesManager = /*#__PURE__*/function () {
         return [space.id, new ObservableIndexedObjectCollection('id', space.roles)];
       })));
       (_this$list = this.list).set.apply(_this$list, spaces);
-    }
-  }, {
-    key: "handleSpaceLeft",
-    value: function handleSpaceLeft(ev) {
-      this.handleSpaceDeleted(ev);
     }
   }, {
     key: "handleSpaceMemberJoined",

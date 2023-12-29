@@ -27,22 +27,17 @@ export declare class RoomsManager {
      * Get collection of room topics.
      */
     getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | undefined>;
-    /**
-     * For internal use. If you want to leave the room, execute a proper command on client object.
-     * @internal
-     */
-    _delete(...roomIds: string[]): void;
-    /**
-     * For internal use. If you want to leave the room, execute a proper command on client object.
-     * @internal
-     */
-    _deleteBySpaceId(spaceId: string): void;
+    private deleteRoom;
+    private deleteRoomsBySpaceId;
     private handleSpaceMemberUpdated;
+    private handleSpaceMemberLeft;
     private handleRoomMemberUpdated;
+    private handleSpaceDeleted;
     private handleTopicDeleted;
     private handleNewTopic;
     private addJoinedRoomTopics;
     private handleRoomJoined;
+    private handleRoomDeleted;
     private addJoinedRooms;
     private handleRoomLeft;
     private handleRoomMemberJoined;

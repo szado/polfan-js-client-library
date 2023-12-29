@@ -1,10 +1,10 @@
 import {IndexedCollection, ObservableIndexedObjectCollection} from "../IndexedObjectCollection";
 import {
     NewTopic,
-    Room,
+    Room, RoomDeleted,
     RoomJoined, RoomLeft,
     RoomMember, RoomMemberJoined, RoomMemberLeft, RoomMembers,
-    RoomMemberUpdated, Session,
+    RoomMemberUpdated, Session, SpaceDeleted, SpaceLeft, SpaceMemberLeft,
     SpaceMemberUpdated,
     Topic,
     TopicDeleted,
@@ -30,11 +30,15 @@ export class RoomsManager {
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
         this.tracker.client.on('RoomJoined', ev => this.handleRoomJoined(ev));
         this.tracker.client.on('RoomLeft', ev => this.handleRoomLeft(ev));
+        this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
         this.tracker.client.on('RoomMemberJoined', ev => this.handleRoomMemberJoined(ev));
         this.tracker.client.on('RoomMemberLeft', ev => this.handleRoomMemberLeft(ev));
         this.tracker.client.on('RoomMembers', ev => this.handleRoomMembers(ev));
         this.tracker.client.on('RoomMemberUpdated', ev => this.handleRoomMemberUpdated(ev));
+        this.tracker.client.on('SpaceMemberLeft', ev => this.handleSpaceMemberLeft(ev));
         this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
+        this.tracker.client.on('SpaceDeleted', ev => this.handleSpaceDeleted(ev));
+        this.tracker.client.on('SpaceLeft', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('UserChanged', ev => this.handleUserChanged(ev));
         this.tracker.client.on('Session', ev => this.handleSession(ev));
     }
@@ -88,11 +92,7 @@ export class RoomsManager {
         return this.topics.get(roomId);
     }
 
-    /**
-     * For internal use. If you want to leave the room, execute a proper command on client object.
-     * @internal
-     */
-    public _delete(...roomIds: string[]): void {
+    private deleteRoom(...roomIds: string[]): void {
         this.list.delete(...roomIds);
         this.members.delete(...roomIds);
         this.membersPromises.forget(...roomIds);
@@ -105,12 +105,8 @@ export class RoomsManager {
         this.topics.delete(...roomIds);
     }
 
-    /**
-     * For internal use. If you want to leave the room, execute a proper command on client object.
-     * @internal
-     */
-    public _deleteBySpaceId(spaceId: string): void {
-        this._delete(
+    private deleteRoomsBySpaceId(spaceId: string): void {
+        this.deleteRoom(
             ...this.list.findBy('spaceId', spaceId).map(room => room.id)
         );
     }
@@ -135,6 +131,12 @@ export class RoomsManager {
         }
     }
 
+    private handleSpaceMemberLeft(ev: SpaceMemberLeft): void {
+        this.list
+            .findBy('spaceId', ev.spaceId).items
+            .forEach(room => this.members.get(room.id)?.delete(ev.userId));
+    }
+
     private handleRoomMemberUpdated(ev: RoomMemberUpdated): void {
         if (! this.members.has(ev.roomId)) {
             // We do not track member list for this room.
@@ -153,6 +155,10 @@ export class RoomsManager {
         }
 
         members.set(newMember);
+    }
+
+    private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {
+        this.deleteRoomsBySpaceId(ev.id);
     }
 
     private handleTopicDeleted(ev: TopicDeleted): void {
@@ -180,6 +186,10 @@ export class RoomsManager {
         this.addJoinedRooms(ev.room);
     }
 
+    private handleRoomDeleted(ev: RoomDeleted): void {
+        this.deleteRoom(ev.id);
+    }
+
     private addJoinedRooms(...rooms: Room[]): void {
         for (const room of rooms) {
             this.addJoinedRoomTopics(room.id, ...room.topics);
@@ -188,7 +198,7 @@ export class RoomsManager {
     }
 
     private handleRoomLeft(ev: RoomLeft): void {
-        this._delete(ev.id);
+        this.deleteRoom(ev.id);
     }
 
     private handleRoomMemberJoined(ev: RoomMemberJoined): void {

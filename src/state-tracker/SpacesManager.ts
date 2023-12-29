@@ -27,7 +27,7 @@ export class SpacesManager {
         this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
         this.tracker.client.on('SpaceDeleted', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('SpaceJoined', ev => this.handleSpaceJoined(ev));
-        this.tracker.client.on('SpaceLeft', ev => this.handleSpaceLeft(ev));
+        this.tracker.client.on('SpaceLeft', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('SpaceMemberJoined', ev => this.handleSpaceMemberJoined(ev));
         this.tracker.client.on('SpaceMemberLeft', ev => this.handleSpaceMemberLeft(ev));
         this.tracker.client.on('SpaceMembers', ev => this.handleSpaceMembers(ev));
@@ -121,8 +121,6 @@ export class SpacesManager {
         if (ev.spaceId) {
             this.rooms.get(ev.spaceId).delete(ev.id);
         }
-
-        this.tracker.rooms._delete(ev.id);
     }
 
     private handleRoleDeleted(ev: RoleDeleted): void {
@@ -131,8 +129,7 @@ export class SpacesManager {
         this.list.get(ev.spaceId).roles = collection.items;
     }
 
-    private handleSpaceDeleted(ev: SpaceDeleted): void {
-        this.tracker.rooms._deleteBySpaceId(ev.id);
+    private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {
         this.roles.delete(ev.id);
         this.members.delete(ev.id);
         this.membersPromises.forget(ev.id);
@@ -151,10 +148,6 @@ export class SpacesManager {
             new ObservableIndexedObjectCollection<Role>('id', space.roles)
         ]) as [string, ObservableIndexedObjectCollection<Role>][]));
         this.list.set(...spaces);
-    }
-
-    private handleSpaceLeft(ev: SpaceLeft): void {
-        this.handleSpaceDeleted(ev);
     }
 
     private handleSpaceMemberJoined(ev: SpaceMemberJoined): void {

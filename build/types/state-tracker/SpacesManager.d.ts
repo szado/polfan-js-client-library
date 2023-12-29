@@ -38,7 +38,6 @@ export declare class SpacesManager {
     private handleSpaceDeleted;
     private handleSpaceJoined;
     private addJoinedSpaces;
-    private handleSpaceLeft;
     private handleSpaceMemberJoined;
     private handleSpaceMemberLeft;
     private handleSpaceMembers;
