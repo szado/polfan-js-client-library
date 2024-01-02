@@ -67,13 +67,13 @@ export class RoomsManager {
      */
     public async getMe(roomId: string): Promise<RoomMember | undefined> {
         const userId = (await this.tracker.getMe()).id;
-        const members = await this.getMembers(roomId);
 
-        if (! members) {
+        if (! this.list.has(roomId)) {
             // User is not in passed room.
             return undefined;
         }
 
+        const members = await this.getMembers(roomId);
         return members.items.find(member => (member.user?.id ?? member.spaceMember.user.id) === userId);
     }
 

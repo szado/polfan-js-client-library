@@ -112,13 +112,13 @@ export class SpacesManager {
      */
     public async getMe(spaceId: string): Promise<SpaceMember | undefined> {
         const userId = (await this.tracker.getMe()).id;
-        const members = await this.getMembers(spaceId);
 
-        if (! members) {
+        if (! this.list.has(spaceId)) {
             // User is not in passed space.
             return undefined;
         }
 
+        const members = await this.getMembers(spaceId);
         return members.items.find(member => member.user.id === userId);
     }
 

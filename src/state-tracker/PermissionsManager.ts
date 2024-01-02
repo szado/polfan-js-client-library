@@ -89,21 +89,25 @@ export class PermissionsManager extends EventTarget {
         }
 
         const userId = (await this.tracker.getMe()).id;
-
         const userRoles: string[] = [];
+        const [spaces, rooms, topics] = await Promise.all([
+            this.tracker.spaces.get(),
+            this.tracker.rooms.get(),
+            roomId ? this.tracker.rooms.getTopics(roomId) : null,
+        ]);
 
         const promises: Promise<PermissionOverwritesValue>[] = [
             // Global user overwrites
             this.getOverwrites('Global', null, 'User', userId).then(v => v.overwrites),
         ];
 
-        if (spaceId) {
+        if (spaceId && spaces.has(spaceId)) {
             userRoles.push(...(await this.tracker.spaces.getMe(spaceId)).roles);
             promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
             promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(v => v.overwrites));
         }
 
-        if (roomId) {
+        if (roomId && rooms.has(roomId)) {
             const roomMember = await this.tracker.rooms.getMe(roomId);
 
             if (roomMember.roles !== null) { // Room overwrites from roles (only for space rooms)
@@ -114,7 +118,7 @@ export class PermissionsManager extends EventTarget {
             promises.push(this.getOverwrites('Room', roomId, 'User', userId).then(v => v.overwrites));
         }
 
-        if (topicId) {
+        if (topicId && topics && topics.has(topicId)) {
             if (userRoles.length) {
                 promises.push(this.collectRoleOverwrites(spaceId, 'Topic', topicId, userRoles));
             }
