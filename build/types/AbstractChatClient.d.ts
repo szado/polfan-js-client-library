@@ -1,4 +1,4 @@
-import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesChanged, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, Ack, GetAckReports, UserChanged } from "pserv-ts-types";
+import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesUpdated, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, Ack, GetAckReports, UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated } from "pserv-ts-types";
 import { EventTarget } from "./EventTarget";
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 export declare abstract class AbstractChatClient extends EventTarget {
@@ -25,12 +25,13 @@ export type EventsMap = {
     Session: Session;
     Permissions: Permissions;
     PermissionOverwrites: PermissionOverwrites;
-    PermissionOverwritesChanged: PermissionOverwritesChanged;
+    PermissionOverwritesUpdated: PermissionOverwritesUpdated;
     SpaceJoined: SpaceJoined;
     SpaceLeft: SpaceLeft;
     SpaceMemberJoined: SpaceMemberJoined;
     SpaceMemberLeft: SpaceMemberLeft;
     SpaceMemberUpdated: SpaceMemberUpdated;
+    SpaceUpdated: SpaceUpdated;
     SpaceDeleted: SpaceDeleted;
     SpaceMembers: SpaceMembers;
     SpaceRooms: SpaceRooms;
@@ -45,23 +46,25 @@ export type EventsMap = {
     RoomMembers: RoomMembers;
     NewRoom: NewRoom;
     RoomDeleted: RoomDeleted;
+    RoomUpdated: RoomUpdated;
     NewTopic: NewTopic;
     TopicDeleted: TopicDeleted;
     NewMessage: NewMessage;
     AckReports: AckReports;
-    UserChanged: UserChanged;
+    UserUpdated: UserUpdated;
 };
 /**
  * Map of commands and their corresponding events.
  */
 export type CommandsMap = {
     GetSession: [GetSession, EventsMap['Session']];
-    SetPermissionOverwrites: [SetPermissionOverwrites, EventsMap['PermissionOverwritesChanged']];
+    SetPermissionOverwrites: [SetPermissionOverwrites, EventsMap['PermissionOverwritesUpdated']];
     GetPermissionOverwrites: [GetPermissionOverwrites, EventsMap['PermissionOverwrites']];
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']];
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']];
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']];
     CreateSpace: [CreateSpace, EventsMap['SpaceJoined']];
+    UpdateSpace: [UpdateSpace, EventsMap['SpaceUpdated']];
     DeleteSpace: [DeleteSpace, EventsMap['SpaceDeleted']];
     GetSpaceMembers: [GetSpaceMembers, EventsMap['SpaceMembers']];
     GetSpaceRooms: [GetSpaceRooms, EventsMap['SpaceRooms']];
@@ -74,6 +77,7 @@ export type CommandsMap = {
     LeaveRoom: [LeaveRoom, EventsMap['RoomLeft']];
     CreateRoom: [CreateRoom, EventsMap['NewRoom']];
     DeleteRoom: [DeleteRoom, EventsMap['RoomDeleted']];
+    UpdateRoom: [UpdateRoom, EventsMap['RoomUpdated']];
     GetRoomMembers: [GetRoomMembers, EventsMap['RoomMembers']];
     CreateTopic: [CreateTopic, EventsMap['NewTopic']];
     DeleteTopic: [DeleteTopic, EventsMap['TopicDeleted']];

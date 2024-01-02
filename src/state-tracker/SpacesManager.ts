@@ -4,11 +4,24 @@ import {
     NewRole,
     NewRoom,
     Role,
-    RoleDeleted, RoleUpdated, RoomDeleted,
-    RoomSummary, Session,
+    RoleDeleted,
+    RoleUpdated,
+    RoomDeleted,
+    RoomSummary,
+    RoomUpdated,
+    Session,
     Space,
-    SpaceDeleted, SpaceJoined, SpaceLeft,
-    SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, UserUpdated
+    SpaceDeleted,
+    SpaceJoined,
+    SpaceLeft,
+    SpaceMember,
+    SpaceMemberJoined,
+    SpaceMemberLeft,
+    SpaceMembers,
+    SpaceMemberUpdated,
+    SpaceRooms,
+    SpaceUpdated,
+    UserUpdated
 } from "pserv-ts-types";
 import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {reorderRolesOnPriorityUpdate} from "./functions";
@@ -25,7 +38,9 @@ export class SpacesManager {
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('NewRoom', ev => this.handleNewRoom(ev));
         this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
+        this.tracker.client.on('RoomUpdated', ev => this.handleRoomUpdated(ev));
         this.tracker.client.on('SpaceDeleted', ev => this.handleSpaceDeleted(ev));
+        this.tracker.client.on('SpaceUpdated', ev => this.handleSpaceUpdated(ev));
         this.tracker.client.on('SpaceJoined', ev => this.handleSpaceJoined(ev));
         this.tracker.client.on('SpaceLeft', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('SpaceMemberJoined', ev => this.handleSpaceMemberJoined(ev));
@@ -117,8 +132,19 @@ export class SpacesManager {
         this.rooms.get(ev.spaceId)?.set(ev.summary);
     }
 
+    private handleRoomUpdated(ev: RoomUpdated): void {
+        if (ev.room.spaceId && this.rooms.has(ev.room.spaceId)) {
+            const rooms = this.rooms.get(ev.room.spaceId);
+            rooms.set({
+                ...rooms.get(ev.room.id),
+                name: ev.room.name,
+                description: ev.room.description,
+            } as RoomSummary);
+        }
+    }
+
     private handleRoomDeleted(ev: RoomDeleted): void {
-        if (ev.spaceId) {
+        if (ev.spaceId && this.rooms.has(ev.id)) {
             this.rooms.get(ev.spaceId).delete(ev.id);
         }
     }
@@ -127,6 +153,13 @@ export class SpacesManager {
         const collection = this.roles.get(ev.spaceId);
         collection.delete(ev.id);
         this.list.get(ev.spaceId).roles = collection.items;
+    }
+
+    private handleSpaceUpdated(ev: SpaceUpdated): void {
+        this.list.set({
+            ...this.list.get(ev.space.id),
+            name: ev.space.name,
+        } as Space);
     }
 
     private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {

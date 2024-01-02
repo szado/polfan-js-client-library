@@ -33,8 +33,10 @@ export declare class SpacesManager {
     getMe(spaceId: string): Promise<SpaceMember | undefined>;
     private handleNewRole;
     private handleNewRoom;
+    private handleRoomUpdated;
     private handleRoomDeleted;
     private handleRoleDeleted;
+    private handleSpaceUpdated;
     private handleSpaceDeleted;
     private handleSpaceJoined;
     private addJoinedSpaces;
@@ -45,5 +47,5 @@ export declare class SpacesManager {
     private handleSpaceMemberUpdated;
     private handleRoleUpdated;
     private handleSession;
-    private handleUserChanged;
+    private handleUserUpdated;
 }

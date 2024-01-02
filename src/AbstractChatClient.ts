@@ -52,7 +52,7 @@ import {
     AckReports,
     Ack,
     GetAckReports,
-    UserUpdated,
+    UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated,
 } from "pserv-ts-types";
 import {EventTarget} from "./EventTarget";
 
@@ -128,6 +128,7 @@ export type EventsMap = {
     SpaceMemberJoined: SpaceMemberJoined,
     SpaceMemberLeft: SpaceMemberLeft,
     SpaceMemberUpdated: SpaceMemberUpdated,
+    SpaceUpdated: SpaceUpdated,
     SpaceDeleted: SpaceDeleted,
     SpaceMembers: SpaceMembers,
     SpaceRooms: SpaceRooms,
@@ -143,6 +144,7 @@ export type EventsMap = {
     RoomMembers: RoomMembers,
     NewRoom: NewRoom,
     RoomDeleted: RoomDeleted,
+    RoomUpdated: RoomUpdated,
     // Topic events
     NewTopic: NewTopic,
     TopicDeleted: TopicDeleted,
@@ -164,6 +166,7 @@ export type CommandsMap = {
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']],
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']],
     CreateSpace: [CreateSpace, EventsMap['SpaceJoined']],
+    UpdateSpace: [UpdateSpace, EventsMap['SpaceUpdated']],
     DeleteSpace: [DeleteSpace, EventsMap['SpaceDeleted']],
     GetSpaceMembers: [GetSpaceMembers, EventsMap['SpaceMembers']],
     GetSpaceRooms: [GetSpaceRooms, EventsMap['SpaceRooms']],
@@ -177,6 +180,7 @@ export type CommandsMap = {
     LeaveRoom: [LeaveRoom, EventsMap['RoomLeft']],
     CreateRoom: [CreateRoom, EventsMap['NewRoom']],
     DeleteRoom: [DeleteRoom, EventsMap['RoomDeleted']],
+    UpdateRoom: [UpdateRoom, EventsMap['RoomUpdated']],
     GetRoomMembers: [GetRoomMembers, EventsMap['RoomMembers']],
     // Topic commands
     CreateTopic: [CreateTopic, EventsMap['NewTopic']],
