@@ -1,7 +1,7 @@
 import {ChatStateTracker} from "./ChatStateTracker";
 import {
     PermissionOverwrites,
-    PermissionOverwritesChanged,
+    PermissionOverwritesUpdated,
     PermissionOverwritesValue, RoleDeleted, RoomDeleted, RoomLeft, SpaceDeleted, SpaceLeft, TopicDeleted,
 } from "pserv-ts-types";
 import {EventHandler, EventTarget} from "../EventTarget";
@@ -16,7 +16,7 @@ const getOvId = (
     targetId?: PermissionOverwrites['targetId'],
 ) => layer + (layerId ?? '') + (target ?? '') + (targetId ?? '');
 
-const getOvIdByObject = (overwrites: PermissionOverwrites | PermissionOverwritesChanged): string => getOvId(
+const getOvIdByObject = (overwrites: PermissionOverwrites | PermissionOverwritesUpdated): string => getOvId(
     overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId
 );
 
@@ -27,7 +27,7 @@ export class PermissionsManager extends EventTarget {
     public constructor(private tracker: ChatStateTracker) {
         super();
         this.tracker.client.on('PermissionOverwrites', ev => this.handlePermissionOverwrites(ev));
-        this.tracker.client.on('PermissionOverwritesChanged', ev => this.handlePermissionOverwrites(ev));
+        this.tracker.client.on('PermissionOverwritesUpdated', ev => this.handlePermissionOverwrites(ev));
         this.tracker.client.on('SpaceDeleted', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('SpaceLeft', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
@@ -125,7 +125,7 @@ export class PermissionsManager extends EventTarget {
         return this.resolveOverwritesHierarchy(await Promise.all(promises));
     }
 
-    private handlePermissionOverwrites(ev: PermissionOverwritesChanged | PermissionOverwrites): void {
+    private handlePermissionOverwrites(ev: PermissionOverwritesUpdated | PermissionOverwrites): void {
         this.overwrites.set([getOvIdByObject(ev), ev]);
         this.emit('change');
     }

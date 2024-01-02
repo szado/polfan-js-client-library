@@ -8,7 +8,7 @@ import {
     RoomSummary, Session,
     Space,
     SpaceDeleted, SpaceJoined, SpaceLeft,
-    SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, UserChanged
+    SpaceMember, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, UserUpdated
 } from "pserv-ts-types";
 import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {reorderRolesOnPriorityUpdate} from "./functions";
@@ -33,7 +33,7 @@ export class SpacesManager {
         this.tracker.client.on('SpaceMembers', ev => this.handleSpaceMembers(ev));
         this.tracker.client.on('SpaceRooms', ev => this.handleSpaceRooms(ev));
         this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
-        this.tracker.client.on('UserChanged', ev => this.handleUserChanged(ev));
+        this.tracker.client.on('UserUpdated', ev => this.handleUserUpdated(ev));
         this.tracker.client.on('NewRole', ev => this.handleNewRole(ev));
         this.tracker.client.on('RoleDeleted', ev => this.handleRoleDeleted(ev));
         this.tracker.client.on('RoleUpdated', ev => this.handleRoleUpdated(ev));
@@ -211,7 +211,7 @@ export class SpacesManager {
         this.deferredSession.resolve();
     }
 
-    private handleUserChanged(ev: UserChanged): void {
+    private handleUserUpdated(ev: UserUpdated): void {
         this.members.items.forEach((members) => {
             const member = members.get(ev.user.id);
 

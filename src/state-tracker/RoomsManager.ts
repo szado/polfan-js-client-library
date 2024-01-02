@@ -8,7 +8,7 @@ import {
     SpaceMemberUpdated,
     Topic,
     TopicDeleted,
-    UserChanged,
+    UserUpdated,
 } from "pserv-ts-types";
 import {ChatStateTracker} from "./ChatStateTracker";
 import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
@@ -39,7 +39,7 @@ export class RoomsManager {
         this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
         this.tracker.client.on('SpaceDeleted', ev => this.handleSpaceDeleted(ev));
         this.tracker.client.on('SpaceLeft', ev => this.handleSpaceDeleted(ev));
-        this.tracker.client.on('UserChanged', ev => this.handleUserChanged(ev));
+        this.tracker.client.on('UserUpdated', ev => this.handleUserUpdated(ev));
         this.tracker.client.on('Session', ev => this.handleSession(ev));
     }
 
@@ -235,7 +235,7 @@ export class RoomsManager {
         this.deferredSession.resolve();
     }
 
-    private handleUserChanged(ev: UserChanged): void {
+    private handleUserUpdated(ev: UserUpdated): void {
         this.members.items.forEach((members) => {
             const member = members.get(ev.user.id);
 

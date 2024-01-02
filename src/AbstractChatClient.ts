@@ -45,14 +45,14 @@ import {
     CreateMessage,
     Envelope,
     PermissionOverwrites,
-    PermissionOverwritesChanged,
+    PermissionOverwritesUpdated,
     RoomMemberUpdated,
     UpdateRole,
     RoleUpdated,
     AckReports,
     Ack,
     GetAckReports,
-    UserChanged,
+    UserUpdated,
 } from "pserv-ts-types";
 import {EventTarget} from "./EventTarget";
 
@@ -121,7 +121,7 @@ export type EventsMap = {
     Session: Session,
     Permissions: Permissions,
     PermissionOverwrites: PermissionOverwrites,
-    PermissionOverwritesChanged: PermissionOverwritesChanged,
+    PermissionOverwritesUpdated: PermissionOverwritesUpdated,
     // Space events
     SpaceJoined: SpaceJoined,
     SpaceLeft: SpaceLeft,
@@ -148,7 +148,7 @@ export type EventsMap = {
     TopicDeleted: TopicDeleted,
     NewMessage: NewMessage,
     AckReports: AckReports,
-    UserChanged: UserChanged,
+    UserUpdated: UserUpdated,
 };
 
 /**
@@ -157,7 +157,7 @@ export type EventsMap = {
 export type CommandsMap = {
     // General commands
     GetSession: [GetSession, EventsMap['Session']],
-    SetPermissionOverwrites: [SetPermissionOverwrites, EventsMap['PermissionOverwritesChanged']],
+    SetPermissionOverwrites: [SetPermissionOverwrites, EventsMap['PermissionOverwritesUpdated']],
     GetPermissionOverwrites: [GetPermissionOverwrites, EventsMap['PermissionOverwrites']],
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']],
     // Space commands
