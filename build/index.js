@@ -1695,7 +1695,7 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleRoomDeleted",
     value: function handleRoomDeleted(ev) {
-      if (ev.spaceId && this.rooms.has(ev.id)) {
+      if (ev.spaceId && this.rooms.has(ev.spaceId)) {
         this.rooms.get(ev.spaceId)["delete"](ev.id);
       }
     }

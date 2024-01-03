@@ -144,7 +144,7 @@ export class SpacesManager {
     }
 
     private handleRoomDeleted(ev: RoomDeleted): void {
-        if (ev.spaceId && this.rooms.has(ev.id)) {
+        if (ev.spaceId && this.rooms.has(ev.spaceId)) {
             this.rooms.get(ev.spaceId).delete(ev.id);
         }
     }
