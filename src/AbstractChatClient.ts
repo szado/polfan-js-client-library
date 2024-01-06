@@ -52,7 +52,13 @@ import {
     AckReports,
     Ack,
     GetAckReports,
-    UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated,
+    UserUpdated,
+    UpdateRoom,
+    RoomUpdated,
+    UpdateSpace,
+    SpaceUpdated,
+    PermissionOverwriteTargets,
+    GetPermissionOverwriteTargets,
 } from "pserv-ts-types";
 import {EventTarget} from "./EventTarget";
 
@@ -122,6 +128,7 @@ export type EventsMap = {
     Permissions: Permissions,
     PermissionOverwrites: PermissionOverwrites,
     PermissionOverwritesUpdated: PermissionOverwritesUpdated,
+    PermissionOverwriteTargets: PermissionOverwriteTargets,
     // Space events
     SpaceJoined: SpaceJoined,
     SpaceLeft: SpaceLeft,
@@ -162,6 +169,7 @@ export type CommandsMap = {
     SetPermissionOverwrites: [SetPermissionOverwrites, EventsMap['PermissionOverwritesUpdated']],
     GetPermissionOverwrites: [GetPermissionOverwrites, EventsMap['PermissionOverwrites']],
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']],
+    GetPermissionOverwriteTargets: [GetPermissionOverwriteTargets, EventsMap['PermissionOverwriteTargets']],
     // Space commands
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']],
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']],
