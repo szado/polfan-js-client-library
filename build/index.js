@@ -1986,6 +1986,12 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
     _this.tracker.client.on('RoleDeleted', function (ev) {
       return _this.handleRoleDeleted(ev);
     });
+    _this.tracker.client.on('SpaceMemberUpdated', function (ev) {
+      return _this.handleSpaceMemberUpdated(ev);
+    });
+    _this.tracker.client.on('RoomMemberUpdated', function (ev) {
+      return _this.handleRoomMemberUpdated(ev);
+    });
     return _this;
   }
   PermissionsManager_createClass(PermissionsManager, [{
@@ -2213,6 +2219,24 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
       var _this$overwritesPromi4;
       var ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.spaceId, 'Role', ev.id));
       (_this$overwritesPromi4 = this.overwritesPromises).forget.apply(_this$overwritesPromi4, PermissionsManager_toConsumableArray(ids));
+    }
+  }, {
+    key: "handleSpaceMemberUpdated",
+    value: function handleSpaceMemberUpdated(ev) {
+      var _this$tracker$me;
+      if (ev.userId === ((_this$tracker$me = this.tracker.me) === null || _this$tracker$me === void 0 ? void 0 : _this$tracker$me.id)) {
+        // User roles in space could potentially have changed
+        this.emit('change');
+      }
+    }
+  }, {
+    key: "handleRoomMemberUpdated",
+    value: function handleRoomMemberUpdated(ev) {
+      var _this$tracker$me2;
+      if (ev.userId === ((_this$tracker$me2 = this.tracker.me) === null || _this$tracker$me2 === void 0 ? void 0 : _this$tracker$me2.id)) {
+        // User roles in room could potentially have changed
+        this.emit('change');
+      }
     }
 
     /**

@@ -2,7 +2,14 @@ import {ChatStateTracker} from "./ChatStateTracker";
 import {
     PermissionOverwrites,
     PermissionOverwritesUpdated,
-    PermissionOverwritesValue, RoleDeleted, RoomDeleted, RoomLeft, SpaceDeleted, SpaceLeft, TopicDeleted,
+    PermissionOverwritesValue,
+    RoleDeleted,
+    RoomDeleted,
+    RoomLeft, RoomMemberUpdated,
+    SpaceDeleted,
+    SpaceLeft,
+    SpaceMemberUpdated,
+    TopicDeleted,
 } from "pserv-ts-types";
 import {EventHandler, EventTarget} from "../EventTarget";
 import {IndexedCollection} from "../IndexedObjectCollection";
@@ -34,6 +41,8 @@ export class PermissionsManager extends EventTarget {
         this.tracker.client.on('RoomLeft', ev => this.handleRoomDeleted(ev));
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
         this.tracker.client.on('RoleDeleted', ev => this.handleRoleDeleted(ev));
+        this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
+        this.tracker.client.on('RoomMemberUpdated', ev => this.handleRoomMemberUpdated(ev));
     }
 
     public async getOverwrites(
@@ -152,6 +161,20 @@ export class PermissionsManager extends EventTarget {
     private handleRoleDeleted(ev: RoleDeleted): void {
         const ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.spaceId, 'Role', ev.id));
         this.overwritesPromises.forget(...ids);
+    }
+
+    private handleSpaceMemberUpdated(ev: SpaceMemberUpdated): void {
+        if (ev.userId === this.tracker.me?.id) {
+            // User roles in space could potentially have changed
+            this.emit('change');
+        }
+    }
+
+    private handleRoomMemberUpdated(ev: RoomMemberUpdated): void {
+        if (ev.userId === this.tracker.me?.id) {
+            // User roles in room could potentially have changed
+            this.emit('change');
+        }
     }
 
     /**
