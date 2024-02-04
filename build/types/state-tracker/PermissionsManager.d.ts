@@ -1,7 +1,7 @@
 import { ChatStateTracker } from "./ChatStateTracker";
 import { PermissionOverwrites } from "pserv-ts-types";
 import { EventHandler, EventTarget } from "../EventTarget";
-import { Permission } from "../Permission";
+import { Permissions } from "../Permissions";
 export declare class PermissionsManager extends EventTarget {
     private tracker;
     private readonly overwrites;
@@ -9,7 +9,7 @@ export declare class PermissionsManager extends EventTarget {
     constructor(tracker: ChatStateTracker);
     getOverwrites(layer: PermissionOverwrites['layer'], layerId: PermissionOverwrites['layerId'], target: PermissionOverwrites['target'], targetId: PermissionOverwrites['targetId']): Promise<PermissionOverwrites | undefined>;
     on(eventName: 'change', handler: EventHandler<any>): this;
-    check(permissionNames: (keyof typeof Permission)[], spaceId?: string, roomId?: string, topicId?: string): Promise<{
+    check(permissionNames: (keyof typeof Permissions.list)[], spaceId?: string, roomId?: string, topicId?: string): Promise<{
         ok: boolean;
         missing: string[];
     }>;
@@ -27,5 +27,4 @@ export declare class PermissionsManager extends EventTarget {
     private resolveOverwritesFromRolesByOrder;
     private resolveOverwritesHierarchy;
     private getRootAccessValue;
-    private getPermissionNames;
 }

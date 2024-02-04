@@ -52,9 +52,11 @@ __webpack_require__.d(__webpack_exports__, {
   "AuthClient": () => (/* reexport */ AuthClient),
   "IndexedCollection": () => (/* reexport */ IndexedCollection),
   "IndexedObjectCollection": () => (/* reexport */ IndexedObjectCollection),
+  "Layer": () => (/* reexport */ Layer),
   "ObservableIndexedCollection": () => (/* reexport */ ObservableIndexedCollection),
   "ObservableIndexedObjectCollection": () => (/* reexport */ ObservableIndexedObjectCollection),
-  "Permission": () => (/* reexport */ Permission),
+  "PermissionDefinition": () => (/* reexport */ PermissionDefinition),
+  "Permissions": () => (/* reexport */ Permissions),
   "WebApiChatClient": () => (/* reexport */ WebApiChatClient),
   "WebSocketChatClient": () => (/* reexport */ WebSocketChatClient)
 });
@@ -1821,23 +1823,94 @@ var SpacesManager = /*#__PURE__*/function () {
   }]);
   return SpacesManager;
 }();
-;// CONCATENATED MODULE: ./src/Permission.ts
-var Permission;
-(function (Permission) {
-  Permission[Permission["Root"] = 1] = "Root";
-  Permission[Permission["CreateSpaces"] = 2] = "CreateSpaces";
-  Permission[Permission["ManageSpaces"] = 4] = "ManageSpaces";
-  Permission[Permission["ManageRoles"] = 8] = "ManageRoles";
-  Permission[Permission["ChangeNick"] = 16] = "ChangeNick";
-  Permission[Permission["ManageRooms"] = 32] = "ManageRooms";
-  Permission[Permission["ManageTopics"] = 64] = "ManageTopics";
-  Permission[Permission["ManageMembers"] = 128] = "ManageMembers";
-  Permission[Permission["SendMessages"] = 256] = "SendMessages";
-  Permission[Permission["ViewMessages"] = 512] = "ViewMessages";
-  Permission[Permission["ChangeMessages"] = 1024] = "ChangeMessages";
-  Permission[Permission["ManageMessages"] = 2048] = "ManageMessages";
-  Permission[Permission["ManagePermissions"] = 4096] = "ManagePermissions";
-})(Permission || (Permission = {}));
+;// CONCATENATED MODULE: ./src/Permissions.ts
+function Permissions_typeof(obj) { "@babel/helpers - typeof"; return Permissions_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, Permissions_typeof(obj); }
+function Permissions_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, Permissions_toPropertyKey(descriptor.key), descriptor); } }
+function Permissions_createClass(Constructor, protoProps, staticProps) { if (protoProps) Permissions_defineProperties(Constructor.prototype, protoProps); if (staticProps) Permissions_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function Permissions_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function Permissions_defineProperty(obj, key, value) { key = Permissions_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function Permissions_toPropertyKey(arg) { var key = Permissions_toPrimitive(arg, "string"); return Permissions_typeof(key) === "symbol" ? key : String(key); }
+function Permissions_toPrimitive(input, hint) { if (Permissions_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (Permissions_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+var Layer;
+(function (Layer) {
+  Layer[Layer["Global"] = 0] = "Global";
+  Layer[Layer["Space"] = 1] = "Space";
+  Layer[Layer["Room"] = 2] = "Room";
+  Layer[Layer["Topic"] = 3] = "Topic";
+})(Layer || (Layer = {}));
+var PermissionDefinition = /*#__PURE__*/Permissions_createClass(function PermissionDefinition() {
+  Permissions_classCallCheck(this, PermissionDefinition);
+  Permissions_defineProperty(this, "value", void 0);
+  Permissions_defineProperty(this, "maxLayer", void 0);
+});
+var Permissions = /*#__PURE__*/function () {
+  function Permissions() {
+    Permissions_classCallCheck(this, Permissions);
+  }
+  Permissions_createClass(Permissions, null, [{
+    key: "getNames",
+    value: function getNames() {
+      return Object.keys(this.list);
+    }
+  }, {
+    key: "getByName",
+    value: function getByName(name) {
+      return this.list[name];
+    }
+  }, {
+    key: "canBeDefinedOnLayer",
+    value: function canBeDefinedOnLayer(permissionName, layer) {
+      var def = this.getByName(permissionName);
+      if (!def) {
+        throw new Error("Invalid permission name: ".concat(permissionName));
+      }
+      return layer <= this.getByName(permissionName).maxLayer && permissionName !== 'Root';
+    }
+  }]);
+  return Permissions;
+}();
+Permissions_defineProperty(Permissions, "list", {
+  Root: {
+    value: 1 << 0,
+    maxLayer: Layer.Space
+  },
+  CreateSpace: {
+    value: 1 << 1,
+    maxLayer: Layer.Global
+  },
+  ManageSpace: {
+    value: 1 << 2,
+    maxLayer: Layer.Space
+  },
+  ManageRole: {
+    value: 1 << 3,
+    maxLayer: Layer.Space
+  },
+  ManageRoom: {
+    value: 1 << 4,
+    maxLayer: Layer.Room
+  },
+  ManageTopic: {
+    value: 1 << 5,
+    maxLayer: Layer.Topic
+  },
+  ManageSpaceMember: {
+    value: 1 << 6,
+    maxLayer: Layer.Space
+  },
+  ManageRoomMember: {
+    value: 1 << 7,
+    maxLayer: Layer.Room
+  },
+  CreateMessage: {
+    value: 1 << 8,
+    maxLayer: Layer.Topic
+  },
+  ManagePermission: {
+    value: 1 << 9,
+    maxLayer: Layer.Topic
+  }
+});
 ;// CONCATENATED MODULE: ./src/state-tracker/PermissionsManager.ts
 function PermissionsManager_typeof(obj) { "@babel/helpers - typeof"; return PermissionsManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, PermissionsManager_typeof(obj); }
 function PermissionsManager_createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = PermissionsManager_unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
@@ -1993,7 +2066,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                 ownedPermissions = _context3.sent;
                 missing = [];
                 permissionNames.forEach(function (name) {
-                  if (~ownedPermissions & Permission[name]) {
+                  if (~ownedPermissions & Permissions.getByName(name).value) {
                     missing.push(name);
                   }
                 });
@@ -2206,12 +2279,14 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                   return roles.get(a.targetId).priority - roles.get(b.targetId).priority;
                 }); // Max length of bit word
                 permissionsLength = overwrites.reduce(function (previousValue, currentValue) {
-                  return Math.max(previousValue, currentValue.overwrites.allow.toString(2).length, currentValue.overwrites.deny.toString(2).length);
+                  var _currentValue$overwri, _currentValue$overwri2, _currentValue$overwri3, _currentValue$overwri4;
+                  return Math.max(previousValue, (_currentValue$overwri = (_currentValue$overwri2 = currentValue.overwrites.allow) === null || _currentValue$overwri2 === void 0 ? void 0 : _currentValue$overwri2.toString(2).length) !== null && _currentValue$overwri !== void 0 ? _currentValue$overwri : 0, (_currentValue$overwri3 = (_currentValue$overwri4 = currentValue.overwrites.deny) === null || _currentValue$overwri4 === void 0 ? void 0 : _currentValue$overwri4.toString(2).length) !== null && _currentValue$overwri3 !== void 0 ? _currentValue$overwri3 : 0);
                 }, 0);
                 sortedOverwrites.forEach(function (overwriteEvent) {
+                  var _overwrites$deny$toSt, _overwrites$deny, _overwrites$allow$toS, _overwrites$allow;
                   var overwrites = overwriteEvent.overwrites;
-                  var revDecDenies = overwrites.deny.toString(2).split('').reverse().join('');
-                  var revDecAllows = overwrites.allow.toString(2).split('').reverse().join('');
+                  var revDecDenies = (_overwrites$deny$toSt = (_overwrites$deny = overwrites.deny) === null || _overwrites$deny === void 0 ? void 0 : _overwrites$deny.toString(2).split('').reverse().join('')) !== null && _overwrites$deny$toSt !== void 0 ? _overwrites$deny$toSt : '';
+                  var revDecAllows = (_overwrites$allow$toS = (_overwrites$allow = overwrites.allow) === null || _overwrites$allow === void 0 ? void 0 : _overwrites$allow.toString(2).split('').reverse().join('')) !== null && _overwrites$allow$toS !== void 0 ? _overwrites$allow$toS : '';
                   for (var i = 0; i < permissionsLength; i++) {
                     var _revDecDenies$i, _revDecAllows$i;
                     var deny = parseInt((_revDecDenies$i = revDecDenies[i]) !== null && _revDecDenies$i !== void 0 ? _revDecDenies$i : '0');
@@ -2249,7 +2324,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var value = _step.value;
-          if (value.allow & Permission.Root) {
+          if (value.allow & Permissions.getByName('Root').value) {
             return this.getRootAccessValue();
           }
           result = result & ~value.deny | value.allow;
@@ -2265,12 +2340,12 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
     key: "getRootAccessValue",
     value: function getRootAccessValue() {
       var result = 0;
-      var _iterator2 = PermissionsManager_createForOfIteratorHelper(this.getPermissionNames()),
+      var _iterator2 = PermissionsManager_createForOfIteratorHelper(Permissions.getNames()),
         _step2;
       try {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var name = _step2.value;
-          result |= Permission[name];
+          result |= Permissions.getByName(name).value;
         }
       } catch (err) {
         _iterator2.e(err);
@@ -2278,13 +2353,6 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
         _iterator2.f();
       }
       return result;
-    }
-  }, {
-    key: "getPermissionNames",
-    value: function getPermissionNames() {
-      return Object.keys(Permission).filter(function (key) {
-        return Number.isNaN(parseInt(key));
-      });
     }
   }]);
   return PermissionsManager;

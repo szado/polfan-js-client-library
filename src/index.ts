@@ -7,12 +7,12 @@ import {
     ObservableIndexedObjectCollection
 } from "./IndexedObjectCollection";
 import { AuthClient } from "./AuthClient";
-import { Permission } from "./Permission";
+import { Permissions, PermissionDefinition, Layer } from "./Permissions";
 
 export {
     IndexedCollection, ObservableIndexedCollection,
     IndexedObjectCollection, ObservableIndexedObjectCollection,
-    Permission,
+    Permissions, PermissionDefinition, Layer,
     WebSocketChatClient, WebApiChatClient,
     AuthClient
 };

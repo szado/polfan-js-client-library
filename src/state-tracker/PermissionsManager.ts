@@ -6,7 +6,7 @@ import {
 } from "pserv-ts-types";
 import {EventHandler, EventTarget} from "../EventTarget";
 import {IndexedCollection} from "../IndexedObjectCollection";
-import {Permission} from "../Permission";
+import {Permissions} from "../Permissions";
 import {PromiseRegistry} from "./AsyncUtils";
 
 const getOvId = (
@@ -66,7 +66,7 @@ export class PermissionsManager extends EventTarget {
     }
 
     public async check(
-        permissionNames: (keyof typeof Permission)[],
+        permissionNames: (keyof typeof Permissions.list)[],
         spaceId?: string,
         roomId?: string,
         topicId?: string,
@@ -75,8 +75,8 @@ export class PermissionsManager extends EventTarget {
         const missing: string[] = [];
 
         permissionNames.forEach(name => {
-            if (~ ownedPermissions & Permission[name]) {
-                missing.push(name);
+            if (~ ownedPermissions & Permissions.getByName(name).value) {
+                missing.push(name as string);
             }
         });
 
@@ -198,16 +198,16 @@ export class PermissionsManager extends EventTarget {
             (previousValue: number, currentValue: PermissionOverwrites) =>
                 Math.max(
                     previousValue,
-                    currentValue.overwrites.allow.toString(2).length,
-                    currentValue.overwrites.deny.toString(2).length
+                    currentValue.overwrites.allow?.toString(2).length ?? 0,
+                    currentValue.overwrites.deny?.toString(2).length ?? 0,
                 ),
             0,
         );
 
         sortedOverwrites.forEach(overwriteEvent => {
             const overwrites = overwriteEvent.overwrites;
-            const revDecDenies = overwrites.deny.toString(2).split('').reverse().join('');
-            const revDecAllows = overwrites.allow.toString(2).split('').reverse().join('');
+            const revDecDenies = overwrites.deny?.toString(2).split('').reverse().join('') ?? '';
+            const revDecAllows = overwrites.allow?.toString(2).split('').reverse().join('') ?? '';
 
             for (let i = 0; i < permissionsLength; i++) {
                 const deny = parseInt(revDecDenies[i] ?? '0');
@@ -230,7 +230,7 @@ export class PermissionsManager extends EventTarget {
         let result = 0;
 
         for (const value of permissionOverwritesValues) {
-            if (value.allow & Permission.Root) {
+            if (value.allow & Permissions.getByName('Root').value) {
                 return this.getRootAccessValue();
             }
 
@@ -243,14 +243,10 @@ export class PermissionsManager extends EventTarget {
     private getRootAccessValue(): number {
         let result = 0;
 
-        for (const name of this.getPermissionNames()) {
-            result |= Permission[name];
+        for (const name of Permissions.getNames()) {
+            result |= Permissions.getByName(name).value;
         }
 
         return result;
-    }
-
-    private getPermissionNames(): string[] {
-        return Object.keys(Permission).filter(key => Number.isNaN(parseInt(key)));
     }
 }
