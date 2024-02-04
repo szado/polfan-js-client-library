@@ -19,6 +19,8 @@ export declare class PermissionsManager extends EventTarget {
     private handleRoomDeleted;
     private handleTopicDeleted;
     private handleRoleDeleted;
+    private handleSpaceMemberUpdated;
+    private handleRoomMemberUpdated;
     /**
      * @return Matched and deleted ids
      */
