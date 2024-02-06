@@ -280,7 +280,7 @@ export class PermissionsManager extends EventTarget {
         const roomFail = roomId && ! results[1];
 
         if (spaceFail || roomFail) {
-            const layer = spaceFail ? `space (${spaceId})` : `room ${roomId}`;
+            const layer = spaceFail ? `space (${spaceId})` : `room (${roomId})`;
             throw new Error(`Attempting to calculate permissions for a ${layer} that the user does not belong to`);
         }
 
