@@ -29,4 +29,5 @@ export declare class PermissionsManager extends EventTarget {
     private resolveOverwritesFromRolesByOrder;
     private resolveOverwritesHierarchy;
     private getRootAccessValue;
+    private fetchMembersOrFail;
 }

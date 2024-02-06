@@ -2096,7 +2096,8 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
     key: "calculatePermissions",
     value: function () {
       var _calculatePermissions = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee4(spaceId, roomId, topicId) {
-        var userId, userRoles, _yield$Promise$all, _yield$Promise$all2, spaces, rooms, topics, promises, roomMember;
+        var _spaceMember$roles, _roomMember$roles;
+        var userId, _yield$this$fetchMemb, _yield$this$fetchMemb2, spaceMember, roomMember, userRoles, _yield$Promise$all, _yield$Promise$all2, spaces, rooms, topics, promises;
         return PermissionsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -2111,10 +2112,17 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                 return this.tracker.getMe();
               case 4:
                 userId = _context4.sent.id;
-                userRoles = [];
-                _context4.next = 8;
+                _context4.next = 7;
+                return this.fetchMembersOrFail(spaceId, roomId);
+              case 7:
+                _yield$this$fetchMemb = _context4.sent;
+                _yield$this$fetchMemb2 = _slicedToArray(_yield$this$fetchMemb, 2);
+                spaceMember = _yield$this$fetchMemb2[0];
+                roomMember = _yield$this$fetchMemb2[1];
+                userRoles = [].concat(PermissionsManager_toConsumableArray((_spaceMember$roles = spaceMember === null || spaceMember === void 0 ? void 0 : spaceMember.roles) !== null && _spaceMember$roles !== void 0 ? _spaceMember$roles : []), PermissionsManager_toConsumableArray((_roomMember$roles = roomMember === null || roomMember === void 0 ? void 0 : roomMember.roles) !== null && _roomMember$roles !== void 0 ? _roomMember$roles : []));
+                _context4.next = 14;
                 return Promise.all([this.tracker.spaces.get(), this.tracker.rooms.get(), roomId ? this.tracker.rooms.getTopics(roomId) : null]);
-              case 8:
+              case 14:
                 _yield$Promise$all = _context4.sent;
                 _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 3);
                 spaces = _yield$Promise$all2[0];
@@ -2125,41 +2133,20 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                 this.getOverwrites('Global', null, 'User', userId).then(function (v) {
                   return v.overwrites;
                 })];
-                if (!(spaceId && spaces.has(spaceId))) {
-                  _context4.next = 25;
-                  break;
+                if (spaceId && spaces.has(spaceId)) {
+                  promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
+                  promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(function (v) {
+                    return v.overwrites;
+                  }));
                 }
-                _context4.t0 = userRoles.push;
-                _context4.t1 = userRoles;
-                _context4.t2 = PermissionsManager_toConsumableArray;
-                _context4.next = 20;
-                return this.tracker.spaces.getMe(spaceId);
-              case 20:
-                _context4.t3 = _context4.sent.roles;
-                _context4.t4 = (0, _context4.t2)(_context4.t3);
-                _context4.t0.apply.call(_context4.t0, _context4.t1, _context4.t4);
-                promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
-                promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(function (v) {
-                  return v.overwrites;
-                }));
-              case 25:
-                if (!(roomId && rooms.has(roomId))) {
-                  _context4.next = 31;
-                  break;
+                if (roomId && rooms.has(roomId)) {
+                  if (userRoles.length) {
+                    promises.push(this.collectRoleOverwrites(spaceId, 'Room', roomId, userRoles));
+                  }
+                  promises.push(this.getOverwrites('Room', roomId, 'User', userId).then(function (v) {
+                    return v.overwrites;
+                  }));
                 }
-                _context4.next = 28;
-                return this.tracker.rooms.getMe(roomId);
-              case 28:
-                roomMember = _context4.sent;
-                if (roomMember.roles !== null) {
-                  // Room overwrites from roles (only for space rooms)
-                  userRoles.push.apply(userRoles, PermissionsManager_toConsumableArray(roomMember.roles));
-                  promises.push(this.collectRoleOverwrites(spaceId, 'Room', roomId, userRoles));
-                }
-                promises.push(this.getOverwrites('Room', roomId, 'User', userId).then(function (v) {
-                  return v.overwrites;
-                }));
-              case 31:
                 if (topicId && topics && topics.has(topicId)) {
                   if (userRoles.length) {
                     promises.push(this.collectRoleOverwrites(spaceId, 'Topic', topicId, userRoles));
@@ -2168,13 +2155,13 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                     return v.overwrites;
                   }));
                 }
-                _context4.t5 = this;
-                _context4.next = 35;
+                _context4.t0 = this;
+                _context4.next = 26;
                 return Promise.all(promises);
-              case 35:
-                _context4.t6 = _context4.sent;
-                return _context4.abrupt("return", _context4.t5.resolveOverwritesHierarchy.call(_context4.t5, _context4.t6));
-              case 37:
+              case 26:
+                _context4.t1 = _context4.sent;
+                return _context4.abrupt("return", _context4.t0.resolveOverwritesHierarchy.call(_context4.t0, _context4.t1));
+              case 28:
               case "end":
                 return _context4.stop();
             }
@@ -2378,6 +2365,41 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
       }
       return result;
     }
+  }, {
+    key: "fetchMembersOrFail",
+    value: function () {
+      var _fetchMembersOrFail = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee7(spaceId, roomId) {
+        var results, spaceFail, roomFail, layer;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return Promise.all([spaceId ? this.tracker.spaces.getMe(spaceId) : null, roomId ? this.tracker.rooms.getMe(roomId) : null]);
+              case 2:
+                results = _context7.sent;
+                spaceFail = spaceId && !results[0];
+                roomFail = roomId && !results[1];
+                if (!(spaceFail || roomFail)) {
+                  _context7.next = 8;
+                  break;
+                }
+                layer = spaceFail ? "space (".concat(spaceId, ")") : "room ".concat(roomId);
+                throw new Error("Attempting to calculate permissions for a ".concat(layer, " that the user does not belong to"));
+              case 8:
+                return _context7.abrupt("return", results);
+              case 9:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+      function fetchMembersOrFail(_x18, _x19) {
+        return _fetchMembersOrFail.apply(this, arguments);
+      }
+      return fetchMembersOrFail;
+    }()
   }]);
   return PermissionsManager;
 }(EventTarget);

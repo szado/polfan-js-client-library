@@ -5,9 +5,9 @@ import {
     PermissionOverwritesValue,
     RoleDeleted,
     RoomDeleted,
-    RoomLeft, RoomMemberUpdated,
+    RoomLeft, RoomMember, RoomMemberUpdated,
     SpaceDeleted,
-    SpaceLeft,
+    SpaceLeft, SpaceMember,
     SpaceMemberUpdated,
     TopicDeleted,
 } from "pserv-ts-types";
@@ -98,7 +98,8 @@ export class PermissionsManager extends EventTarget {
         }
 
         const userId = (await this.tracker.getMe()).id;
-        const userRoles: string[] = [];
+        const [spaceMember, roomMember] = await this.fetchMembersOrFail(spaceId, roomId);
+        const userRoles: string[] = [...(spaceMember?.roles ?? []), ...(roomMember?.roles ?? [])];
         const [spaces, rooms, topics] = await Promise.all([
             this.tracker.spaces.get(),
             this.tracker.rooms.get(),
@@ -111,16 +112,12 @@ export class PermissionsManager extends EventTarget {
         ];
 
         if (spaceId && spaces.has(spaceId)) {
-            userRoles.push(...(await this.tracker.spaces.getMe(spaceId)).roles);
             promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
             promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(v => v.overwrites));
         }
 
         if (roomId && rooms.has(roomId)) {
-            const roomMember = await this.tracker.rooms.getMe(roomId);
-
-            if (roomMember.roles !== null) { // Room overwrites from roles (only for space rooms)
-                userRoles.push(...roomMember.roles);
+            if (userRoles.length) {
                 promises.push(this.collectRoleOverwrites(spaceId, 'Room', roomId, userRoles));
             }
 
@@ -271,5 +268,22 @@ export class PermissionsManager extends EventTarget {
         }
 
         return result;
+    }
+
+    private async fetchMembersOrFail(spaceId?: string, roomId?: string): Promise<[SpaceMember | null, RoomMember | null]> {
+        const results = await Promise.all([
+            spaceId ? this.tracker.spaces.getMe(spaceId) : null,
+            roomId ? this.tracker.rooms.getMe(roomId) : null,
+        ]);
+
+        const spaceFail = spaceId && ! results[0];
+        const roomFail = roomId && ! results[1];
+
+        if (spaceFail || roomFail) {
+            const layer = spaceFail ? `space (${spaceId})` : `room ${roomId}`;
+            throw new Error(`Attempting to calculate permissions for a ${layer} that the user does not belong to`);
+        }
+
+        return results;
     }
 }
