@@ -1874,7 +1874,7 @@ Permissions_defineProperty(Permissions, "list", {
     value: 1 << 0,
     maxLayer: Layer.Space
   },
-  CreateSpace: {
+  CreateSpaces: {
     value: 1 << 1,
     maxLayer: Layer.Global
   },
@@ -1882,7 +1882,7 @@ Permissions_defineProperty(Permissions, "list", {
     value: 1 << 2,
     maxLayer: Layer.Space
   },
-  ManageRole: {
+  ManageSpaceRoles: {
     value: 1 << 3,
     maxLayer: Layer.Space
   },
@@ -1894,21 +1894,29 @@ Permissions_defineProperty(Permissions, "list", {
     value: 1 << 5,
     maxLayer: Layer.Topic
   },
-  ManageSpaceMember: {
+  ManageSpaceMembers: {
     value: 1 << 6,
     maxLayer: Layer.Space
   },
-  ManageRoomMember: {
+  ManageRoomMembers: {
     value: 1 << 7,
     maxLayer: Layer.Room
   },
-  CreateMessage: {
+  CreateMessages: {
     value: 1 << 8,
     maxLayer: Layer.Topic
   },
-  ManagePermission: {
+  ManagePermissions: {
     value: 1 << 9,
     maxLayer: Layer.Topic
+  },
+  CreateSpaceRooms: {
+    value: 1 << 10,
+    maxLayer: Layer.Space
+  },
+  ManageSpaceRooms: {
+    value: 1 << 11,
+    maxLayer: Layer.Space
   }
 });
 ;// CONCATENATED MODULE: ./src/state-tracker/PermissionsManager.ts
@@ -2066,9 +2074,15 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _context3.next = 2;
-                return this.calculatePermissions(spaceId, roomId, topicId);
+                if (permissionNames.length) {
+                  _context3.next = 2;
+                  break;
+                }
+                throw new Error('Permission names array cannot be empty');
               case 2:
+                _context3.next = 4;
+                return this.calculatePermissions(spaceId, roomId, topicId);
+              case 4:
                 ownedPermissions = _context3.sent;
                 missing = [];
                 permissionNames.forEach(function (name) {
@@ -2078,9 +2092,11 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                 });
                 return _context3.abrupt("return", {
                   ok: missing.length === 0,
+                  hasAll: missing.length === 0,
+                  hasAny: missing.length < permissionNames.length,
                   missing: missing
                 });
-              case 6:
+              case 8:
               case "end":
                 return _context3.stop();
             }
@@ -2384,7 +2400,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                   _context7.next = 8;
                   break;
                 }
-                layer = spaceFail ? "space (".concat(spaceId, ")") : "room ".concat(roomId);
+                layer = spaceFail ? "space (".concat(spaceId, ")") : "room (".concat(roomId, ")");
                 throw new Error("Attempting to calculate permissions for a ".concat(layer, " that the user does not belong to"));
               case 8:
                 return _context7.abrupt("return", results);

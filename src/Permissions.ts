@@ -13,15 +13,17 @@ export class PermissionDefinition {
 export class Permissions {
     public static readonly list = {
         Root: {value: 1 << 0, maxLayer: Layer.Space},
-        CreateSpace: {value: 1 << 1, maxLayer: Layer.Global},
+        CreateSpaces: {value: 1 << 1, maxLayer: Layer.Global},
         ManageSpace: {value: 1 << 2, maxLayer: Layer.Space},
-        ManageRole: {value: 1 << 3, maxLayer: Layer.Space},
+        ManageSpaceRoles: {value: 1 << 3, maxLayer: Layer.Space},
         ManageRoom: {value: 1 << 4, maxLayer: Layer.Room},
         ManageTopic: {value: 1 << 5, maxLayer: Layer.Topic},
-        ManageSpaceMember: {value: 1 << 6, maxLayer: Layer.Space},
-        ManageRoomMember: {value: 1 << 7, maxLayer: Layer.Room},
-        CreateMessage: {value: 1 << 8, maxLayer: Layer.Topic},
-        ManagePermission: {value: 1 << 9, maxLayer: Layer.Topic},
+        ManageSpaceMembers: {value: 1 << 6, maxLayer: Layer.Space},
+        ManageRoomMembers: {value: 1 << 7, maxLayer: Layer.Room},
+        CreateMessages: {value: 1 << 8, maxLayer: Layer.Topic},
+        ManagePermissions: {value: 1 << 9, maxLayer: Layer.Topic},
+        CreateSpaceRooms: {value: 1 << 10, maxLayer: Layer.Space},
+        ManageSpaceRooms: {value: 1 << 11, maxLayer: Layer.Space},
     };
 
     public static getNames(): (keyof typeof this.list)[] {

@@ -27,6 +27,16 @@ const getOvIdByObject = (overwrites: PermissionOverwrites | PermissionOverwrites
     overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId
 );
 
+interface CheckPermissionsResult {
+    /**
+     * @deprecated Use `hasAll` instead.
+     */
+    ok: boolean;
+    hasAll: boolean;
+    hasAny: boolean;
+    missing: string[];
+}
+
 export class PermissionsManager extends EventTarget {
     private readonly overwrites = new IndexedCollection<string, PermissionOverwrites>();
     private readonly overwritesPromises = new PromiseRegistry();
@@ -79,7 +89,11 @@ export class PermissionsManager extends EventTarget {
         spaceId?: string,
         roomId?: string,
         topicId?: string,
-    ): Promise<{ok: boolean, missing: string[]}> {
+    ): Promise<CheckPermissionsResult> {
+        if (! permissionNames.length) {
+            throw new Error('Permission names array cannot be empty');
+        }
+
         const ownedPermissions = await this.calculatePermissions(spaceId, roomId, topicId);
         const missing: string[] = [];
 
@@ -89,7 +103,12 @@ export class PermissionsManager extends EventTarget {
             }
         });
 
-        return {ok: missing.length === 0, missing};
+        return {
+            ok: missing.length === 0,
+            hasAll: missing.length === 0,
+            hasAny: missing.length < permissionNames.length,
+            missing,
+        };
     }
 
     public async calculatePermissions(spaceId?: string, roomId?: string, topicId?: string): Promise<number> {
