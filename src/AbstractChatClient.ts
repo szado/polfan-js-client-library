@@ -59,6 +59,10 @@ import {
     SpaceUpdated,
     PermissionOverwriteTargets,
     GetPermissionOverwriteTargets,
+    Owners,
+    Ok,
+    GetOwners,
+    CreateOwner,
 } from "pserv-ts-types";
 import {EventTarget} from "./EventTarget";
 
@@ -123,12 +127,14 @@ export type CommandResult<ResultT> = {data?: ResultT, error?: Error};
 export type EventsMap = {
     // General Events
     Bye: Bye,
+    Ok: Ok,
     Error: ErrorType,
     Session: Session,
     Permissions: Permissions,
     PermissionOverwrites: PermissionOverwrites,
     PermissionOverwritesUpdated: PermissionOverwritesUpdated,
     PermissionOverwriteTargets: PermissionOverwriteTargets,
+    Owners: Owners,
     // Space events
     SpaceJoined: SpaceJoined,
     SpaceLeft: SpaceLeft,
@@ -170,6 +176,9 @@ export type CommandsMap = {
     GetPermissionOverwrites: [GetPermissionOverwrites, EventsMap['PermissionOverwrites']],
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']],
     GetPermissionOverwriteTargets: [GetPermissionOverwriteTargets, EventsMap['PermissionOverwriteTargets']],
+    GetOwners: [GetOwners, EventsMap['Owners']],
+    CreateOwner: [CreateOwner, EventsMap['Ok']],
+    DeleteOwner: [CreateOwner, EventsMap['Ok']],
     // Space commands
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']],
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']],
