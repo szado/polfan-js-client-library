@@ -1,4 +1,4 @@
-import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesUpdated, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, Ack, GetAckReports, UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated, PermissionOverwriteTargets, GetPermissionOverwriteTargets } from "pserv-ts-types";
+import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesUpdated, RoomMemberUpdated, UpdateRole, RoleUpdated, AckReports, Ack, GetAckReports, UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated, PermissionOverwriteTargets, GetPermissionOverwriteTargets, Owners, Ok, GetOwners, CreateOwner } from "pserv-ts-types";
 import { EventTarget } from "./EventTarget";
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 export declare abstract class AbstractChatClient extends EventTarget {
@@ -21,12 +21,14 @@ export type CommandResult<ResultT> = {
  */
 export type EventsMap = {
     Bye: Bye;
+    Ok: Ok;
     Error: ErrorType;
     Session: Session;
     Permissions: Permissions;
     PermissionOverwrites: PermissionOverwrites;
     PermissionOverwritesUpdated: PermissionOverwritesUpdated;
     PermissionOverwriteTargets: PermissionOverwriteTargets;
+    Owners: Owners;
     SpaceJoined: SpaceJoined;
     SpaceLeft: SpaceLeft;
     SpaceMemberJoined: SpaceMemberJoined;
@@ -63,6 +65,9 @@ export type CommandsMap = {
     GetPermissionOverwrites: [GetPermissionOverwrites, EventsMap['PermissionOverwrites']];
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']];
     GetPermissionOverwriteTargets: [GetPermissionOverwriteTargets, EventsMap['PermissionOverwriteTargets']];
+    GetOwners: [GetOwners, EventsMap['Owners']];
+    CreateOwner: [CreateOwner, EventsMap['Owners']];
+    DeleteOwner: [CreateOwner, EventsMap['Owners']];
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']];
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']];
     CreateSpace: [CreateSpace, EventsMap['SpaceJoined']];
