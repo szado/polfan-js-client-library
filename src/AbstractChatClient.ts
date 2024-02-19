@@ -177,8 +177,8 @@ export type CommandsMap = {
     GetComputedPermissions: [GetComputedPermissions, EventsMap['Permissions']],
     GetPermissionOverwriteTargets: [GetPermissionOverwriteTargets, EventsMap['PermissionOverwriteTargets']],
     GetOwners: [GetOwners, EventsMap['Owners']],
-    CreateOwner: [CreateOwner, EventsMap['Ok']],
-    DeleteOwner: [CreateOwner, EventsMap['Ok']],
+    CreateOwner: [CreateOwner, EventsMap['Owners']],
+    DeleteOwner: [CreateOwner, EventsMap['Owners']],
     // Space commands
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']],
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']],
