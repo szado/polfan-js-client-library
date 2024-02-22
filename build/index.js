@@ -1864,7 +1864,7 @@ var Permissions = /*#__PURE__*/function () {
       if (!def) {
         throw new Error("Invalid permission name: ".concat(permissionName));
       }
-      return layer <= this.getByName(permissionName).maxLayer && permissionName !== 'Root';
+      return layer <= this.getByName(permissionName).maxLayer;
     }
   }]);
   return Permissions;
@@ -1872,7 +1872,7 @@ var Permissions = /*#__PURE__*/function () {
 Permissions_defineProperty(Permissions, "list", {
   Root: {
     value: 1 << 0,
-    maxLayer: Layer.Space
+    maxLayer: Layer.Room
   },
   CreateSpaces: {
     value: 1 << 1,

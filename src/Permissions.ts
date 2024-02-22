@@ -12,7 +12,7 @@ export class PermissionDefinition {
 
 export class Permissions {
     public static readonly list = {
-        Root: {value: 1 << 0, maxLayer: Layer.Space},
+        Root: {value: 1 << 0, maxLayer: Layer.Room},
         CreateSpaces: {value: 1 << 1, maxLayer: Layer.Global},
         ManageSpace: {value: 1 << 2, maxLayer: Layer.Space},
         ManageSpaceRoles: {value: 1 << 3, maxLayer: Layer.Space},
@@ -41,6 +41,6 @@ export class Permissions {
             throw new Error(`Invalid permission name: ${permissionName}`);
         }
 
-        return layer <= this.getByName(permissionName).maxLayer && permissionName !== 'Root';
+        return layer <= this.getByName(permissionName).maxLayer;
     }
 }
