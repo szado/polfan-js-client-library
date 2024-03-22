@@ -1,11 +1,15 @@
 import {WebSocketChatClient} from "../WebSocketChatClient";
-import {Session, User} from "pserv-ts-types";
+import {Session, User} from "../types/src";
 import {RoomsManager} from "./RoomsManager";
 import {SpacesManager} from "./SpacesManager";
 import {PermissionsManager} from "./PermissionsManager";
 import {DeferredTask} from "./AsyncUtils";
 
 export class ChatStateTracker {
+    /**
+     * State of your permissions.
+     */
+    public readonly permissions = new PermissionsManager(this);
     /**
      * State of the rooms you are in.
      */
@@ -14,10 +18,6 @@ export class ChatStateTracker {
      * State of the spaces you are in.
      */
     public readonly spaces = new SpacesManager(this);
-    /**
-     * State of your permissions.
-     */
-    public readonly permissions = new PermissionsManager(this);
 
     private _me: User = null;
     private readonly deferredSession = new DeferredTask();

@@ -1,6 +1,6 @@
 import {AbstractChatClient, CommandResult, CommandsMap} from "./AbstractChatClient";
 import {ObservableInterface} from "./EventTarget";
-import {Envelope} from "pserv-ts-types";
+import {Envelope} from "./types/src";
 
 export interface WebApiChatClientOptions {
     url: string;

@@ -641,11 +641,10 @@ function MessagesManager_defineProperty(obj, key, value) { key = MessagesManager
 function MessagesManager_toPropertyKey(arg) { var key = MessagesManager_toPrimitive(arg, "string"); return MessagesManager_typeof(key) === "symbol" ? key : String(key); }
 function MessagesManager_toPrimitive(input, hint) { if (MessagesManager_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (MessagesManager_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-var getCombinedId = function getCombinedId() {
-  for (var _len = arguments.length, ids = new Array(_len), _key = 0; _key < _len; _key++) {
-    ids[_key] = arguments[_key];
-  }
-  return ids.join('_');
+var getCombinedId = function getCombinedId(location) {
+  return Object.values(location).filter(function (v) {
+    return v;
+  }).join('_');
 };
 var MessagesManager = /*#__PURE__*/function () {
   // Temporary not lazy loaded; server must implement GetTopicMessages command.
@@ -670,12 +669,12 @@ var MessagesManager = /*#__PURE__*/function () {
   MessagesManager_createClass(MessagesManager, [{
     key: "get",
     value: function () {
-      var _get = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(roomId, topicId) {
+      var _get = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(location) {
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                return _context.abrupt("return", this.list.get(getCombinedId(roomId, topicId)));
+                return _context.abrupt("return", this.list.get(getCombinedId(location)));
               case 1:
               case "end":
                 return _context.stop();
@@ -683,7 +682,7 @@ var MessagesManager = /*#__PURE__*/function () {
           }
         }, _callee, this);
       }));
-      function get(_x, _x2) {
+      function get(_x) {
         return _get.apply(this, arguments);
       }
       return get;
@@ -727,7 +726,9 @@ var MessagesManager = /*#__PURE__*/function () {
                 }
                 _context2.next = 11;
                 return this.tracker.client.send('GetAckReports', {
-                  spaceId: spaceId
+                  location: {
+                    spaceId: spaceId
+                  }
                 });
               case 11:
                 result = _context2.sent;
@@ -750,7 +751,7 @@ var MessagesManager = /*#__PURE__*/function () {
           }
         }, _callee2, this);
       }));
-      function cacheSpaceAckReports(_x3) {
+      function cacheSpaceAckReports(_x2) {
         return _cacheSpaceAckReports.apply(this, arguments);
       }
       return cacheSpaceAckReports;
@@ -784,7 +785,9 @@ var MessagesManager = /*#__PURE__*/function () {
                 }
                 _context3.next = 8;
                 return this.tracker.client.send('GetAckReports', {
-                  roomId: roomId
+                  location: {
+                    roomId: roomId
+                  }
                 });
               case 8:
                 result = _context3.sent;
@@ -804,7 +807,7 @@ var MessagesManager = /*#__PURE__*/function () {
           }
         }, _callee3, this);
       }));
-      function getRoomAckReports(_x4) {
+      function getRoomAckReports(_x3) {
         return _getRoomAckReports.apply(this, arguments);
       }
       return getRoomAckReports;
@@ -817,11 +820,14 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "_deleteByTopicIds",
     value: function _deleteByTopicIds(roomId) {
       var _this$list, _this$acks$get;
-      for (var _len2 = arguments.length, topicIds = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        topicIds[_key2 - 1] = arguments[_key2];
+      for (var _len = arguments.length, topicIds = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        topicIds[_key - 1] = arguments[_key];
       }
       (_this$list = this.list)["delete"].apply(_this$list, MessagesManager_toConsumableArray(topicIds.map(function (topicId) {
-        return getCombinedId(roomId, topicId);
+        return getCombinedId({
+          roomId: roomId,
+          topicId: topicId
+        });
       })));
       (_this$acks$get = this.acks.get(roomId)) === null || _this$acks$get === void 0 ? void 0 : _this$acks$get["delete"].apply(_this$acks$get, topicIds);
     }
@@ -834,18 +840,21 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "_handleNewTopics",
     value: function _handleNewTopics(roomId) {
       var _this$list2;
-      for (var _len3 = arguments.length, topics = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-        topics[_key3 - 1] = arguments[_key3];
+      for (var _len2 = arguments.length, topics = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        topics[_key2 - 1] = arguments[_key2];
       }
       (_this$list2 = this.list).set.apply(_this$list2, MessagesManager_toConsumableArray(topics.map(function (topic) {
-        return [getCombinedId(roomId, topic.id), new ObservableIndexedObjectCollection('id')];
+        return [getCombinedId({
+          roomId: roomId,
+          topicId: topic.id
+        }), new ObservableIndexedObjectCollection('id')];
       })));
       this.createAckReportsForNewTopics(roomId, topics);
     }
   }, {
     key: "handleNewMessage",
     value: function handleNewMessage(ev) {
-      this.list.get(getCombinedId(ev.roomId, ev.topicId)).set(ev.message);
+      this.list.get(getCombinedId(ev.location)).set(ev.message);
       this.updateLocallyAckReportOnNewMessage(ev);
     }
   }, {
@@ -882,13 +891,13 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "updateLocallyAckReportOnNewMessage",
     value: function updateLocallyAckReportOnNewMessage(ev) {
       var _this$tracker$me;
-      var ackReports = this.acks.get(ev.roomId);
+      var ackReports = this.acks.get(ev.location.roomId);
       if (!ackReports) {
         // If we don't follow ack reports for this room, skip
         return;
       }
       var isMe = ev.message.author.id === ((_this$tracker$me = this.tracker.me) === null || _this$tracker$me === void 0 ? void 0 : _this$tracker$me.id);
-      var currentAckReport = ackReports.get(ev.topicId);
+      var currentAckReport = ackReports.get(ev.location.topicId);
       var update;
       if (isMe) {
         // Reset missed messages count if new message is authored by me
@@ -1239,15 +1248,20 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "handleTopicDeleted",
     value: function handleTopicDeleted(ev) {
-      var collection = this.topics.get(ev.roomId);
-      collection["delete"](ev.id);
-      this.list.get(ev.roomId).topics = collection.items;
+      var _room$defaultTopic;
+      var collection = this.topics.get(ev.location.roomId);
+      collection["delete"](ev.location.topicId);
+      var room = this.list.get(ev.location.roomId);
+      if (((_room$defaultTopic = room.defaultTopic) === null || _room$defaultTopic === void 0 ? void 0 : _room$defaultTopic.id) === ev.location.topicId) {
+        this.list.set(RoomsManager_objectSpread(RoomsManager_objectSpread({}, room), {}, {
+          defaultTopic: null
+        }));
+      }
     }
   }, {
     key: "handleNewTopic",
     value: function handleNewTopic(ev) {
       this.addJoinedRoomTopics(ev.roomId, ev.topic);
-      this.list.get(ev.roomId).topics.push(ev.topic);
     }
   }, {
     key: "addJoinedRoomTopics",
@@ -1291,7 +1305,9 @@ var RoomsManager = /*#__PURE__*/function () {
       }
       for (var _i2 = 0, _rooms = rooms; _i2 < _rooms.length; _i2++) {
         var room = _rooms[_i2];
-        this.addJoinedRoomTopics.apply(this, [room.id].concat(RoomsManager_toConsumableArray(room.topics)));
+        if (room.defaultTopic) {
+          this.addJoinedRoomTopics(room.id, room.defaultTopic);
+        }
       }
       (_this$list2 = this.list).set.apply(_this$list2, rooms);
     }
@@ -1406,6 +1422,7 @@ var SpacesManager = /*#__PURE__*/function () {
     SpacesManager_defineProperty(this, "list", new ObservableIndexedObjectCollection('id'));
     SpacesManager_defineProperty(this, "roles", new IndexedCollection());
     SpacesManager_defineProperty(this, "rooms", new IndexedCollection());
+    SpacesManager_defineProperty(this, "roomIdToSpaceId", new IndexedCollection());
     SpacesManager_defineProperty(this, "members", new IndexedCollection());
     SpacesManager_defineProperty(this, "deferredSession", new DeferredTask());
     SpacesManager_defineProperty(this, "roomsPromises", new PromiseRegistry());
@@ -1682,6 +1699,7 @@ var SpacesManager = /*#__PURE__*/function () {
     value: function handleNewRoom(ev) {
       var _this$rooms$get;
       (_this$rooms$get = this.rooms.get(ev.spaceId)) === null || _this$rooms$get === void 0 ? void 0 : _this$rooms$get.set(ev.summary);
+      this.roomIdToSpaceId.set([ev.summary.id, ev.spaceId]);
     }
   }, {
     key: "handleRoomUpdated",
@@ -1696,11 +1714,29 @@ var SpacesManager = /*#__PURE__*/function () {
     }
   }, {
     key: "handleRoomDeleted",
-    value: function handleRoomDeleted(ev) {
-      if (ev.spaceId && this.rooms.has(ev.spaceId)) {
-        this.rooms.get(ev.spaceId)["delete"](ev.id);
+    value: function () {
+      var _handleRoomDeleted = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee8(ev) {
+        var spaceId;
+        return SpacesManager_regeneratorRuntime().wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                spaceId = this.roomIdToSpaceId.get(ev.id);
+                if (spaceId && this.rooms.has(spaceId)) {
+                  this.rooms.get(spaceId)["delete"](ev.id);
+                }
+              case 2:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+      function handleRoomDeleted(_x5) {
+        return _handleRoomDeleted.apply(this, arguments);
       }
-    }
+      return handleRoomDeleted;
+    }()
   }, {
     key: "handleRoleDeleted",
     value: function handleRoleDeleted(ev) {
@@ -1718,6 +1754,11 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceDeleted",
     value: function handleSpaceDeleted(ev) {
+      var _this$rooms$get$map, _this$rooms$get2, _this$roomIdToSpaceId;
+      var roomIds = (_this$rooms$get$map = (_this$rooms$get2 = this.rooms.get(ev.id)) === null || _this$rooms$get2 === void 0 ? void 0 : _this$rooms$get2.map(function (item) {
+        return item.id;
+      })) !== null && _this$rooms$get$map !== void 0 ? _this$rooms$get$map : [];
+      (_this$roomIdToSpaceId = this.roomIdToSpaceId)["delete"].apply(_this$roomIdToSpaceId, SpacesManager_toConsumableArray(roomIds));
       this.roles["delete"](ev.id);
       this.members["delete"](ev.id);
       this.membersPromises.forget(ev.id);
@@ -1803,6 +1844,7 @@ var SpacesManager = /*#__PURE__*/function () {
       this.roles.deleteAll();
       this.rooms.deleteAll();
       this.members.deleteAll();
+      this.roomIdToSpaceId.deleteAll();
       this.addJoinedSpaces.apply(this, SpacesManager_toConsumableArray(ev.state.spaces));
       this.deferredSession.resolve();
     }
@@ -1954,11 +1996,12 @@ function PermissionsManager_toPrimitive(input, hint) { if (PermissionsManager_ty
 
 
 
-var getOvId = function getOvId(layer, layerId, target, targetId) {
-  return layer + (layerId !== null && layerId !== void 0 ? layerId : '') + (target !== null && target !== void 0 ? target : '') + (targetId !== null && targetId !== void 0 ? targetId : '');
+var getOvId = function getOvId(location, target, targetId) {
+  var _location$spaceId, _location$roomId, _location$topicId;
+  return ((_location$spaceId = location.spaceId) !== null && _location$spaceId !== void 0 ? _location$spaceId : '') + ((_location$roomId = location.roomId) !== null && _location$roomId !== void 0 ? _location$roomId : '') + ((_location$topicId = location.topicId) !== null && _location$topicId !== void 0 ? _location$topicId : '') + (target !== null && target !== void 0 ? target : '') + (targetId !== null && targetId !== void 0 ? targetId : '');
 };
 var getOvIdByObject = function getOvIdByObject(overwrites) {
-  return getOvId(overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId);
+  return getOvId(overwrites.location, overwrites.target, overwrites.targetId);
 };
 var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   PermissionsManager_inherits(PermissionsManager, _EventTarget);
@@ -2005,14 +2048,15 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   PermissionsManager_createClass(PermissionsManager, [{
     key: "getOverwrites",
     value: function () {
-      var _getOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee2(layer, layerId, target, targetId) {
+      var _getOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee2(location, target, targetId) {
         var _this2 = this;
         var id;
         return PermissionsManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                id = getOvId(layer, layerId, target, targetId);
+                this.validateLocation(location);
+                id = getOvId(location, target, targetId);
                 if (this.overwritesPromises.notExist(id)) {
                   this.overwritesPromises.registerByFunction( /*#__PURE__*/PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee() {
                     var result;
@@ -2022,8 +2066,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                           case 0:
                             _context.next = 2;
                             return _this2.tracker.client.send('GetPermissionOverwrites', {
-                              layer: layer,
-                              layerId: layerId,
+                              location: location,
                               target: target,
                               targetId: targetId
                             });
@@ -2044,18 +2087,18 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                     }, _callee);
                   })), id);
                 }
-                _context2.next = 4;
+                _context2.next = 5;
                 return this.overwritesPromises.get(id);
-              case 4:
-                return _context2.abrupt("return", this.overwrites.get(id));
               case 5:
+                return _context2.abrupt("return", this.overwrites.get(id));
+              case 6:
               case "end":
                 return _context2.stop();
             }
           }
         }, _callee2, this);
       }));
-      function getOverwrites(_x, _x2, _x3, _x4) {
+      function getOverwrites(_x, _x2, _x3) {
         return _getOverwrites.apply(this, arguments);
       }
       return getOverwrites;
@@ -2068,7 +2111,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "check",
     value: function () {
-      var _check = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee3(permissionNames, spaceId, roomId, topicId) {
+      var _check = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee3(permissionNames, location) {
         var ownedPermissions, missing;
         return PermissionsManager_regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) {
@@ -2081,7 +2124,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                 throw new Error('Permission names array cannot be empty');
               case 2:
                 _context3.next = 4;
-                return this.calculatePermissions(spaceId, roomId, topicId);
+                return this.calculatePermissions(location);
               case 4:
                 ownedPermissions = _context3.sent;
                 missing = [];
@@ -2103,7 +2146,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
           }
         }, _callee3, this);
       }));
-      function check(_x5, _x6, _x7, _x8) {
+      function check(_x4, _x5) {
         return _check.apply(this, arguments);
       }
       return check;
@@ -2111,80 +2154,158 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "calculatePermissions",
     value: function () {
-      var _calculatePermissions = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee4(spaceId, roomId, topicId) {
-        var _spaceMember$roles, _roomMember$roles;
-        var userId, _yield$this$fetchMemb, _yield$this$fetchMemb2, spaceMember, roomMember, userRoles, _yield$Promise$all, _yield$Promise$all2, spaces, rooms, topics, promises;
+      var _calculatePermissions = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee4(location) {
+        var _spaceMember$roles, _roomMember$roles, _yield$this$tracker$s, _yield$this$tracker$r, _yield$this$tracker$r2;
+        var userId, _yield$this$fetchMemb, _yield$this$fetchMemb2, spaceMember, roomMember, userRoles, promises, filterLocation, _filterLocation;
         return PermissionsManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                if (!(topicId && !roomId || roomId && !spaceId)) {
-                  _context4.next = 2;
-                  break;
-                }
-                throw new Error('Corrupted arguments hierarchy');
-              case 2:
-                _context4.next = 4;
+                this.validateLocation(location);
+                _context4.next = 3;
                 return this.tracker.getMe();
-              case 4:
+              case 3:
                 userId = _context4.sent.id;
-                _context4.next = 7;
-                return this.fetchMembersOrFail(spaceId, roomId);
-              case 7:
+                _context4.next = 6;
+                return this.fetchMembersOrFail(location);
+              case 6:
                 _yield$this$fetchMemb = _context4.sent;
                 _yield$this$fetchMemb2 = _slicedToArray(_yield$this$fetchMemb, 2);
                 spaceMember = _yield$this$fetchMemb2[0];
                 roomMember = _yield$this$fetchMemb2[1];
                 userRoles = [].concat(PermissionsManager_toConsumableArray((_spaceMember$roles = spaceMember === null || spaceMember === void 0 ? void 0 : spaceMember.roles) !== null && _spaceMember$roles !== void 0 ? _spaceMember$roles : []), PermissionsManager_toConsumableArray((_roomMember$roles = roomMember === null || roomMember === void 0 ? void 0 : roomMember.roles) !== null && _roomMember$roles !== void 0 ? _roomMember$roles : []));
-                _context4.next = 14;
-                return Promise.all([this.tracker.spaces.get(), this.tracker.rooms.get(), roomId ? this.tracker.rooms.getTopics(roomId) : null]);
-              case 14:
-                _yield$Promise$all = _context4.sent;
-                _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 3);
-                spaces = _yield$Promise$all2[0];
-                rooms = _yield$Promise$all2[1];
-                topics = _yield$Promise$all2[2];
                 promises = [
                 // Global user overwrites
-                this.getOverwrites('Global', null, 'User', userId).then(function (v) {
+                this.getOverwrites({}, 'User', userId).then(function (v) {
                   return v.overwrites;
                 })];
-                if (spaceId && spaces.has(spaceId)) {
-                  promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
-                  promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(function (v) {
-                    return v.overwrites;
-                  }));
+                _context4.t0 = location.spaceId;
+                if (!_context4.t0) {
+                  _context4.next = 24;
+                  break;
                 }
-                if (roomId && rooms.has(roomId)) {
-                  if (userRoles.length) {
-                    promises.push(this.collectRoleOverwrites(spaceId, 'Room', roomId, userRoles));
-                  }
-                  promises.push(this.getOverwrites('Room', roomId, 'User', userId).then(function (v) {
-                    return v.overwrites;
-                  }));
+                _context4.next = 16;
+                return this.tracker.spaces.get();
+              case 16:
+                _context4.t3 = _yield$this$tracker$s = _context4.sent;
+                _context4.t2 = _context4.t3 !== null;
+                if (!_context4.t2) {
+                  _context4.next = 20;
+                  break;
                 }
-                if (topicId && topics && topics.has(topicId)) {
-                  if (userRoles.length) {
-                    promises.push(this.collectRoleOverwrites(spaceId, 'Topic', topicId, userRoles));
-                  }
-                  promises.push(this.getOverwrites('Topic', topicId, 'User', userId).then(function (v) {
-                    return v.overwrites;
-                  }));
+                _context4.t2 = _yield$this$tracker$s !== void 0;
+              case 20:
+                _context4.t1 = _context4.t2;
+                if (!_context4.t1) {
+                  _context4.next = 23;
+                  break;
                 }
-                _context4.t0 = this;
-                _context4.next = 26;
-                return Promise.all(promises);
-              case 26:
-                _context4.t1 = _context4.sent;
-                return _context4.abrupt("return", _context4.t0.resolveOverwritesHierarchy.call(_context4.t0, _context4.t1));
+                _context4.t1 = _yield$this$tracker$s.has(location.spaceId);
+              case 23:
+                _context4.t0 = _context4.t1;
+              case 24:
+                if (!_context4.t0) {
+                  _context4.next = 28;
+                  break;
+                }
+                filterLocation = {
+                  spaceId: location.spaceId
+                };
+                promises.push(this.collectRoleOverwrites(filterLocation, userRoles));
+                promises.push(this.getOverwrites(filterLocation, 'User', userId).then(function (v) {
+                  return v.overwrites;
+                }));
               case 28:
+                _context4.t4 = location.roomId;
+                if (!_context4.t4) {
+                  _context4.next = 40;
+                  break;
+                }
+                _context4.next = 32;
+                return this.tracker.rooms.get();
+              case 32:
+                _context4.t7 = _yield$this$tracker$r = _context4.sent;
+                _context4.t6 = _context4.t7 !== null;
+                if (!_context4.t6) {
+                  _context4.next = 36;
+                  break;
+                }
+                _context4.t6 = _yield$this$tracker$r !== void 0;
+              case 36:
+                _context4.t5 = _context4.t6;
+                if (!_context4.t5) {
+                  _context4.next = 39;
+                  break;
+                }
+                _context4.t5 = _yield$this$tracker$r.has(location.roomId);
+              case 39:
+                _context4.t4 = _context4.t5;
+              case 40:
+                if (!_context4.t4) {
+                  _context4.next = 44;
+                  break;
+                }
+                _filterLocation = {
+                  spaceId: location.spaceId,
+                  roomId: location.roomId
+                };
+                if (userRoles.length) {
+                  promises.push(this.collectRoleOverwrites(_filterLocation, userRoles));
+                }
+                promises.push(this.getOverwrites(_filterLocation, 'User', userId).then(function (v) {
+                  return v.overwrites;
+                }));
+              case 44:
+                _context4.t8 = location.topicId;
+                if (!_context4.t8) {
+                  _context4.next = 56;
+                  break;
+                }
+                _context4.next = 48;
+                return this.tracker.rooms.getTopics(location.roomId);
+              case 48:
+                _context4.t11 = _yield$this$tracker$r2 = _context4.sent;
+                _context4.t10 = _context4.t11 !== null;
+                if (!_context4.t10) {
+                  _context4.next = 52;
+                  break;
+                }
+                _context4.t10 = _yield$this$tracker$r2 !== void 0;
+              case 52:
+                _context4.t9 = _context4.t10;
+                if (!_context4.t9) {
+                  _context4.next = 55;
+                  break;
+                }
+                _context4.t9 = _yield$this$tracker$r2.has(location.topicId);
+              case 55:
+                _context4.t8 = _context4.t9;
+              case 56:
+                if (!_context4.t8) {
+                  _context4.next = 59;
+                  break;
+                }
+                if (userRoles.length) {
+                  promises.push(this.collectRoleOverwrites(location, userRoles));
+                }
+                promises.push(this.getOverwrites(location, 'User', userId).then(function (v) {
+                  return v.overwrites;
+                }));
+              case 59:
+                _context4.t12 = this;
+                _context4.next = 62;
+                return Promise.all(promises);
+              case 62:
+                _context4.t13 = _context4.sent;
+                return _context4.abrupt("return", _context4.t12.resolveOverwritesHierarchy.call(_context4.t12, _context4.t13));
+              case 64:
               case "end":
                 return _context4.stop();
             }
           }
         }, _callee4, this);
       }));
-      function calculatePermissions(_x9, _x10, _x11) {
+      function calculatePermissions(_x6) {
         return _calculatePermissions.apply(this, arguments);
       }
       return calculatePermissions;
@@ -2199,28 +2320,57 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
     key: "handleSpaceDeleted",
     value: function handleSpaceDeleted(ev) {
       var _this$overwritesPromi;
-      var ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.id));
+      var ids = this.deleteOverwritesByIdPrefix(getOvId({
+        spaceId: ev.id
+      }));
       (_this$overwritesPromi = this.overwritesPromises).forget.apply(_this$overwritesPromi, PermissionsManager_toConsumableArray(ids));
     }
   }, {
     key: "handleRoomDeleted",
-    value: function handleRoomDeleted(ev) {
-      var _this$overwritesPromi2;
-      var ids = this.deleteOverwritesByIdPrefix(getOvId('Room', ev.id));
-      (_this$overwritesPromi2 = this.overwritesPromises).forget.apply(_this$overwritesPromi2, PermissionsManager_toConsumableArray(ids));
-    }
+    value: function () {
+      var _handleRoomDeleted = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee5(ev) {
+        var room, _this$overwritesPromi2, ids;
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this.tracker.rooms.get();
+              case 2:
+                room = _context5.sent.get(ev.id);
+                if (room) {
+                  ids = this.deleteOverwritesByIdPrefix(getOvId({
+                    spaceId: room.spaceId,
+                    roomId: room.id
+                  }));
+                  (_this$overwritesPromi2 = this.overwritesPromises).forget.apply(_this$overwritesPromi2, PermissionsManager_toConsumableArray(ids));
+                }
+              case 4:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+      function handleRoomDeleted(_x7) {
+        return _handleRoomDeleted.apply(this, arguments);
+      }
+      return handleRoomDeleted;
+    }()
   }, {
     key: "handleTopicDeleted",
     value: function handleTopicDeleted(ev) {
       var _this$overwritesPromi3;
-      var ids = this.deleteOverwritesByIdPrefix(getOvId('Topic', ev.id));
+      var ids = this.deleteOverwritesByIdPrefix(getOvId(ev.location));
       (_this$overwritesPromi3 = this.overwritesPromises).forget.apply(_this$overwritesPromi3, PermissionsManager_toConsumableArray(ids));
     }
   }, {
     key: "handleRoleDeleted",
     value: function handleRoleDeleted(ev) {
       var _this$overwritesPromi4;
-      var ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.spaceId, 'Role', ev.id));
+      var ids = this.deleteOverwritesByIdPrefix(getOvId({
+        spaceId: ev.spaceId
+      }, 'Role', ev.id));
       (_this$overwritesPromi4 = this.overwritesPromises).forget.apply(_this$overwritesPromi4, PermissionsManager_toConsumableArray(ids));
     }
   }, {
@@ -2262,28 +2412,28 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "collectRoleOverwrites",
     value: function () {
-      var _collectRoleOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee5(spaceId, layer, layerId, userRoles) {
+      var _collectRoleOverwrites = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee6(location, userRoles) {
         var _this4 = this;
         var roleOverwrites;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                _context5.next = 2;
+                _context6.next = 2;
                 return Promise.all(userRoles.map(function (roleId) {
-                  return _this4.getOverwrites(layer, layerId, 'Role', roleId);
+                  return _this4.getOverwrites(location, 'Role', roleId);
                 }));
               case 2:
-                roleOverwrites = _context5.sent;
-                return _context5.abrupt("return", this.resolveOverwritesFromRolesByOrder(spaceId, roleOverwrites));
+                roleOverwrites = _context6.sent;
+                return _context6.abrupt("return", this.resolveOverwritesFromRolesByOrder(location.spaceId, roleOverwrites));
               case 4:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
-      function collectRoleOverwrites(_x12, _x13, _x14, _x15) {
+      function collectRoleOverwrites(_x8, _x9) {
         return _collectRoleOverwrites.apply(this, arguments);
       }
       return collectRoleOverwrites;
@@ -2291,17 +2441,17 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "resolveOverwritesFromRolesByOrder",
     value: function () {
-      var _resolveOverwritesFromRolesByOrder = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee6(spaceId, overwrites) {
+      var _resolveOverwritesFromRolesByOrder = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee7(spaceId, overwrites) {
         var allows, denies, roles, sortedOverwrites, permissionsLength;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee6$(_context6) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 allows = 0, denies = 0;
-                _context6.next = 3;
+                _context7.next = 3;
                 return this.tracker.spaces.getRoles(spaceId);
               case 3:
-                roles = _context6.sent;
+                roles = _context7.sent;
                 sortedOverwrites = overwrites.sort(function (a, b) {
                   return roles.get(a.targetId).priority - roles.get(b.targetId).priority;
                 }); // Max length of bit word
@@ -2326,18 +2476,18 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
                     }
                   }
                 });
-                return _context6.abrupt("return", {
+                return _context7.abrupt("return", {
                   allow: allows,
                   deny: denies
                 });
               case 8:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
-      function resolveOverwritesFromRolesByOrder(_x16, _x17) {
+      function resolveOverwritesFromRolesByOrder(_x10, _x11) {
         return _resolveOverwritesFromRolesByOrder.apply(this, arguments);
       }
       return resolveOverwritesFromRolesByOrder;
@@ -2384,38 +2534,45 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "fetchMembersOrFail",
     value: function () {
-      var _fetchMembersOrFail = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee7(spaceId, roomId) {
+      var _fetchMembersOrFail = PermissionsManager_asyncToGenerator( /*#__PURE__*/PermissionsManager_regeneratorRuntime().mark(function _callee8(location) {
         var results, spaceFail, roomFail, layer;
-        return PermissionsManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
+        return PermissionsManager_regeneratorRuntime().wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                _context7.next = 2;
-                return Promise.all([spaceId ? this.tracker.spaces.getMe(spaceId) : null, roomId ? this.tracker.rooms.getMe(roomId) : null]);
+                _context8.next = 2;
+                return Promise.all([location.spaceId ? this.tracker.spaces.getMe(location.spaceId) : null, location.roomId ? this.tracker.rooms.getMe(location.roomId) : null]);
               case 2:
-                results = _context7.sent;
-                spaceFail = spaceId && !results[0];
-                roomFail = roomId && !results[1];
+                results = _context8.sent;
+                spaceFail = location.spaceId && !results[0];
+                roomFail = location.roomId && !results[1];
                 if (!(spaceFail || roomFail)) {
-                  _context7.next = 8;
+                  _context8.next = 8;
                   break;
                 }
-                layer = spaceFail ? "space (".concat(spaceId, ")") : "room (".concat(roomId, ")");
+                layer = spaceFail ? "space (".concat(location.spaceId, ")") : "room (".concat(location.roomId, ")");
                 throw new Error("Attempting to calculate permissions for a ".concat(layer, " that the user does not belong to"));
               case 8:
-                return _context7.abrupt("return", results);
+                return _context8.abrupt("return", results);
               case 9:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
-      function fetchMembersOrFail(_x18, _x19) {
+      function fetchMembersOrFail(_x12) {
         return _fetchMembersOrFail.apply(this, arguments);
       }
       return fetchMembersOrFail;
     }()
+  }, {
+    key: "validateLocation",
+    value: function validateLocation(location) {
+      if (location.topicId && !location.roomId || !location.spaceId && !location.roomId && !location.topicId) {
+        throw new Error('Corrupted arguments hierarchy');
+      }
+    }
   }]);
   return PermissionsManager;
 }(EventTarget);
@@ -2436,6 +2593,10 @@ function ChatStateTracker_toPrimitive(input, hint) { if (ChatStateTracker_typeof
 
 var ChatStateTracker = /*#__PURE__*/function () {
   /**
+   * State of your permissions.
+   */
+
+  /**
    * State of the rooms you are in.
    */
 
@@ -2443,17 +2604,13 @@ var ChatStateTracker = /*#__PURE__*/function () {
    * State of the spaces you are in.
    */
 
-  /**
-   * State of your permissions.
-   */
-
   function ChatStateTracker(client) {
     var _this = this;
     ChatStateTracker_classCallCheck(this, ChatStateTracker);
     this.client = client;
+    ChatStateTracker_defineProperty(this, "permissions", new PermissionsManager(this));
     ChatStateTracker_defineProperty(this, "rooms", new RoomsManager(this));
     ChatStateTracker_defineProperty(this, "spaces", new SpacesManager(this));
-    ChatStateTracker_defineProperty(this, "permissions", new PermissionsManager(this));
     ChatStateTracker_defineProperty(this, "_me", null);
     ChatStateTracker_defineProperty(this, "deferredSession", new DeferredTask());
     this.client.on('Session', function (ev) {

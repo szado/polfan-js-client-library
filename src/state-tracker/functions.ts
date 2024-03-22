@@ -1,4 +1,4 @@
-import {Role} from "pserv-ts-types";
+import {Role} from "../types/src";
 
 export function reorderRolesOnPriorityUpdate(allRoles: Role[], oldRole: Role, updatedRole: Role): Role[] {
     // If the priority has changed, adjust the rest of roles

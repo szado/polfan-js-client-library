@@ -8,11 +8,14 @@ import {
 } from "./IndexedObjectCollection";
 import { AuthClient } from "./AuthClient";
 import { Permissions, PermissionDefinition, Layer } from "./Permissions";
+import * as ChatTypes from './types/src';
 
 export {
     IndexedCollection, ObservableIndexedCollection,
     IndexedObjectCollection, ObservableIndexedObjectCollection,
     Permissions, PermissionDefinition, Layer,
     WebSocketChatClient, WebApiChatClient,
-    AuthClient
+    AuthClient,
 };
+
+export type {ChatTypes};

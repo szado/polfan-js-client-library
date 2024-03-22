@@ -1,11 +1,11 @@
 import {ChatStateTracker} from "./ChatStateTracker";
-import {AckReport, AckReports, Message, NewMessage, Topic} from "pserv-ts-types";
+import {AckReport, AckReports, ChatLocation, Message, NewMessage, Topic} from "../types/src";
 import {
     IndexedCollection,
     ObservableIndexedObjectCollection
 } from "../IndexedObjectCollection";
 
-export const getCombinedId = (...ids: string[]) => ids.join('_');
+export const getCombinedId = (location: ChatLocation) => Object.values(location).filter(v => v).join('_');
 
 export class MessagesManager {
     // Temporary not lazy loaded; server must implement GetTopicMessages command.
@@ -20,8 +20,8 @@ export class MessagesManager {
     /**
      * Get collection of the messages written in topic.
      */
-    public async get(roomId: string, topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined> {
-        return this.list.get(getCombinedId(roomId, topicId));
+    public async get(location: ChatLocation): Promise<ObservableIndexedObjectCollection<Message> | undefined> {
+        return this.list.get(getCombinedId(location));
     }
 
     /**
@@ -39,7 +39,7 @@ export class MessagesManager {
 
         if (missingRoomIds.length) {
             // If we don't have ack reports for all rooms in space, fetch them
-            const result = await this.tracker.client.send('GetAckReports', {spaceId});
+            const result = await this.tracker.client.send('GetAckReports', {location: {spaceId}});
 
             if (result.error) {
                 throw result.error;
@@ -64,7 +64,7 @@ export class MessagesManager {
         }
 
         if (! this.acks.has(roomId)) {
-            const result = await this.tracker.client.send('GetAckReports', {roomId});
+            const result = await this.tracker.client.send('GetAckReports', {location: {roomId}});
 
             if (result.error) {
                 throw result.error;
@@ -81,7 +81,7 @@ export class MessagesManager {
      * @internal
      */
     public _deleteByTopicIds(roomId: string, ...topicIds: string[]): void {
-        this.list.delete(...topicIds.map(topicId => getCombinedId(roomId, topicId)));
+        this.list.delete(...topicIds.map(topicId => getCombinedId({roomId, topicId})));
         this.acks.get(roomId)?.delete(...topicIds);
     }
 
@@ -91,14 +91,14 @@ export class MessagesManager {
      */
     public _handleNewTopics(roomId: string, ...topics: Topic[]): void {
         this.list.set(...topics.map<[string, ObservableIndexedObjectCollection<Message>]>(topic => [
-            getCombinedId(roomId, topic.id),
+            getCombinedId({roomId, topicId: topic.id}),
             new ObservableIndexedObjectCollection<Message>('id'),
         ]));
         this.createAckReportsForNewTopics(roomId, topics);
     }
 
     private handleNewMessage(ev: NewMessage): void {
-        this.list.get(getCombinedId(ev.roomId, ev.topicId)).set(ev.message);
+        this.list.get(getCombinedId(ev.location)).set(ev.message);
         this.updateLocallyAckReportOnNewMessage(ev);
     }
 
@@ -127,7 +127,7 @@ export class MessagesManager {
     }
 
     private updateLocallyAckReportOnNewMessage(ev: NewMessage): void {
-        const ackReports = this.acks.get(ev.roomId);
+        const ackReports = this.acks.get(ev.location.roomId);
 
         if (! ackReports) {
             // If we don't follow ack reports for this room, skip
@@ -135,7 +135,7 @@ export class MessagesManager {
         }
 
         const isMe = ev.message.author.id === this.tracker.me?.id;
-        const currentAckReport = ackReports.get(ev.topicId);
+        const currentAckReport = ackReports.get(ev.location.topicId);
         let update: Partial<AckReport>;
 
         if (isMe) {

@@ -22,7 +22,7 @@ import {
     SpaceRooms,
     SpaceUpdated,
     UserUpdated
-} from "pserv-ts-types";
+} from "../types/src";
 import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {reorderRolesOnPriorityUpdate} from "./functions";
 
@@ -30,6 +30,7 @@ export class SpacesManager {
     private readonly list = new ObservableIndexedObjectCollection<Space>('id');
     private readonly roles = new IndexedCollection<string, ObservableIndexedObjectCollection<Role>>();
     private readonly rooms = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomSummary>>();
+    private readonly roomIdToSpaceId = new IndexedCollection<string, string>();
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<SpaceMember>>();
     private readonly deferredSession = new DeferredTask();
     private readonly roomsPromises = new PromiseRegistry();
@@ -130,6 +131,7 @@ export class SpacesManager {
 
     private handleNewRoom(ev: NewRoom): void {
         this.rooms.get(ev.spaceId)?.set(ev.summary);
+        this.roomIdToSpaceId.set([ev.summary.id, ev.spaceId]);
     }
 
     private handleRoomUpdated(ev: RoomUpdated): void {
@@ -143,9 +145,11 @@ export class SpacesManager {
         }
     }
 
-    private handleRoomDeleted(ev: RoomDeleted): void {
-        if (ev.spaceId && this.rooms.has(ev.spaceId)) {
-            this.rooms.get(ev.spaceId).delete(ev.id);
+    private async handleRoomDeleted(ev: RoomDeleted): Promise<void> {
+        const spaceId = this.roomIdToSpaceId.get(ev.id);
+
+        if (spaceId && this.rooms.has(spaceId)) {
+            this.rooms.get(spaceId).delete(ev.id);
         }
     }
 
@@ -163,6 +167,9 @@ export class SpacesManager {
     }
 
     private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {
+        const roomIds = this.rooms.get(ev.id)?.map(item => item.id) ?? [];
+        this.roomIdToSpaceId.delete(...roomIds);
+
         this.roles.delete(ev.id);
         this.members.delete(ev.id);
         this.membersPromises.forget(ev.id);
@@ -238,6 +245,7 @@ export class SpacesManager {
         this.roles.deleteAll();
         this.rooms.deleteAll();
         this.members.deleteAll();
+        this.roomIdToSpaceId.deleteAll();
 
         this.addJoinedSpaces(...ev.state.spaces);
 

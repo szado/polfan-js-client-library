@@ -9,7 +9,7 @@ import {
     Topic,
     TopicDeleted,
     UserUpdated,
-} from "pserv-ts-types";
+} from "../types/src";
 import {ChatStateTracker} from "./ChatStateTracker";
 import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {MessagesManager} from "./MessagesManager";
@@ -163,14 +163,17 @@ export class RoomsManager {
     }
 
     private handleTopicDeleted(ev: TopicDeleted): void {
-        const collection = this.topics.get(ev.roomId);
-        collection.delete(ev.id);
-        this.list.get(ev.roomId).topics = collection.items;
+        const collection = this.topics.get(ev.location.roomId);
+        collection.delete(ev.location.topicId);
+
+        const room = this.list.get(ev.location.roomId);
+        if (room.defaultTopic?.id === ev.location.topicId) {
+            this.list.set({...room, defaultTopic: null});
+        }
     }
 
     private handleNewTopic(ev: NewTopic): void {
         this.addJoinedRoomTopics(ev.roomId, ev.topic);
-        this.list.get(ev.roomId).topics.push(ev.topic);
     }
 
     private addJoinedRoomTopics(roomId: string, ...topics: Topic[]): void {
@@ -201,7 +204,9 @@ export class RoomsManager {
 
     private addJoinedRooms(...rooms: Room[]): void {
         for (const room of rooms) {
-            this.addJoinedRoomTopics(room.id, ...room.topics);
+            if (room.defaultTopic) {
+                this.addJoinedRoomTopics(room.id, room.defaultTopic);
+            }
         }
         this.list.set(...rooms);
     }

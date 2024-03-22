@@ -1,5 +1,6 @@
 import {ChatStateTracker} from "./ChatStateTracker";
 import {
+    ChatLocation,
     PermissionOverwrites,
     PermissionOverwritesUpdated,
     PermissionOverwritesValue,
@@ -10,21 +11,20 @@ import {
     SpaceLeft, SpaceMember,
     SpaceMemberUpdated,
     TopicDeleted,
-} from "pserv-ts-types";
+} from "../types/src";
 import {EventHandler, EventTarget} from "../EventTarget";
 import {IndexedCollection} from "../IndexedObjectCollection";
 import {Permissions} from "../Permissions";
 import {PromiseRegistry} from "./AsyncUtils";
 
 const getOvId = (
-    layer: PermissionOverwrites['layer'],
-    layerId: PermissionOverwrites['layerId'],
+    location: ChatLocation,
     target?: PermissionOverwrites['target'],
     targetId?: PermissionOverwrites['targetId'],
-) => layer + (layerId ?? '') + (target ?? '') + (targetId ?? '');
+) => (location.spaceId ?? '') + (location.roomId ?? '') + (location.topicId ?? '') + (target ?? '') + (targetId ?? '');
 
 const getOvIdByObject = (overwrites: PermissionOverwrites | PermissionOverwritesUpdated): string => getOvId(
-    overwrites.layer, overwrites.layerId, overwrites.target, overwrites.targetId
+    overwrites.location, overwrites.target, overwrites.targetId
 );
 
 interface CheckPermissionsResult {
@@ -56,18 +56,19 @@ export class PermissionsManager extends EventTarget {
     }
 
     public async getOverwrites(
-        layer: PermissionOverwrites['layer'],
-        layerId: PermissionOverwrites['layerId'],
+        location: ChatLocation,
         target: PermissionOverwrites['target'],
         targetId: PermissionOverwrites['targetId'],
     ): Promise<PermissionOverwrites | undefined> {
-        const id = getOvId(layer, layerId, target, targetId);
+        this.validateLocation(location);
+
+        const id = getOvId(location, target, targetId);
 
         if (this.overwritesPromises.notExist(id)) {
             this.overwritesPromises.registerByFunction(async () => {
                 const result = await this.tracker.client.send(
                     'GetPermissionOverwrites',
-                    {layer, layerId, target, targetId},
+                    {location, target, targetId},
                 );
                 if (result.error) {
                     throw result.error;
@@ -86,15 +87,13 @@ export class PermissionsManager extends EventTarget {
 
     public async check(
         permissionNames: (keyof typeof Permissions.list)[],
-        spaceId?: string,
-        roomId?: string,
-        topicId?: string,
+        location: ChatLocation,
     ): Promise<CheckPermissionsResult> {
         if (! permissionNames.length) {
             throw new Error('Permission names array cannot be empty');
         }
 
-        const ownedPermissions = await this.calculatePermissions(spaceId, roomId, topicId);
+        const ownedPermissions = await this.calculatePermissions(location);
         const missing: string[] = [];
 
         permissionNames.forEach(name => {
@@ -111,44 +110,36 @@ export class PermissionsManager extends EventTarget {
         };
     }
 
-    public async calculatePermissions(spaceId?: string, roomId?: string, topicId?: string): Promise<number> {
-        if (topicId && ! roomId || roomId && ! spaceId) {
-            throw new Error('Corrupted arguments hierarchy');
-        }
+    public async calculatePermissions(location: ChatLocation): Promise<number> {
+        this.validateLocation(location);
 
         const userId = (await this.tracker.getMe()).id;
-        const [spaceMember, roomMember] = await this.fetchMembersOrFail(spaceId, roomId);
+        const [spaceMember, roomMember] = await this.fetchMembersOrFail(location);
         const userRoles: string[] = [...(spaceMember?.roles ?? []), ...(roomMember?.roles ?? [])];
-        const [spaces, rooms, topics] = await Promise.all([
-            this.tracker.spaces.get(),
-            this.tracker.rooms.get(),
-            roomId ? this.tracker.rooms.getTopics(roomId) : null,
-        ]);
-
         const promises: Promise<PermissionOverwritesValue>[] = [
             // Global user overwrites
-            this.getOverwrites('Global', null, 'User', userId).then(v => v.overwrites),
+            this.getOverwrites({}, 'User', userId).then(v => v.overwrites),
         ];
 
-        if (spaceId && spaces.has(spaceId)) {
-            promises.push(this.collectRoleOverwrites(spaceId, 'Space', spaceId, userRoles));
-            promises.push(this.getOverwrites('Space', spaceId, 'User', userId).then(v => v.overwrites));
+        if (location.spaceId && (await this.tracker.spaces.get())?.has(location.spaceId)) {
+            const filterLocation: ChatLocation = {spaceId: location.spaceId};
+            promises.push(this.collectRoleOverwrites(filterLocation, userRoles));
+            promises.push(this.getOverwrites(filterLocation, 'User', userId).then(v => v.overwrites));
         }
 
-        if (roomId && rooms.has(roomId)) {
+        if (location.roomId && (await this.tracker.rooms.get())?.has(location.roomId)) {
+            const filterLocation: ChatLocation = {spaceId: location.spaceId, roomId: location.roomId};
             if (userRoles.length) {
-                promises.push(this.collectRoleOverwrites(spaceId, 'Room', roomId, userRoles));
+                promises.push(this.collectRoleOverwrites(filterLocation, userRoles));
             }
-
-            promises.push(this.getOverwrites('Room', roomId, 'User', userId).then(v => v.overwrites));
+            promises.push(this.getOverwrites(filterLocation, 'User', userId).then(v => v.overwrites));
         }
 
-        if (topicId && topics && topics.has(topicId)) {
+        if (location.topicId && (await this.tracker.rooms.getTopics(location.roomId))?.has(location.topicId)) {
             if (userRoles.length) {
-                promises.push(this.collectRoleOverwrites(spaceId, 'Topic', topicId, userRoles));
+                promises.push(this.collectRoleOverwrites(location, userRoles));
             }
-
-            promises.push(this.getOverwrites('Topic', topicId, 'User', userId).then(v => v.overwrites));
+            promises.push(this.getOverwrites(location, 'User', userId).then(v => v.overwrites));
         }
 
         return this.resolveOverwritesHierarchy(await Promise.all(promises));
@@ -160,22 +151,25 @@ export class PermissionsManager extends EventTarget {
     }
 
     private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {
-        const ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.id));
+        const ids = this.deleteOverwritesByIdPrefix(getOvId({spaceId: ev.id}));
         this.overwritesPromises.forget(...ids);
     }
 
-    private handleRoomDeleted(ev: RoomDeleted | RoomLeft): void {
-        const ids = this.deleteOverwritesByIdPrefix(getOvId('Room', ev.id));
-        this.overwritesPromises.forget(...ids);
+    private async handleRoomDeleted(ev: RoomDeleted | RoomLeft): Promise<void> {
+        const room = (await this.tracker.rooms.get()).get(ev.id);
+        if (room) {
+            const ids = this.deleteOverwritesByIdPrefix(getOvId({spaceId: room.spaceId, roomId: room.id}));
+            this.overwritesPromises.forget(...ids);
+        }
     }
 
     private handleTopicDeleted(ev: TopicDeleted): void {
-        const ids = this.deleteOverwritesByIdPrefix(getOvId('Topic', ev.id));
+        const ids = this.deleteOverwritesByIdPrefix(getOvId(ev.location));
         this.overwritesPromises.forget(...ids);
     }
 
     private handleRoleDeleted(ev: RoleDeleted): void {
-        const ids = this.deleteOverwritesByIdPrefix(getOvId('Space', ev.spaceId, 'Role', ev.id));
+        const ids = this.deleteOverwritesByIdPrefix(getOvId({spaceId: ev.spaceId}, 'Role', ev.id));
         this.overwritesPromises.forget(...ids);
     }
 
@@ -209,16 +203,14 @@ export class PermissionsManager extends EventTarget {
     }
 
     private async collectRoleOverwrites(
-        spaceId: string,
-        layer: PermissionOverwrites['layer'],
-        layerId: PermissionOverwrites['layerId'],
+        location: ChatLocation,
         userRoles: string[],
     ): Promise<PermissionOverwritesValue> {
         const roleOverwrites = await Promise.all(userRoles.map(
-            roleId => this.getOverwrites(layer, layerId, 'Role', roleId)
+            roleId => this.getOverwrites(location, 'Role', roleId)
         ));
 
-        return this.resolveOverwritesFromRolesByOrder(spaceId, roleOverwrites);
+        return this.resolveOverwritesFromRolesByOrder(location.spaceId, roleOverwrites);
     }
 
     private async resolveOverwritesFromRolesByOrder(
@@ -289,20 +281,26 @@ export class PermissionsManager extends EventTarget {
         return result;
     }
 
-    private async fetchMembersOrFail(spaceId?: string, roomId?: string): Promise<[SpaceMember | null, RoomMember | null]> {
+    private async fetchMembersOrFail(location: ChatLocation): Promise<[SpaceMember | null, RoomMember | null]> {
         const results = await Promise.all([
-            spaceId ? this.tracker.spaces.getMe(spaceId) : null,
-            roomId ? this.tracker.rooms.getMe(roomId) : null,
+            location.spaceId ? this.tracker.spaces.getMe(location.spaceId) : null,
+            location.roomId ? this.tracker.rooms.getMe(location.roomId) : null,
         ]);
 
-        const spaceFail = spaceId && ! results[0];
-        const roomFail = roomId && ! results[1];
+        const spaceFail = location.spaceId && ! results[0];
+        const roomFail = location.roomId && ! results[1];
 
         if (spaceFail || roomFail) {
-            const layer = spaceFail ? `space (${spaceId})` : `room (${roomId})`;
+            const layer = spaceFail ? `space (${location.spaceId})` : `room (${location.roomId})`;
             throw new Error(`Attempting to calculate permissions for a ${layer} that the user does not belong to`);
         }
 
         return results;
+    }
+
+    private validateLocation(location: ChatLocation): void {
+        if (location.topicId && ! location.roomId || ! location.spaceId && ! location.roomId && ! location.topicId) {
+            throw new Error('Corrupted arguments hierarchy');
+        }
     }
 }

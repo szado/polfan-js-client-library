@@ -62,8 +62,8 @@ import {
     Owners,
     Ok,
     GetOwners,
-    CreateOwner,
-} from "pserv-ts-types";
+    CreateOwner, RoleDeleted,
+} from "./types/src/index";
 import {EventTarget} from "./EventTarget";
 
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
@@ -146,7 +146,7 @@ export type EventsMap = {
     SpaceMembers: SpaceMembers,
     SpaceRooms: SpaceRooms,
     NewRole: NewRole,
-    RoleDeleted: RoomDeleted,
+    RoleDeleted: RoleDeleted,
     RoleUpdated: RoleUpdated,
     // Room events
     RoomJoined: RoomJoined,
