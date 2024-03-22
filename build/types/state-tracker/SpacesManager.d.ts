@@ -1,11 +1,12 @@
 import { ChatStateTracker } from "./ChatStateTracker";
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
-import { Role, RoomSummary, Space, SpaceMember } from "pserv-ts-types";
+import { Role, RoomSummary, Space, SpaceMember } from "../types/src";
 export declare class SpacesManager {
     private tracker;
     private readonly list;
     private readonly roles;
     private readonly rooms;
+    private readonly roomIdToSpaceId;
     private readonly members;
     private readonly deferredSession;
     private readonly roomsPromises;

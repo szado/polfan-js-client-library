@@ -1,5 +1,5 @@
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
-import { Room, RoomMember, Topic } from "pserv-ts-types";
+import { Room, RoomMember, Topic } from "../types/src";
 import { ChatStateTracker } from "./ChatStateTracker";
 import { MessagesManager } from "./MessagesManager";
 export declare class RoomsManager {

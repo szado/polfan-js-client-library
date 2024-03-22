@@ -1,7 +1,7 @@
 import { ChatStateTracker } from "./ChatStateTracker";
-import { AckReport, Message, Topic } from "pserv-ts-types";
+import { AckReport, ChatLocation, Message, Topic } from "../types/src";
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
-export declare const getCombinedId: (...ids: string[]) => string;
+export declare const getCombinedId: (location: ChatLocation) => string;
 export declare class MessagesManager {
     private tracker;
     private readonly list;
@@ -10,7 +10,7 @@ export declare class MessagesManager {
     /**
      * Get collection of the messages written in topic.
      */
-    get(roomId: string, topicId: string): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
+    get(location: ChatLocation): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
     /**
      * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
      * Then you can get the reports using getRoomAckReports().

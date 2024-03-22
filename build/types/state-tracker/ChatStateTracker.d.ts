@@ -1,10 +1,14 @@
 import { WebSocketChatClient } from "../WebSocketChatClient";
-import { User } from "pserv-ts-types";
+import { User } from "../types/src";
 import { RoomsManager } from "./RoomsManager";
 import { SpacesManager } from "./SpacesManager";
 import { PermissionsManager } from "./PermissionsManager";
 export declare class ChatStateTracker {
     readonly client: WebSocketChatClient;
+    /**
+     * State of your permissions.
+     */
+    readonly permissions: PermissionsManager;
     /**
      * State of the rooms you are in.
      */
@@ -13,10 +17,6 @@ export declare class ChatStateTracker {
      * State of the spaces you are in.
      */
     readonly spaces: SpacesManager;
-    /**
-     * State of your permissions.
-     */
-    readonly permissions: PermissionsManager;
     private _me;
     private readonly deferredSession;
     constructor(client: WebSocketChatClient);
