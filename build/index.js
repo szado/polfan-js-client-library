@@ -642,9 +642,8 @@ function MessagesManager_toPropertyKey(arg) { var key = MessagesManager_toPrimit
 function MessagesManager_toPrimitive(input, hint) { if (MessagesManager_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (MessagesManager_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
 var getCombinedId = function getCombinedId(location) {
-  return Object.values(location).filter(function (v) {
-    return v;
-  }).join('_');
+  var _location$roomId, _location$topicId;
+  return ((_location$roomId = location.roomId) !== null && _location$roomId !== void 0 ? _location$roomId : '') + ((_location$topicId = location.topicId) !== null && _location$topicId !== void 0 ? _location$topicId : '');
 };
 var MessagesManager = /*#__PURE__*/function () {
   // Temporary not lazy loaded; server must implement GetTopicMessages command.
@@ -709,7 +708,7 @@ var MessagesManager = /*#__PURE__*/function () {
                   _context2.next = 4;
                   break;
                 }
-                throw "You are not in space ".concat(spaceId);
+                throw new Error("You are not in space ".concat(spaceId));
               case 4:
                 _context2.next = 6;
                 return this.tracker.rooms.get();
@@ -2569,7 +2568,7 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "validateLocation",
     value: function validateLocation(location) {
-      if (location.topicId && !location.roomId || !location.spaceId && !location.roomId && !location.topicId) {
+      if (location.topicId && !location.roomId) {
         throw new Error('Corrupted arguments hierarchy');
       }
     }

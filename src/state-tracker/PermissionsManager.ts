@@ -299,7 +299,7 @@ export class PermissionsManager extends EventTarget {
     }
 
     private validateLocation(location: ChatLocation): void {
-        if (location.topicId && ! location.roomId || ! location.spaceId && ! location.roomId && ! location.topicId) {
+        if (location.topicId && ! location.roomId) {
             throw new Error('Corrupted arguments hierarchy');
         }
     }

@@ -5,7 +5,7 @@ import {
     ObservableIndexedObjectCollection
 } from "../IndexedObjectCollection";
 
-export const getCombinedId = (location: ChatLocation) => Object.values(location).filter(v => v).join('_');
+export const getCombinedId = (location: ChatLocation) => (location.roomId ?? '') + (location.topicId ?? '');
 
 export class MessagesManager {
     // Temporary not lazy loaded; server must implement GetTopicMessages command.
@@ -31,7 +31,7 @@ export class MessagesManager {
      */
     public async cacheSpaceAckReports(spaceId: string): Promise<void> {
         if (! (await this.tracker.spaces.get()).has(spaceId)) {
-            throw `You are not in space ${spaceId}`;
+            throw new Error(`You are not in space ${spaceId}`);
         }
 
         const roomIds = (await this.tracker.rooms.get()).findBy('spaceId', spaceId).map(room => room.id);
