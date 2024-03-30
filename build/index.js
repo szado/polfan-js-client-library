@@ -838,17 +838,34 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "_handleNewTopics",
     value: function _handleNewTopics(roomId) {
-      var _this$list2;
-      for (var _len2 = arguments.length, topics = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        topics[_key2 - 1] = arguments[_key2];
+      for (var _len2 = arguments.length, newTopics = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        newTopics[_key2 - 1] = arguments[_key2];
       }
-      (_this$list2 = this.list).set.apply(_this$list2, MessagesManager_toConsumableArray(topics.map(function (topic) {
-        return [getCombinedId({
+      for (var _i = 0, _newTopics = newTopics; _i < _newTopics.length; _i++) {
+        var newTopic = _newTopics[_i];
+        var newTopicCombinedId = getCombinedId({
           roomId: roomId,
-          topicId: topic.id
-        }), new ObservableIndexedObjectCollection('id')];
-      })));
-      this.createAckReportsForNewTopics(roomId, topics);
+          topicId: newTopic.id
+        });
+        this.list.set([newTopicCombinedId, new ObservableIndexedObjectCollection('id')]);
+
+        // If new topic refers to some message from this room, update other structures
+        if (newTopic.messageRef) {
+          var refTopicCombinedId = getCombinedId({
+            roomId: roomId,
+            topicId: newTopic.messageRef.topicId
+          });
+          var refTopicMessages = this.list.get(refTopicCombinedId);
+          var refMessage = refTopicMessages === null || refTopicMessages === void 0 ? void 0 : refTopicMessages.get(newTopic.messageRef.messageId);
+          if (refMessage) {
+            // Update referenced topic ID in message
+            refTopicMessages.set(_objectSpread(_objectSpread({}, refMessage), {}, {
+              topicRef: newTopic.id
+            }));
+          }
+        }
+      }
+      this.createAckReportsForNewTopics(roomId, newTopics);
     }
   }, {
     key: "handleNewMessage",

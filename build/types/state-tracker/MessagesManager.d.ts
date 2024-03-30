@@ -31,7 +31,7 @@ export declare class MessagesManager {
      * For internal use. If you want to add new topic, execute a proper command on client object.
      * @internal
      */
-    _handleNewTopics(roomId: string, ...topics: Topic[]): void;
+    _handleNewTopics(roomId: string, ...newTopics: Topic[]): void;
     private handleNewMessage;
     private handleAckReports;
     private createAckReportsForNewTopics;
