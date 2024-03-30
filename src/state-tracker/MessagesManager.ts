@@ -89,12 +89,26 @@ export class MessagesManager {
      * For internal use. If you want to add new topic, execute a proper command on client object.
      * @internal
      */
-    public _handleNewTopics(roomId: string, ...topics: Topic[]): void {
-        this.list.set(...topics.map<[string, ObservableIndexedObjectCollection<Message>]>(topic => [
-            getCombinedId({roomId, topicId: topic.id}),
-            new ObservableIndexedObjectCollection<Message>('id'),
-        ]));
-        this.createAckReportsForNewTopics(roomId, topics);
+    public _handleNewTopics(roomId: string, ...newTopics: Topic[]):void {
+        for (const newTopic of newTopics) {
+            const newTopicCombinedId = getCombinedId({roomId, topicId: newTopic.id});
+
+            this.list.set([newTopicCombinedId, new ObservableIndexedObjectCollection<Message>('id')]);
+
+            // If new topic refers to some message from this room, update other structures
+            if (newTopic.messageRef) {
+                const refTopicCombinedId = getCombinedId({roomId, topicId: newTopic.messageRef.topicId});
+                const refTopicMessages = this.list.get(refTopicCombinedId);
+                const refMessage = refTopicMessages?.get(newTopic.messageRef.messageId);
+
+                if (refMessage) {
+                    // Update referenced topic ID in message
+                    refTopicMessages.set({...refMessage, topicRef: newTopic.id});
+                }
+            }
+        }
+
+        this.createAckReportsForNewTopics(roomId, newTopics);
     }
 
     private handleNewMessage(ev: NewMessage): void {
