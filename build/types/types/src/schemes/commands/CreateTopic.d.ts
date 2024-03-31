@@ -7,6 +7,6 @@ export interface MessageReference {
 export interface CreateTopic {
     location: ChatLocation;
     name: string;
-    messageRef: MessageReference | null;
-    initialMessage: Omit<CreateMessage, 'location'> | null;
+    messageRef?: MessageReference;
+    initialMessage?: Omit<CreateMessage, 'location'>;
 }
