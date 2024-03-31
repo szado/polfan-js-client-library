@@ -1948,32 +1948,36 @@ Permissions_defineProperty(Permissions, "list", {
     value: 1 << 4,
     maxLayer: Layer.Room
   },
-  ManageTopic: {
+  CreateTopics: {
     value: 1 << 5,
+    maxLayer: Layer.Room
+  },
+  ManageTopic: {
+    value: 1 << 6,
     maxLayer: Layer.Topic
   },
   ManageSpaceMembers: {
-    value: 1 << 6,
+    value: 1 << 7,
     maxLayer: Layer.Space
   },
   ManageRoomMembers: {
-    value: 1 << 7,
+    value: 1 << 8,
     maxLayer: Layer.Room
   },
   CreateMessages: {
-    value: 1 << 8,
-    maxLayer: Layer.Topic
-  },
-  ManagePermissions: {
     value: 1 << 9,
     maxLayer: Layer.Topic
   },
-  CreateSpaceRooms: {
+  ManagePermissions: {
     value: 1 << 10,
+    maxLayer: Layer.Topic
+  },
+  CreateSpaceRooms: {
+    value: 1 << 11,
     maxLayer: Layer.Space
   },
   ManageSpaceRooms: {
-    value: 1 << 11,
+    value: 1 << 12,
     maxLayer: Layer.Space
   }
 });

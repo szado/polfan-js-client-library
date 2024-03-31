@@ -30,6 +30,10 @@ export declare class Permissions {
             value: number;
             maxLayer: Layer;
         };
+        CreateTopics: {
+            value: number;
+            maxLayer: Layer;
+        };
         ManageTopic: {
             value: number;
             maxLayer: Layer;
