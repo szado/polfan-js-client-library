@@ -969,6 +969,9 @@ var RoomsManager = /*#__PURE__*/function () {
     RoomsManager_defineProperty(this, "deferredSession", new DeferredTask());
     RoomsManager_defineProperty(this, "membersPromises", new PromiseRegistry());
     this.messages = new MessagesManager(tracker);
+    this.tracker.client.on('NewMessage', function (ev) {
+      return _this.handleNewMessage(ev);
+    });
     this.tracker.client.on('NewTopic', function (ev) {
       return _this.handleNewTopic(ev);
     });
@@ -1382,6 +1385,18 @@ var RoomsManager = /*#__PURE__*/function () {
         }
         members.set(newMember);
       });
+    }
+  }, {
+    key: "handleNewMessage",
+    value: function handleNewMessage(ev) {
+      var topics = this.topics.get(ev.location.roomId);
+      var topic = topics.get(ev.location.topicId);
+      if (topic) {
+        topics.set(RoomsManager_objectSpread(RoomsManager_objectSpread({}, topic), {}, {
+          messageCount: topic.messageCount + 1,
+          lastMessage: ev.message
+        }));
+      }
     }
   }]);
   return RoomsManager;

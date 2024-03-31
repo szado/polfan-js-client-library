@@ -1,5 +1,6 @@
 import {IndexedCollection, ObservableIndexedObjectCollection} from "../IndexedObjectCollection";
 import {
+    NewMessage,
     NewTopic,
     Room, RoomDeleted,
     RoomJoined, RoomLeft,
@@ -26,6 +27,7 @@ export class RoomsManager {
     public constructor(private tracker: ChatStateTracker) {
         this.messages = new MessagesManager(tracker);
 
+        this.tracker.client.on('NewMessage', ev => this.handleNewMessage(ev));
         this.tracker.client.on('NewTopic', ev => this.handleNewTopic(ev));
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
         this.tracker.client.on('RoomJoined', ev => this.handleRoomJoined(ev));
@@ -268,5 +270,18 @@ export class RoomsManager {
 
             members.set(newMember);
         });
+    }
+
+    private handleNewMessage(ev: NewMessage): void {
+        const topics = this.topics.get(ev.location.roomId);
+        const topic = topics.get(ev.location.topicId);
+
+        if (topic) {
+            topics.set({
+                ...topic,
+                messageCount: topic.messageCount + 1,
+                lastMessage: ev.message,
+            });
+        }
     }
 }
