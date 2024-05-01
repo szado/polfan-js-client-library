@@ -1,4 +1,4 @@
 import { ChatLocation } from "../ChatLocation";
-export interface GetAckReports {
+export interface GetFollowedTopics {
     location: ChatLocation;
 }
