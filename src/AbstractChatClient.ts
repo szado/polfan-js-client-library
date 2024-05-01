@@ -49,9 +49,7 @@ import {
     RoomMemberUpdated,
     UpdateRole,
     RoleUpdated,
-    AckReports,
     Ack,
-    GetAckReports,
     UserUpdated,
     UpdateRoom,
     RoomUpdated,
@@ -65,6 +63,12 @@ import {
     CreateOwner, RoleDeleted,
 } from "./types/src/index";
 import {EventTarget} from "./EventTarget";
+import {TopicFollowed} from "./types/src/schemes/events/TopicFollowed";
+import {TopicUnfollowed} from "./types/src/schemes/events/TopicUnfollowed";
+import {FollowedTopics} from "./types/src/schemes/events/FollowedTopics";
+import {FollowTopic} from "./types/src/schemes/commands/FollowTopic";
+import {UnfollowTopic} from "./types/src/schemes/commands/UnfollowTopic";
+import {GetFollowedTopics} from "./types/src/schemes/commands/GetFollowedTopics";
 
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 
@@ -162,8 +166,10 @@ export type EventsMap = {
     NewTopic: NewTopic,
     TopicDeleted: TopicDeleted,
     NewMessage: NewMessage,
-    AckReports: AckReports,
     UserUpdated: UserUpdated,
+    TopicFollowed: TopicFollowed,
+    TopicUnfollowed: TopicUnfollowed,
+    FollowedTopics: FollowedTopics,
 };
 
 /**
@@ -203,6 +209,8 @@ export type CommandsMap = {
     CreateTopic: [CreateTopic, EventsMap['NewTopic']],
     DeleteTopic: [DeleteTopic, EventsMap['TopicDeleted']],
     CreateMessage: [CreateMessage, EventsMap['NewMessage']],
-    Ack: [Ack, EventsMap['AckReports']],
-    GetAckReports: [GetAckReports, EventsMap['AckReports']],
+    Ack: [Ack, EventsMap['FollowedTopics'] | EventsMap['Ok']],
+    FollowTopic: [FollowTopic, EventsMap['TopicFollowed']],
+    UnfollowTopic: [UnfollowTopic, EventsMap['TopicUnfollowed']],
+    GetFollowedTopics: [GetFollowedTopics, EventsMap['FollowedTopics']],
 }

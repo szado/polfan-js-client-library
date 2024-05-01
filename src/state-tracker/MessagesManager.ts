@@ -1,5 +1,17 @@
 import {ChatStateTracker} from "./ChatStateTracker";
-import {AckReport, AckReports, ChatLocation, Message, NewMessage, Topic} from "../types/src";
+import {
+    ChatLocation,
+    Message,
+    NewMessage,
+    Topic,
+    FollowedTopic,
+    FollowedTopics,
+    TopicFollowed,
+    TopicUnfollowed,
+    RoomDeleted,
+    RoomLeft,
+    TopicDeleted
+} from "../types/src";
 import {
     IndexedCollection,
     ObservableIndexedObjectCollection
@@ -10,11 +22,16 @@ export const getCombinedId = (location: ChatLocation) => (location.roomId ?? '')
 export class MessagesManager {
     // Temporary not lazy loaded; server must implement GetTopicMessages command.
     private readonly list = new IndexedCollection<string, ObservableIndexedObjectCollection<Message>>();
-    private readonly acks: IndexedCollection<string, ObservableIndexedObjectCollection<AckReport>> = new IndexedCollection();
+    private readonly followedTopics = new IndexedCollection<string, ObservableIndexedObjectCollection<FollowedTopic>>();
 
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('NewMessage', ev => this.handleNewMessage(ev));
-        this.tracker.client.on('AckReports', ev => this.handleAckReports(ev));
+        this.tracker.client.on('FollowedTopics', ev => this.handleFollowedTopics(ev));
+        this.tracker.client.on('TopicFollowed', ev => this.handleTopicFollowed(ev));
+        this.tracker.client.on('TopicUnfollowed', ev => this.handleTopicUnfollowed(ev));
+        this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
+        this.tracker.client.on('RoomLeft', ev => this.handleRoomLeft(ev));
+        this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
     }
 
     /**
@@ -26,54 +43,44 @@ export class MessagesManager {
 
     /**
      * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
-     * Then you can get the reports using getRoomAckReports().
-     * @see getRoomAckReports
+     * Then you can get the reports using getRoomFollowedTopics().
+     * @see getRoomFollowedTopics
      */
-    public async cacheSpaceAckReports(spaceId: string): Promise<void> {
+    public async cacheSpaceFollowedTopic(spaceId: string): Promise<void> {
         if (! (await this.tracker.spaces.get()).has(spaceId)) {
             throw new Error(`You are not in space ${spaceId}`);
         }
 
-        const roomIds = (await this.tracker.rooms.get()).findBy('spaceId', spaceId).map(room => room.id);
-        const missingRoomIds = roomIds.filter(roomId => ! this.acks.has(roomId));
+        // If we don't have ack reports for all rooms in space, fetch them
+        const result = await this.tracker.client.send('GetFollowedTopics', {location: {spaceId}});
 
-        if (missingRoomIds.length) {
-            // If we don't have ack reports for all rooms in space, fetch them
-            const result = await this.tracker.client.send('GetAckReports', {location: {spaceId}});
-
-            if (result.error) {
-                throw result.error;
-            }
-
-            missingRoomIds.forEach(roomId => {
-                const reports = result.data.reports.filter(report => report.roomId === roomId);
-                this.acks.set([roomId, new ObservableIndexedObjectCollection('topicId', reports)]);
-            });
+        if (result.error) {
+            throw result.error;
         }
+
+        this.setFollowedTopicsArray(result.data.followedTopics);
     }
 
     /**
      * Get ack reports for the given room. Undefined if you are not in the room.
      * @param roomId
      */
-    public async getRoomAckReports(roomId: string): Promise<ObservableIndexedObjectCollection<AckReport> | undefined> {
-        const room = (await this.tracker.rooms.get()).get(roomId);
-
-        if (! room) {
+    public async getRoomFollowedTopics(roomId: string): Promise<ObservableIndexedObjectCollection<FollowedTopic> | undefined> {
+        if (! (await this.tracker.rooms.get()).has(roomId)) {
             return undefined;
         }
 
-        if (! this.acks.has(roomId)) {
-            const result = await this.tracker.client.send('GetAckReports', {location: {roomId}});
+        if (! this.followedTopics.has(roomId)) {
+            const result = await this.tracker.client.send('GetFollowedTopics', {location: {roomId}});
 
             if (result.error) {
                 throw result.error;
             }
 
-            this.acks.set([roomId, new ObservableIndexedObjectCollection('topicId', result.data.reports)]);
+            this.setFollowedTopicsArray(result.data.followedTopics);
         }
 
-        return this.acks.get(roomId);
+        return this.followedTopics.get(roomId);
     }
 
     /**
@@ -82,7 +89,7 @@ export class MessagesManager {
      */
     public _deleteByTopicIds(roomId: string, ...topicIds: string[]): void {
         this.list.delete(...topicIds.map(topicId => getCombinedId({roomId, topicId})));
-        this.acks.get(roomId)?.delete(...topicIds);
+        this.followedTopics.get(roomId)?.delete(...topicIds);
     }
 
     /**
@@ -108,49 +115,44 @@ export class MessagesManager {
             }
         }
 
-        this.createAckReportsForNewTopics(roomId, newTopics);
+        this.createFollowedStructuresForNewTopics(roomId, newTopics);
     }
 
     private handleNewMessage(ev: NewMessage): void {
         this.list.get(getCombinedId(ev.location)).set(ev.message);
-        this.updateLocallyAckReportOnNewMessage(ev);
+        this.updateLocallyFollowedTopicOnNewMessage(ev);
     }
 
-    private handleAckReports(ev: AckReports): void {
-        ev.reports.forEach(report => {
-            const ackReports = this.acks.get(report.roomId);
-            if (ackReports) {
-                ackReports.set(report);
-            }
-        });
+    private handleFollowedTopics(ev: FollowedTopics): void {
+        this.setFollowedTopicsArray(ev.followedTopics);
     }
 
-    private createAckReportsForNewTopics(roomId: string, topics: Topic[]): void {
-        const ackReports = this.acks.get(roomId);
+    private createFollowedStructuresForNewTopics(roomId: string, topics: Topic[]): void {
+        const followedTopic = this.followedTopics.get(roomId);
 
-        if (! ackReports) {
+        if (! followedTopic) {
             // If we don't follow ack reports for this room, skip
             return;
         }
 
-        const newReports: AckReport[] = topics.map(topic => ({
-            roomId, topicId: topic.id, lastAckMessageId: null, missed: 0, missedMoreThan: null
+        const followedTopics: FollowedTopic[] = topics.map(topic => ({
+            location: {roomId, topicId: topic.id}, lastAckMessageId: null, missed: 0, missedMoreThan: null
         }));
 
-        ackReports.set(...newReports);
+        followedTopic.set(...followedTopics);
     }
 
-    private updateLocallyAckReportOnNewMessage(ev: NewMessage): void {
-        const ackReports = this.acks.get(ev.location.roomId);
+    private updateLocallyFollowedTopicOnNewMessage(ev: NewMessage): void {
+        const followedTopic = this.followedTopics.get(ev.location.roomId);
 
-        if (! ackReports) {
+        if (! followedTopic) {
             // If we don't follow ack reports for this room, skip
             return;
         }
 
         const isMe = ev.message.author.id === this.tracker.me?.id;
-        const currentAckReport = ackReports.get(ev.location.topicId);
-        let update: Partial<AckReport>;
+        const currentFollowedTopic = followedTopic.get(ev.location.topicId);
+        let update: Partial<FollowedTopic>;
 
         if (isMe) {
             // Reset missed messages count if new message is authored by me
@@ -158,11 +160,51 @@ export class MessagesManager {
         } else {
             // ...add 1 otherwise
             update = {
-                missed: currentAckReport.missed === null ? null : currentAckReport.missed + 1,
-                missedMoreThan: currentAckReport.missedMoreThan === null ? null : currentAckReport.missedMoreThan,
+                missed: currentFollowedTopic.missed === null ? null : currentFollowedTopic.missed + 1,
+                missedMoreThan: currentFollowedTopic.missedMoreThan === null ? null : currentFollowedTopic.missedMoreThan,
             };
         }
 
-        ackReports.set({...currentAckReport, ...update});
+        followedTopic.set({...currentFollowedTopic, ...update});
+    }
+
+    private handleTopicFollowed(ev: TopicFollowed): void {
+        this.setFollowedTopicsArray([ev.followedTopic]);
+    }
+
+    private handleTopicUnfollowed(ev: TopicUnfollowed): void {
+        this.followedTopics.get(ev.location.roomId)?.delete(ev.location.topicId);
+    }
+
+    private handleRoomDeleted(ev: RoomDeleted): void {
+        this.followedTopics.delete(ev.id);
+    }
+
+    private handleRoomLeft(ev: RoomLeft): void {
+        this.followedTopics.delete(ev.id);
+    }
+
+    private handleTopicDeleted(ev: TopicDeleted): void {
+        this.followedTopics.get(ev.location.roomId)?.delete(ev.location.topicId);
+    }
+
+    private setFollowedTopicsArray(followedTopics: FollowedTopic[]): void {
+        const roomToTopics: {[roomId: string]: FollowedTopic[]} = {};
+
+        // Reassign reports to limit collection change event emit
+        followedTopics.forEach(followedTopic => {
+            roomToTopics[followedTopic.location.roomId] ??= [];
+            roomToTopics[followedTopic.location.roomId].push(followedTopic);
+        });
+
+        for (const roomId in roomToTopics) {
+            if (! this.followedTopics.has(roomId)) {
+                this.followedTopics.set([
+                    roomId,
+                    new ObservableIndexedObjectCollection<FollowedTopic>(report => report.location.topicId),
+                ]);
+            }
+            this.followedTopics.get(roomId).set(...roomToTopics[roomId]);
+        }
     }
 }

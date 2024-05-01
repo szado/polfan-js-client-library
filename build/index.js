@@ -653,12 +653,27 @@ var MessagesManager = /*#__PURE__*/function () {
     MessagesManager_classCallCheck(this, MessagesManager);
     this.tracker = tracker;
     MessagesManager_defineProperty(this, "list", new IndexedCollection());
-    MessagesManager_defineProperty(this, "acks", new IndexedCollection());
+    MessagesManager_defineProperty(this, "followedTopics", new IndexedCollection());
     this.tracker.client.on('NewMessage', function (ev) {
       return _this.handleNewMessage(ev);
     });
-    this.tracker.client.on('AckReports', function (ev) {
-      return _this.handleAckReports(ev);
+    this.tracker.client.on('FollowedTopics', function (ev) {
+      return _this.handleFollowedTopics(ev);
+    });
+    this.tracker.client.on('TopicFollowed', function (ev) {
+      return _this.handleTopicFollowed(ev);
+    });
+    this.tracker.client.on('TopicUnfollowed', function (ev) {
+      return _this.handleTopicUnfollowed(ev);
+    });
+    this.tracker.client.on('RoomDeleted', function (ev) {
+      return _this.handleRoomDeleted(ev);
+    });
+    this.tracker.client.on('RoomLeft', function (ev) {
+      return _this.handleRoomLeft(ev);
+    });
+    this.tracker.client.on('TopicDeleted', function (ev) {
+      return _this.handleTopicDeleted(ev);
     });
   }
 
@@ -688,15 +703,14 @@ var MessagesManager = /*#__PURE__*/function () {
     }()
     /**
      * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
-     * Then you can get the reports using getRoomAckReports().
-     * @see getRoomAckReports
+     * Then you can get the reports using getRoomFollowedTopics().
+     * @see getRoomFollowedTopics
      */
   }, {
-    key: "cacheSpaceAckReports",
+    key: "cacheSpaceFollowedTopic",
     value: function () {
-      var _cacheSpaceAckReports = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(spaceId) {
-        var _this2 = this;
-        var roomIds, missingRoomIds, result;
+      var _cacheSpaceFollowedTopic = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(spaceId) {
+        var result;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -711,59 +725,41 @@ var MessagesManager = /*#__PURE__*/function () {
                 throw new Error("You are not in space ".concat(spaceId));
               case 4:
                 _context2.next = 6;
-                return this.tracker.rooms.get();
-              case 6:
-                roomIds = _context2.sent.findBy('spaceId', spaceId).map(function (room) {
-                  return room.id;
-                });
-                missingRoomIds = roomIds.filter(function (roomId) {
-                  return !_this2.acks.has(roomId);
-                });
-                if (!missingRoomIds.length) {
-                  _context2.next = 15;
-                  break;
-                }
-                _context2.next = 11;
-                return this.tracker.client.send('GetAckReports', {
+                return this.tracker.client.send('GetFollowedTopics', {
                   location: {
                     spaceId: spaceId
                   }
                 });
-              case 11:
+              case 6:
                 result = _context2.sent;
                 if (!result.error) {
-                  _context2.next = 14;
+                  _context2.next = 9;
                   break;
                 }
                 throw result.error;
-              case 14:
-                missingRoomIds.forEach(function (roomId) {
-                  var reports = result.data.reports.filter(function (report) {
-                    return report.roomId === roomId;
-                  });
-                  _this2.acks.set([roomId, new ObservableIndexedObjectCollection('topicId', reports)]);
-                });
-              case 15:
+              case 9:
+                this.setFollowedTopicsArray(result.data.followedTopics);
+              case 10:
               case "end":
                 return _context2.stop();
             }
           }
         }, _callee2, this);
       }));
-      function cacheSpaceAckReports(_x2) {
-        return _cacheSpaceAckReports.apply(this, arguments);
+      function cacheSpaceFollowedTopic(_x2) {
+        return _cacheSpaceFollowedTopic.apply(this, arguments);
       }
-      return cacheSpaceAckReports;
+      return cacheSpaceFollowedTopic;
     }()
     /**
      * Get ack reports for the given room. Undefined if you are not in the room.
      * @param roomId
      */
   }, {
-    key: "getRoomAckReports",
+    key: "getRoomFollowedTopics",
     value: function () {
-      var _getRoomAckReports = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(roomId) {
-        var room, result;
+      var _getRoomFollowedTopics = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(roomId) {
+        var result;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -771,45 +767,44 @@ var MessagesManager = /*#__PURE__*/function () {
                 _context3.next = 2;
                 return this.tracker.rooms.get();
               case 2:
-                room = _context3.sent.get(roomId);
-                if (room) {
-                  _context3.next = 5;
+                if (_context3.sent.has(roomId)) {
+                  _context3.next = 4;
                   break;
                 }
                 return _context3.abrupt("return", undefined);
-              case 5:
-                if (this.acks.has(roomId)) {
-                  _context3.next = 12;
+              case 4:
+                if (this.followedTopics.has(roomId)) {
+                  _context3.next = 11;
                   break;
                 }
-                _context3.next = 8;
-                return this.tracker.client.send('GetAckReports', {
+                _context3.next = 7;
+                return this.tracker.client.send('GetFollowedTopics', {
                   location: {
                     roomId: roomId
                   }
                 });
-              case 8:
+              case 7:
                 result = _context3.sent;
                 if (!result.error) {
-                  _context3.next = 11;
+                  _context3.next = 10;
                   break;
                 }
                 throw result.error;
+              case 10:
+                this.setFollowedTopicsArray(result.data.followedTopics);
               case 11:
-                this.acks.set([roomId, new ObservableIndexedObjectCollection('topicId', result.data.reports)]);
+                return _context3.abrupt("return", this.followedTopics.get(roomId));
               case 12:
-                return _context3.abrupt("return", this.acks.get(roomId));
-              case 13:
               case "end":
                 return _context3.stop();
             }
           }
         }, _callee3, this);
       }));
-      function getRoomAckReports(_x3) {
-        return _getRoomAckReports.apply(this, arguments);
+      function getRoomFollowedTopics(_x3) {
+        return _getRoomFollowedTopics.apply(this, arguments);
       }
-      return getRoomAckReports;
+      return getRoomFollowedTopics;
     }()
     /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
@@ -818,7 +813,7 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "_deleteByTopicIds",
     value: function _deleteByTopicIds(roomId) {
-      var _this$list, _this$acks$get;
+      var _this$list, _this$followedTopics$;
       for (var _len = arguments.length, topicIds = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         topicIds[_key - 1] = arguments[_key];
       }
@@ -828,7 +823,7 @@ var MessagesManager = /*#__PURE__*/function () {
           topicId: topicId
         });
       })));
-      (_this$acks$get = this.acks.get(roomId)) === null || _this$acks$get === void 0 ? void 0 : _this$acks$get["delete"].apply(_this$acks$get, topicIds);
+      (_this$followedTopics$ = this.followedTopics.get(roomId)) === null || _this$followedTopics$ === void 0 ? void 0 : _this$followedTopics$["delete"].apply(_this$followedTopics$, topicIds);
     }
 
     /**
@@ -865,55 +860,51 @@ var MessagesManager = /*#__PURE__*/function () {
           }
         }
       }
-      this.createAckReportsForNewTopics(roomId, newTopics);
+      this.createFollowedStructuresForNewTopics(roomId, newTopics);
     }
   }, {
     key: "handleNewMessage",
     value: function handleNewMessage(ev) {
       this.list.get(getCombinedId(ev.location)).set(ev.message);
-      this.updateLocallyAckReportOnNewMessage(ev);
+      this.updateLocallyFollowedTopicOnNewMessage(ev);
     }
   }, {
-    key: "handleAckReports",
-    value: function handleAckReports(ev) {
-      var _this3 = this;
-      ev.reports.forEach(function (report) {
-        var ackReports = _this3.acks.get(report.roomId);
-        if (ackReports) {
-          ackReports.set(report);
-        }
-      });
+    key: "handleFollowedTopics",
+    value: function handleFollowedTopics(ev) {
+      this.setFollowedTopicsArray(ev.followedTopics);
     }
   }, {
-    key: "createAckReportsForNewTopics",
-    value: function createAckReportsForNewTopics(roomId, topics) {
-      var ackReports = this.acks.get(roomId);
-      if (!ackReports) {
+    key: "createFollowedStructuresForNewTopics",
+    value: function createFollowedStructuresForNewTopics(roomId, topics) {
+      var followedTopic = this.followedTopics.get(roomId);
+      if (!followedTopic) {
         // If we don't follow ack reports for this room, skip
         return;
       }
-      var newReports = topics.map(function (topic) {
+      var followedTopics = topics.map(function (topic) {
         return {
-          roomId: roomId,
-          topicId: topic.id,
+          location: {
+            roomId: roomId,
+            topicId: topic.id
+          },
           lastAckMessageId: null,
           missed: 0,
           missedMoreThan: null
         };
       });
-      ackReports.set.apply(ackReports, MessagesManager_toConsumableArray(newReports));
+      followedTopic.set.apply(followedTopic, MessagesManager_toConsumableArray(followedTopics));
     }
   }, {
-    key: "updateLocallyAckReportOnNewMessage",
-    value: function updateLocallyAckReportOnNewMessage(ev) {
+    key: "updateLocallyFollowedTopicOnNewMessage",
+    value: function updateLocallyFollowedTopicOnNewMessage(ev) {
       var _this$tracker$me;
-      var ackReports = this.acks.get(ev.location.roomId);
-      if (!ackReports) {
+      var followedTopic = this.followedTopics.get(ev.location.roomId);
+      if (!followedTopic) {
         // If we don't follow ack reports for this room, skip
         return;
       }
       var isMe = ev.message.author.id === ((_this$tracker$me = this.tracker.me) === null || _this$tracker$me === void 0 ? void 0 : _this$tracker$me.id);
-      var currentAckReport = ackReports.get(ev.location.topicId);
+      var currentFollowedTopic = followedTopic.get(ev.location.topicId);
       var update;
       if (isMe) {
         // Reset missed messages count if new message is authored by me
@@ -925,11 +916,59 @@ var MessagesManager = /*#__PURE__*/function () {
       } else {
         // ...add 1 otherwise
         update = {
-          missed: currentAckReport.missed === null ? null : currentAckReport.missed + 1,
-          missedMoreThan: currentAckReport.missedMoreThan === null ? null : currentAckReport.missedMoreThan
+          missed: currentFollowedTopic.missed === null ? null : currentFollowedTopic.missed + 1,
+          missedMoreThan: currentFollowedTopic.missedMoreThan === null ? null : currentFollowedTopic.missedMoreThan
         };
       }
-      ackReports.set(_objectSpread(_objectSpread({}, currentAckReport), update));
+      followedTopic.set(_objectSpread(_objectSpread({}, currentFollowedTopic), update));
+    }
+  }, {
+    key: "handleTopicFollowed",
+    value: function handleTopicFollowed(ev) {
+      this.setFollowedTopicsArray([ev.followedTopic]);
+    }
+  }, {
+    key: "handleTopicUnfollowed",
+    value: function handleTopicUnfollowed(ev) {
+      var _this$followedTopics$2;
+      (_this$followedTopics$2 = this.followedTopics.get(ev.location.roomId)) === null || _this$followedTopics$2 === void 0 ? void 0 : _this$followedTopics$2["delete"](ev.location.topicId);
+    }
+  }, {
+    key: "handleRoomDeleted",
+    value: function handleRoomDeleted(ev) {
+      this.followedTopics["delete"](ev.id);
+    }
+  }, {
+    key: "handleRoomLeft",
+    value: function handleRoomLeft(ev) {
+      this.followedTopics["delete"](ev.id);
+    }
+  }, {
+    key: "handleTopicDeleted",
+    value: function handleTopicDeleted(ev) {
+      var _this$followedTopics$3;
+      (_this$followedTopics$3 = this.followedTopics.get(ev.location.roomId)) === null || _this$followedTopics$3 === void 0 ? void 0 : _this$followedTopics$3["delete"](ev.location.topicId);
+    }
+  }, {
+    key: "setFollowedTopicsArray",
+    value: function setFollowedTopicsArray(followedTopics) {
+      var roomToTopics = {};
+
+      // Reassign reports to limit collection change event emit
+      followedTopics.forEach(function (followedTopic) {
+        var _followedTopic$locati, _roomToTopics$_follow;
+        (_roomToTopics$_follow = roomToTopics[_followedTopic$locati = followedTopic.location.roomId]) !== null && _roomToTopics$_follow !== void 0 ? _roomToTopics$_follow : roomToTopics[_followedTopic$locati] = [];
+        roomToTopics[followedTopic.location.roomId].push(followedTopic);
+      });
+      for (var _roomId in roomToTopics) {
+        var _this$followedTopics$4;
+        if (!this.followedTopics.has(_roomId)) {
+          this.followedTopics.set([_roomId, new ObservableIndexedObjectCollection(function (report) {
+            return report.location.topicId;
+          })]);
+        }
+        (_this$followedTopics$4 = this.followedTopics.get(_roomId)).set.apply(_this$followedTopics$4, MessagesManager_toConsumableArray(roomToTopics[_roomId]));
+      }
     }
   }]);
   return MessagesManager;
