@@ -5,12 +5,12 @@ import {
     NewMessage,
     Topic,
     FollowedTopic,
-    FollowedTopics,
     TopicFollowed,
     TopicUnfollowed,
     RoomDeleted,
     RoomLeft,
-    TopicDeleted
+    TopicDeleted,
+    FollowedTopicUpdated, RoomJoined, NewTopic, Session,
 } from "../types/src";
 import {
     IndexedCollection,
@@ -25,10 +25,13 @@ export class MessagesManager {
     private readonly followedTopics = new IndexedCollection<string, ObservableIndexedObjectCollection<FollowedTopic>>();
 
     public constructor(private tracker: ChatStateTracker) {
-        this.tracker.client.on('NewMessage', ev => this.handleNewMessage(ev));
-        this.tracker.client.on('FollowedTopics', ev => this.handleFollowedTopics(ev));
+        this.tracker.client.on('Session', ev => this.handleSession(ev));
+        this.tracker.client.on('RoomJoined', ev => this.handleRoomJoin(ev));
+        this.tracker.client.on('NewTopic', ev => this.handleNewTopic(ev));
+        this.tracker.client.on('FollowedTopicUpdated', ev => this.handleFollowedTopicUpdated(ev));
         this.tracker.client.on('TopicFollowed', ev => this.handleTopicFollowed(ev));
         this.tracker.client.on('TopicUnfollowed', ev => this.handleTopicUnfollowed(ev));
+        this.tracker.client.on('NewMessage', ev => this.handleNewMessage(ev));
         this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
         this.tracker.client.on('RoomLeft', ev => this.handleRoomLeft(ev));
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
@@ -92,11 +95,7 @@ export class MessagesManager {
         this.followedTopics.get(roomId)?.delete(...topicIds);
     }
 
-    /**
-     * For internal use. If you want to add new topic, execute a proper command on client object.
-     * @internal
-     */
-    public _handleNewTopics(roomId: string, ...newTopics: Topic[]):void {
+    private createHistoryForNewTopic(roomId: string, ...newTopics: Topic[]): void {
         for (const newTopic of newTopics) {
             const newTopicCombinedId = getCombinedId({roomId, topicId: newTopic.id});
 
@@ -114,58 +113,15 @@ export class MessagesManager {
                 }
             }
         }
-
-        this.createFollowedStructuresForNewTopics(roomId, newTopics);
     }
 
     private handleNewMessage(ev: NewMessage): void {
-        this.list.get(getCombinedId(ev.location)).set(ev.message);
+        this.list.get(getCombinedId(ev.location))?.set(ev.message);
         this.updateLocallyFollowedTopicOnNewMessage(ev);
     }
 
-    private handleFollowedTopics(ev: FollowedTopics): void {
-        this.setFollowedTopicsArray(ev.followedTopics);
-    }
-
-    private createFollowedStructuresForNewTopics(roomId: string, topics: Topic[]): void {
-        const followedTopic = this.followedTopics.get(roomId);
-
-        if (! followedTopic) {
-            // If we don't follow ack reports for this room, skip
-            return;
-        }
-
-        const followedTopics: FollowedTopic[] = topics.map(topic => ({
-            location: {roomId, topicId: topic.id}, lastAckMessageId: null, missed: 0, missedMoreThan: null
-        }));
-
-        followedTopic.set(...followedTopics);
-    }
-
-    private updateLocallyFollowedTopicOnNewMessage(ev: NewMessage): void {
-        const followedTopic = this.followedTopics.get(ev.location.roomId);
-
-        if (! followedTopic) {
-            // If we don't follow ack reports for this room, skip
-            return;
-        }
-
-        const isMe = ev.message.author.id === this.tracker.me?.id;
-        const currentFollowedTopic = followedTopic.get(ev.location.topicId);
-        let update: Partial<FollowedTopic>;
-
-        if (isMe) {
-            // Reset missed messages count if new message is authored by me
-            update = {missed: 0, missedMoreThan: null, lastAckMessageId: ev.message.id};
-        } else {
-            // ...add 1 otherwise
-            update = {
-                missed: currentFollowedTopic.missed === null ? null : currentFollowedTopic.missed + 1,
-                missedMoreThan: currentFollowedTopic.missedMoreThan === null ? null : currentFollowedTopic.missedMoreThan,
-            };
-        }
-
-        followedTopic.set({...currentFollowedTopic, ...update});
+    private handleFollowedTopicUpdated(ev: FollowedTopicUpdated): void {
+        this.followedTopics.get(ev.followedTopic.location.roomId)?.set(ev.followedTopic);
     }
 
     private handleTopicFollowed(ev: TopicFollowed): void {
@@ -180,12 +136,70 @@ export class MessagesManager {
         this.followedTopics.delete(ev.id);
     }
 
+    private handleRoomJoin(ev: RoomJoined): void {
+        if (ev.room.defaultTopic) {
+            this.createHistoryForNewTopic(ev.room.id, ev.room.defaultTopic)
+        }
+    }
+
     private handleRoomLeft(ev: RoomLeft): void {
         this.followedTopics.delete(ev.id);
     }
 
+    private async handleNewTopic(ev: NewTopic): Promise<void> {
+        this.createHistoryForNewTopic(ev.roomId, ev.topic);
+
+        if (this.followedTopics.has(ev.roomId)) {
+            // Check if the new topic is followed by user
+            // only if client asked for followed topics list before for this room
+            const result = await this.tracker.client.send(
+                'GetFollowedTopics',
+                {location: {roomId: ev.roomId, topicId: ev.topic.id}},
+            );
+            const followedTopic = result.data.followedTopics[0];
+            if (followedTopic) {
+                this.followedTopics.get(ev.roomId).set(followedTopic);
+            }
+        }
+    }
+
     private handleTopicDeleted(ev: TopicDeleted): void {
         this.followedTopics.get(ev.location.roomId)?.delete(ev.location.topicId);
+    }
+
+    private handleSession(ev: Session): void {
+        ev.state.rooms.forEach(room => {
+            if (room.defaultTopic) {
+                this.createHistoryForNewTopic(room.id, room.defaultTopic);
+            }
+        });
+    }
+
+    private updateLocallyFollowedTopicOnNewMessage(ev: NewMessage): void {
+        const roomFollowedTopics = this.followedTopics.get(ev.location.roomId);
+        const followedTopic = roomFollowedTopics.get(ev.location.topicId);
+
+        if (! roomFollowedTopics || ! followedTopic) {
+            // Skip if we don't follow this room or targeted topic
+            return;
+        }
+
+        const isMe = ev.message.author.id === this.tracker.me?.id;
+
+        let update: Partial<FollowedTopic>;
+
+        if (isMe) {
+            // Reset missed messages count if new message is authored by me
+            update = {missed: 0, missedMoreThan: null, lastAckMessageId: ev.message.id};
+        } else {
+            // ...add 1 otherwise
+            update = {
+                missed: followedTopic.missed === null ? null : followedTopic.missed + 1,
+                missedMoreThan: followedTopic.missedMoreThan === null ? null : followedTopic.missedMoreThan,
+            };
+        }
+
+        roomFollowedTopics.set({...followedTopic, ...update});
     }
 
     private setFollowedTopicsArray(followedTopics: FollowedTopic[]): void {

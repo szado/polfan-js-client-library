@@ -184,8 +184,6 @@ export class RoomsManager {
         } else {
             this.topics.set([roomId, new ObservableIndexedObjectCollection<Topic>('id', topics)]);
         }
-
-        this.messages._handleNewTopics(roomId, ...topics);
     }
 
     private handleRoomJoined(ev: RoomJoined): void {

@@ -1,11 +1,5 @@
-import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesUpdated, RoomMemberUpdated, UpdateRole, RoleUpdated, Ack, UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated, PermissionOverwriteTargets, GetPermissionOverwriteTargets, Owners, Ok, GetOwners, CreateOwner, RoleDeleted } from "./types/src/index";
+import { Bye, GetSession, JoinSpace, Session, SpaceJoined, Error as ErrorType, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMemberUpdated, SpaceDeleted, SpaceMembers, SpaceRooms, NewRole, RoomDeleted, RoomJoined, RoomLeft, RoomMemberLeft, RoomMemberJoined, RoomMembers, NewRoom, NewTopic, TopicDeleted, NewMessage, GetPermissionOverwrites, GetComputedPermissions, LeaveSpace, CreateSpace, DeleteSpace, GetSpaceMembers, GetSpaceRooms, CreateRole, DeleteRole, AssignRole, DeassignRole, SetPermissionOverwrites, JoinRoom, LeaveRoom, CreateRoom, DeleteRoom, GetRoomMembers, CreateTopic, DeleteTopic, CreateMessage, Envelope, PermissionOverwrites, PermissionOverwritesUpdated, RoomMemberUpdated, UpdateRole, RoleUpdated, Ack, UserUpdated, UpdateRoom, RoomUpdated, UpdateSpace, SpaceUpdated, PermissionOverwriteTargets, GetPermissionOverwriteTargets, Owners, Ok, GetOwners, CreateOwner, RoleDeleted, FollowedTopicUpdated, TopicFollowed, TopicUnfollowed, FollowedTopics, FollowTopic, UnfollowTopic, GetFollowedTopics } from "./types/src/index";
 import { EventTarget } from "./EventTarget";
-import { TopicFollowed } from "./types/src/schemes/events/TopicFollowed";
-import { TopicUnfollowed } from "./types/src/schemes/events/TopicUnfollowed";
-import { FollowedTopics } from "./types/src/schemes/events/FollowedTopics";
-import { FollowTopic } from "./types/src/schemes/commands/FollowTopic";
-import { UnfollowTopic } from "./types/src/schemes/commands/UnfollowTopic";
-import { GetFollowedTopics } from "./types/src/schemes/commands/GetFollowedTopics";
 type ArrayOfPromiseResolvers = [(value: any) => void, (reason?: any) => void];
 export declare abstract class AbstractChatClient extends EventTarget {
     protected awaitingResponse: Map<string, ArrayOfPromiseResolvers>;
@@ -63,6 +57,7 @@ export type EventsMap = {
     TopicFollowed: TopicFollowed;
     TopicUnfollowed: TopicUnfollowed;
     FollowedTopics: FollowedTopics;
+    FollowedTopicUpdated: FollowedTopicUpdated;
 };
 /**
  * Map of commands and their corresponding events.
@@ -97,7 +92,7 @@ export type CommandsMap = {
     CreateTopic: [CreateTopic, EventsMap['NewTopic']];
     DeleteTopic: [DeleteTopic, EventsMap['TopicDeleted']];
     CreateMessage: [CreateMessage, EventsMap['NewMessage']];
-    Ack: [Ack, EventsMap['FollowedTopics'] | EventsMap['Ok']];
+    Ack: [Ack, EventsMap['FollowedTopicUpdated'] | EventsMap['Ok']];
     FollowTopic: [FollowTopic, EventsMap['TopicFollowed']];
     UnfollowTopic: [UnfollowTopic, EventsMap['TopicUnfollowed']];
     GetFollowedTopics: [GetFollowedTopics, EventsMap['FollowedTopics']];

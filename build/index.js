@@ -654,17 +654,26 @@ var MessagesManager = /*#__PURE__*/function () {
     this.tracker = tracker;
     MessagesManager_defineProperty(this, "list", new IndexedCollection());
     MessagesManager_defineProperty(this, "followedTopics", new IndexedCollection());
-    this.tracker.client.on('NewMessage', function (ev) {
-      return _this.handleNewMessage(ev);
+    this.tracker.client.on('Session', function (ev) {
+      return _this.handleSession(ev);
     });
-    this.tracker.client.on('FollowedTopics', function (ev) {
-      return _this.handleFollowedTopics(ev);
+    this.tracker.client.on('RoomJoined', function (ev) {
+      return _this.handleRoomJoin(ev);
+    });
+    this.tracker.client.on('NewTopic', function (ev) {
+      return _this.handleNewTopic(ev);
+    });
+    this.tracker.client.on('FollowedTopicUpdated', function (ev) {
+      return _this.handleFollowedTopicUpdated(ev);
     });
     this.tracker.client.on('TopicFollowed', function (ev) {
       return _this.handleTopicFollowed(ev);
     });
     this.tracker.client.on('TopicUnfollowed', function (ev) {
       return _this.handleTopicUnfollowed(ev);
+    });
+    this.tracker.client.on('NewMessage', function (ev) {
+      return _this.handleNewMessage(ev);
     });
     this.tracker.client.on('RoomDeleted', function (ev) {
       return _this.handleRoomDeleted(ev);
@@ -825,14 +834,9 @@ var MessagesManager = /*#__PURE__*/function () {
       })));
       (_this$followedTopics$ = this.followedTopics.get(roomId)) === null || _this$followedTopics$ === void 0 ? void 0 : _this$followedTopics$["delete"].apply(_this$followedTopics$, topicIds);
     }
-
-    /**
-     * For internal use. If you want to add new topic, execute a proper command on client object.
-     * @internal
-     */
   }, {
-    key: "_handleNewTopics",
-    value: function _handleNewTopics(roomId) {
+    key: "createHistoryForNewTopic",
+    value: function createHistoryForNewTopic(roomId) {
       for (var _len2 = arguments.length, newTopics = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
         newTopics[_key2 - 1] = arguments[_key2];
       }
@@ -860,51 +864,114 @@ var MessagesManager = /*#__PURE__*/function () {
           }
         }
       }
-      this.createFollowedStructuresForNewTopics(roomId, newTopics);
     }
   }, {
     key: "handleNewMessage",
     value: function handleNewMessage(ev) {
-      this.list.get(getCombinedId(ev.location)).set(ev.message);
+      var _this$list$get;
+      (_this$list$get = this.list.get(getCombinedId(ev.location))) === null || _this$list$get === void 0 ? void 0 : _this$list$get.set(ev.message);
       this.updateLocallyFollowedTopicOnNewMessage(ev);
     }
   }, {
-    key: "handleFollowedTopics",
-    value: function handleFollowedTopics(ev) {
-      this.setFollowedTopicsArray(ev.followedTopics);
+    key: "handleFollowedTopicUpdated",
+    value: function handleFollowedTopicUpdated(ev) {
+      var _this$followedTopics$2;
+      (_this$followedTopics$2 = this.followedTopics.get(ev.followedTopic.location.roomId)) === null || _this$followedTopics$2 === void 0 ? void 0 : _this$followedTopics$2.set(ev.followedTopic);
     }
   }, {
-    key: "createFollowedStructuresForNewTopics",
-    value: function createFollowedStructuresForNewTopics(roomId, topics) {
-      var followedTopic = this.followedTopics.get(roomId);
-      if (!followedTopic) {
-        // If we don't follow ack reports for this room, skip
-        return;
+    key: "handleTopicFollowed",
+    value: function handleTopicFollowed(ev) {
+      this.setFollowedTopicsArray([ev.followedTopic]);
+    }
+  }, {
+    key: "handleTopicUnfollowed",
+    value: function handleTopicUnfollowed(ev) {
+      var _this$followedTopics$3;
+      (_this$followedTopics$3 = this.followedTopics.get(ev.location.roomId)) === null || _this$followedTopics$3 === void 0 ? void 0 : _this$followedTopics$3["delete"](ev.location.topicId);
+    }
+  }, {
+    key: "handleRoomDeleted",
+    value: function handleRoomDeleted(ev) {
+      this.followedTopics["delete"](ev.id);
+    }
+  }, {
+    key: "handleRoomJoin",
+    value: function handleRoomJoin(ev) {
+      if (ev.room.defaultTopic) {
+        this.createHistoryForNewTopic(ev.room.id, ev.room.defaultTopic);
       }
-      var followedTopics = topics.map(function (topic) {
-        return {
-          location: {
-            roomId: roomId,
-            topicId: topic.id
-          },
-          lastAckMessageId: null,
-          missed: 0,
-          missedMoreThan: null
-        };
+    }
+  }, {
+    key: "handleRoomLeft",
+    value: function handleRoomLeft(ev) {
+      this.followedTopics["delete"](ev.id);
+    }
+  }, {
+    key: "handleNewTopic",
+    value: function () {
+      var _handleNewTopic = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(ev) {
+        var result, followedTopic;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                this.createHistoryForNewTopic(ev.roomId, ev.topic);
+                if (!this.followedTopics.has(ev.roomId)) {
+                  _context4.next = 7;
+                  break;
+                }
+                _context4.next = 4;
+                return this.tracker.client.send('GetFollowedTopics', {
+                  location: {
+                    roomId: ev.roomId,
+                    topicId: ev.topic.id
+                  }
+                });
+              case 4:
+                result = _context4.sent;
+                followedTopic = result.data.followedTopics[0];
+                if (followedTopic) {
+                  this.followedTopics.get(ev.roomId).set(followedTopic);
+                }
+              case 7:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+      function handleNewTopic(_x4) {
+        return _handleNewTopic.apply(this, arguments);
+      }
+      return handleNewTopic;
+    }()
+  }, {
+    key: "handleTopicDeleted",
+    value: function handleTopicDeleted(ev) {
+      var _this$followedTopics$4;
+      (_this$followedTopics$4 = this.followedTopics.get(ev.location.roomId)) === null || _this$followedTopics$4 === void 0 ? void 0 : _this$followedTopics$4["delete"](ev.location.topicId);
+    }
+  }, {
+    key: "handleSession",
+    value: function handleSession(ev) {
+      var _this2 = this;
+      ev.state.rooms.forEach(function (room) {
+        if (room.defaultTopic) {
+          _this2.createHistoryForNewTopic(room.id, room.defaultTopic);
+        }
       });
-      followedTopic.set.apply(followedTopic, MessagesManager_toConsumableArray(followedTopics));
     }
   }, {
     key: "updateLocallyFollowedTopicOnNewMessage",
     value: function updateLocallyFollowedTopicOnNewMessage(ev) {
       var _this$tracker$me;
-      var followedTopic = this.followedTopics.get(ev.location.roomId);
-      if (!followedTopic) {
-        // If we don't follow ack reports for this room, skip
+      var roomFollowedTopics = this.followedTopics.get(ev.location.roomId);
+      var followedTopic = roomFollowedTopics.get(ev.location.topicId);
+      if (!roomFollowedTopics || !followedTopic) {
+        // Skip if we don't follow this room or targeted topic
         return;
       }
       var isMe = ev.message.author.id === ((_this$tracker$me = this.tracker.me) === null || _this$tracker$me === void 0 ? void 0 : _this$tracker$me.id);
-      var currentFollowedTopic = followedTopic.get(ev.location.topicId);
       var update;
       if (isMe) {
         // Reset missed messages count if new message is authored by me
@@ -916,38 +983,11 @@ var MessagesManager = /*#__PURE__*/function () {
       } else {
         // ...add 1 otherwise
         update = {
-          missed: currentFollowedTopic.missed === null ? null : currentFollowedTopic.missed + 1,
-          missedMoreThan: currentFollowedTopic.missedMoreThan === null ? null : currentFollowedTopic.missedMoreThan
+          missed: followedTopic.missed === null ? null : followedTopic.missed + 1,
+          missedMoreThan: followedTopic.missedMoreThan === null ? null : followedTopic.missedMoreThan
         };
       }
-      followedTopic.set(_objectSpread(_objectSpread({}, currentFollowedTopic), update));
-    }
-  }, {
-    key: "handleTopicFollowed",
-    value: function handleTopicFollowed(ev) {
-      this.setFollowedTopicsArray([ev.followedTopic]);
-    }
-  }, {
-    key: "handleTopicUnfollowed",
-    value: function handleTopicUnfollowed(ev) {
-      var _this$followedTopics$2;
-      (_this$followedTopics$2 = this.followedTopics.get(ev.location.roomId)) === null || _this$followedTopics$2 === void 0 ? void 0 : _this$followedTopics$2["delete"](ev.location.topicId);
-    }
-  }, {
-    key: "handleRoomDeleted",
-    value: function handleRoomDeleted(ev) {
-      this.followedTopics["delete"](ev.id);
-    }
-  }, {
-    key: "handleRoomLeft",
-    value: function handleRoomLeft(ev) {
-      this.followedTopics["delete"](ev.id);
-    }
-  }, {
-    key: "handleTopicDeleted",
-    value: function handleTopicDeleted(ev) {
-      var _this$followedTopics$3;
-      (_this$followedTopics$3 = this.followedTopics.get(ev.location.roomId)) === null || _this$followedTopics$3 === void 0 ? void 0 : _this$followedTopics$3["delete"](ev.location.topicId);
+      roomFollowedTopics.set(_objectSpread(_objectSpread({}, followedTopic), update));
     }
   }, {
     key: "setFollowedTopicsArray",
@@ -961,13 +1001,13 @@ var MessagesManager = /*#__PURE__*/function () {
         roomToTopics[followedTopic.location.roomId].push(followedTopic);
       });
       for (var _roomId in roomToTopics) {
-        var _this$followedTopics$4;
+        var _this$followedTopics$5;
         if (!this.followedTopics.has(_roomId)) {
           this.followedTopics.set([_roomId, new ObservableIndexedObjectCollection(function (report) {
             return report.location.topicId;
           })]);
         }
-        (_this$followedTopics$4 = this.followedTopics.get(_roomId)).set.apply(_this$followedTopics$4, MessagesManager_toConsumableArray(roomToTopics[_roomId]));
+        (_this$followedTopics$5 = this.followedTopics.get(_roomId)).set.apply(_this$followedTopics$5, MessagesManager_toConsumableArray(roomToTopics[_roomId]));
       }
     }
   }]);
@@ -1324,7 +1364,6 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "addJoinedRoomTopics",
     value: function addJoinedRoomTopics(roomId) {
-      var _this$messages2;
       for (var _len2 = arguments.length, topics = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
         topics[_key2 - 1] = arguments[_key2];
       }
@@ -1334,7 +1373,6 @@ var RoomsManager = /*#__PURE__*/function () {
       } else {
         this.topics.set([roomId, new ObservableIndexedObjectCollection('id', topics)]);
       }
-      (_this$messages2 = this.messages)._handleNewTopics.apply(_this$messages2, [roomId].concat(topics));
     }
   }, {
     key: "handleRoomJoined",

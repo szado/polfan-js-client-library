@@ -1,5 +1,5 @@
 import { ChatStateTracker } from "./ChatStateTracker";
-import { ChatLocation, Message, Topic, FollowedTopic } from "../types/src";
+import { ChatLocation, Message, FollowedTopic } from "../types/src";
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
 export declare const getCombinedId: (location: ChatLocation) => string;
 export declare class MessagesManager {
@@ -27,19 +27,17 @@ export declare class MessagesManager {
      * @internal
      */
     _deleteByTopicIds(roomId: string, ...topicIds: string[]): void;
-    /**
-     * For internal use. If you want to add new topic, execute a proper command on client object.
-     * @internal
-     */
-    _handleNewTopics(roomId: string, ...newTopics: Topic[]): void;
+    private createHistoryForNewTopic;
     private handleNewMessage;
-    private handleFollowedTopics;
-    private createFollowedStructuresForNewTopics;
-    private updateLocallyFollowedTopicOnNewMessage;
+    private handleFollowedTopicUpdated;
     private handleTopicFollowed;
     private handleTopicUnfollowed;
     private handleRoomDeleted;
+    private handleRoomJoin;
     private handleRoomLeft;
+    private handleNewTopic;
     private handleTopicDeleted;
+    private handleSession;
+    private updateLocallyFollowedTopicOnNewMessage;
     private setFollowedTopicsArray;
 }
