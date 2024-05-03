@@ -16,6 +16,7 @@ import {
     IndexedCollection,
     ObservableIndexedObjectCollection
 } from "../IndexedObjectCollection";
+import {PromiseRegistry} from "./AsyncUtils";
 
 export const getCombinedId = (location: ChatLocation) => (location.roomId ?? '') + (location.topicId ?? '');
 
@@ -23,6 +24,7 @@ export class MessagesManager {
     // Temporary not lazy loaded; server must implement GetTopicMessages command.
     private readonly list = new IndexedCollection<string, ObservableIndexedObjectCollection<Message>>();
     private readonly followedTopics = new IndexedCollection<string, ObservableIndexedObjectCollection<FollowedTopic>>();
+    private readonly followedTopicsPromises = new PromiseRegistry();
 
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('Session', ev => this.handleSession(ev));
@@ -45,13 +47,20 @@ export class MessagesManager {
     }
 
     /**
-     * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
-     * Then you can get the reports using getRoomFollowedTopics().
+     * Cache followed topics for all joined rooms in a space and fetch them in bulk if necessary.
+     * Then you can get them using getRoomFollowedTopics().
      * @see getRoomFollowedTopics
      */
     public async cacheSpaceFollowedTopic(spaceId: string): Promise<void> {
         if (! (await this.tracker.spaces.get()).has(spaceId)) {
             throw new Error(`You are not in space ${spaceId}`);
+        }
+
+        const roomIds = (await this.tracker.rooms.get()).findBy('spaceId', spaceId).items.map(room => room.id);
+
+        if (! roomIds.length) {
+            // We don't need to ping server for followed topics for this space, if user has no joined rooms
+            return;
         }
 
         // If we don't have ack reports for all rooms in space, fetch them
@@ -61,12 +70,12 @@ export class MessagesManager {
             throw result.error;
         }
 
-        this.setFollowedTopicsArray(result.data.followedTopics);
+        this.setFollowedTopicsArray(roomIds, result.data.followedTopics);
     }
 
     /**
-     * Get ack reports for the given room. Undefined if you are not in the room.
-     * @param roomId
+     * Get followed topics for the given room.
+     * @return Undefined if you are not in the room, collection otherwise.
      */
     public async getRoomFollowedTopics(roomId: string): Promise<ObservableIndexedObjectCollection<FollowedTopic> | undefined> {
         if (! (await this.tracker.rooms.get()).has(roomId)) {
@@ -74,16 +83,62 @@ export class MessagesManager {
         }
 
         if (! this.followedTopics.has(roomId)) {
-            const result = await this.tracker.client.send('GetFollowedTopics', {location: {roomId}});
+            if (this.followedTopicsPromises.notExist(roomId)) {
+                this.followedTopicsPromises.registerByFunction(async () => {
+                    const result = await this.tracker.client.send('GetFollowedTopics', {location: {roomId}});
 
-            if (result.error) {
-                throw result.error;
+                    if (result.error) {
+                        throw result.error;
+                    }
+
+                    this.setFollowedTopicsArray([roomId], result.data.followedTopics);
+                }, roomId);
             }
 
-            this.setFollowedTopicsArray(result.data.followedTopics);
+            await this.followedTopicsPromises.get(roomId);
         }
 
         return this.followedTopics.get(roomId);
+    }
+
+    /**
+     * Batch acknowledge all missed messages from any topics in given room.
+     */
+    public async ackRoomFollowedTopics(roomId: string): Promise<void> {
+        const collection = await this.getRoomFollowedTopics(roomId);
+
+        if (! collection) {
+            return;
+        }
+
+        for (const followedTopic of collection.items) {
+            if (followedTopic.missed) {
+                await this.tracker.client.send('Ack', {location: followedTopic.location});
+            }
+        }
+    }
+
+    /**
+     * Calculate missed messages from any topic in given room.
+     * @return Undefined if you are not in room, stats object otherwise.
+     */
+    public async calculateRoomMissedMessages(roomId: string): Promise<{missed: number, missedMore: boolean} | undefined> {
+        const collection = await this.getRoomFollowedTopics(roomId);
+
+        if (! collection) {
+            return undefined;
+        }
+
+        let missed: number = 0, missedMore: boolean = false;
+
+        for (const followedTopic of collection.items) {
+            missed += followedTopic.missed ?? followedTopic.missedMoreThan ?? 0;
+            if (followedTopic.missedMoreThan) {
+                missedMore = true;
+            }
+        }
+
+        return {missed, missedMore};
     }
 
     /**
@@ -125,7 +180,7 @@ export class MessagesManager {
     }
 
     private handleTopicFollowed(ev: TopicFollowed): void {
-        this.setFollowedTopicsArray([ev.followedTopic]);
+        this.setFollowedTopicsArray([ev.followedTopic.location.roomId], [ev.followedTopic]);
     }
 
     private handleTopicUnfollowed(ev: TopicUnfollowed): void {
@@ -133,17 +188,18 @@ export class MessagesManager {
     }
 
     private handleRoomDeleted(ev: RoomDeleted): void {
-        this.followedTopics.delete(ev.id);
+        this.clearRoomFollowedTopicsStructures(ev.id);
     }
 
     private handleRoomJoin(ev: RoomJoined): void {
         if (ev.room.defaultTopic) {
             this.createHistoryForNewTopic(ev.room.id, ev.room.defaultTopic)
         }
+        this.clearRoomFollowedTopicsStructures(ev.room.id);
     }
 
     private handleRoomLeft(ev: RoomLeft): void {
-        this.followedTopics.delete(ev.id);
+        this.clearRoomFollowedTopicsStructures(ev.id);
     }
 
     private async handleNewTopic(ev: NewTopic): Promise<void> {
@@ -177,7 +233,7 @@ export class MessagesManager {
 
     private updateLocallyFollowedTopicOnNewMessage(ev: NewMessage): void {
         const roomFollowedTopics = this.followedTopics.get(ev.location.roomId);
-        const followedTopic = roomFollowedTopics.get(ev.location.topicId);
+        const followedTopic = roomFollowedTopics?.get(ev.location.topicId);
 
         if (! roomFollowedTopics || ! followedTopic) {
             // Skip if we don't follow this room or targeted topic
@@ -202,23 +258,30 @@ export class MessagesManager {
         roomFollowedTopics.set({...followedTopic, ...update});
     }
 
-    private setFollowedTopicsArray(followedTopics: FollowedTopic[]): void {
+    private setFollowedTopicsArray(roomIds: string[], followedTopics: FollowedTopic[]): void {
         const roomToTopics: {[roomId: string]: FollowedTopic[]} = {};
 
-        // Reassign reports to limit collection change event emit
+        // Reassign followed topics to limit collection change event emit
         followedTopics.forEach(followedTopic => {
             roomToTopics[followedTopic.location.roomId] ??= [];
             roomToTopics[followedTopic.location.roomId].push(followedTopic);
         });
 
-        for (const roomId in roomToTopics) {
+        roomIds.forEach(roomId => {
             if (! this.followedTopics.has(roomId)) {
-                this.followedTopics.set([
-                    roomId,
-                    new ObservableIndexedObjectCollection<FollowedTopic>(report => report.location.topicId),
-                ]);
+                this.followedTopics.set([roomId, new ObservableIndexedObjectCollection<FollowedTopic>(
+                    followedTopic => followedTopic.location.topicId
+                )]);
             }
-            this.followedTopics.get(roomId).set(...roomToTopics[roomId]);
-        }
+
+            if (roomToTopics[roomId]) {
+                this.followedTopics.get(roomId).set(...roomToTopics[roomId]);
+            }
+        });
+    }
+
+    private clearRoomFollowedTopicsStructures(roomId: string): void {
+        this.followedTopics.delete(roomId);
+        this.followedTopicsPromises.forget(roomId);
     }
 }

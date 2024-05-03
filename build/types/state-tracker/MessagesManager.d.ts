@@ -6,22 +6,35 @@ export declare class MessagesManager {
     private tracker;
     private readonly list;
     private readonly followedTopics;
+    private readonly followedTopicsPromises;
     constructor(tracker: ChatStateTracker);
     /**
      * Get collection of the messages written in topic.
      */
     get(location: ChatLocation): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
     /**
-     * Cache ack reports for all joined rooms in a space and fetch them in bulk if necessary.
-     * Then you can get the reports using getRoomFollowedTopics().
+     * Cache followed topics for all joined rooms in a space and fetch them in bulk if necessary.
+     * Then you can get them using getRoomFollowedTopics().
      * @see getRoomFollowedTopics
      */
     cacheSpaceFollowedTopic(spaceId: string): Promise<void>;
     /**
-     * Get ack reports for the given room. Undefined if you are not in the room.
-     * @param roomId
+     * Get followed topics for the given room.
+     * @return Undefined if you are not in the room, collection otherwise.
      */
     getRoomFollowedTopics(roomId: string): Promise<ObservableIndexedObjectCollection<FollowedTopic> | undefined>;
+    /**
+     * Batch acknowledge all missed messages from any topics in given room.
+     */
+    ackRoomFollowedTopics(roomId: string): Promise<void>;
+    /**
+     * Calculate missed messages from any topic in given room.
+     * @return Undefined if you are not in room, stats object otherwise.
+     */
+    calculateRoomMissedMessages(roomId: string): Promise<{
+        missed: number;
+        missedMore: boolean;
+    } | undefined>;
     /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
      * @internal
@@ -40,4 +53,5 @@ export declare class MessagesManager {
     private handleSession;
     private updateLocallyFollowedTopicOnNewMessage;
     private setFollowedTopicsArray;
+    private clearRoomFollowedTopicsStructures;
 }
