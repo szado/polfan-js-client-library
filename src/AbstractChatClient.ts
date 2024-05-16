@@ -69,6 +69,7 @@ import {
     FollowTopic,
     UnfollowTopic,
     GetFollowedTopics,
+    Messages, GetMessages,
 } from "./types/src/index";
 import {EventTarget} from "./EventTarget";
 
@@ -173,6 +174,7 @@ export type EventsMap = {
     TopicUnfollowed: TopicUnfollowed,
     FollowedTopics: FollowedTopics,
     FollowedTopicUpdated: FollowedTopicUpdated,
+    Messages: Messages,
 };
 
 /**
@@ -216,4 +218,5 @@ export type CommandsMap = {
     FollowTopic: [FollowTopic, EventsMap['TopicFollowed']],
     UnfollowTopic: [UnfollowTopic, EventsMap['TopicUnfollowed']],
     GetFollowedTopics: [GetFollowedTopics, EventsMap['FollowedTopics']],
+    GetMessages: [GetMessages, EventsMap['Messages']],
 }

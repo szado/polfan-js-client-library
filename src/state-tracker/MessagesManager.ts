@@ -122,23 +122,17 @@ export class MessagesManager {
      * Calculate missed messages from any topic in given room.
      * @return Undefined if you are not in room, stats object otherwise.
      */
-    public async calculateRoomMissedMessages(roomId: string): Promise<{missed: number, missedMore: boolean} | undefined> {
+    public async calculateRoomMissedMessages(roomId: string): Promise<number | undefined> {
         const collection = await this.getRoomFollowedTopics(roomId);
 
-        if (! collection) {
-            return undefined;
+        if (collection) {
+            return collection.items.reduce(
+                (previousValue, currentValue) => previousValue + (currentValue.missed ?? 0),
+                0,
+            );
         }
 
-        let missed: number = 0, missedMore: boolean = false;
-
-        for (const followedTopic of collection.items) {
-            missed += followedTopic.missed ?? followedTopic.missedMoreThan ?? 0;
-            if (followedTopic.missedMoreThan) {
-                missedMore = true;
-            }
-        }
-
-        return {missed, missedMore};
+        return undefined;
     }
 
     /**
@@ -240,19 +234,16 @@ export class MessagesManager {
             return;
         }
 
-        const isMe = ev.message.author.id === this.tracker.me?.id;
+        const isMe = ev.message.user.id === this.tracker.me?.id;
 
         let update: Partial<FollowedTopic>;
 
         if (isMe) {
             // Reset missed messages count if new message is authored by me
-            update = {missed: 0, missedMoreThan: null, lastAckMessageId: ev.message.id};
+            update = {missed: 0, lastAckMessageId: ev.message.id};
         } else {
             // ...add 1 otherwise
-            update = {
-                missed: followedTopic.missed === null ? null : followedTopic.missed + 1,
-                missedMoreThan: followedTopic.missedMoreThan === null ? null : followedTopic.missedMoreThan,
-            };
+            update = {missed: followedTopic.missed === null ? null : followedTopic.missed + 1};
         }
 
         roomFollowedTopics.set({...followedTopic, ...update});
