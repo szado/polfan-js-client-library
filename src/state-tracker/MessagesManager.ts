@@ -1,30 +1,30 @@
 import {ChatStateTracker} from "./ChatStateTracker";
 import {
     ChatLocation,
-    Message,
     NewMessage,
-    Topic,
     FollowedTopic,
     TopicFollowed,
     TopicUnfollowed,
     RoomDeleted,
     RoomLeft,
     TopicDeleted,
-    FollowedTopicUpdated, RoomJoined, NewTopic, Session,
+    FollowedTopicUpdated, RoomJoined, NewTopic, Session, Room,
 } from "../types/src";
 import {
     IndexedCollection,
     ObservableIndexedObjectCollection
 } from "../IndexedObjectCollection";
-import {PromiseRegistry} from "./AsyncUtils";
+import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
+import {RoomMessagesHistory} from "./RoomMessagesHistory";
 
 export const getCombinedId = (location: ChatLocation) => (location.roomId ?? '') + (location.topicId ?? '');
 
 export class MessagesManager {
     // Temporary not lazy loaded; server must implement GetTopicMessages command.
-    private readonly list = new IndexedCollection<string, ObservableIndexedObjectCollection<Message>>();
+    private readonly roomHistories = new IndexedCollection<string, RoomMessagesHistory>();
     private readonly followedTopics = new IndexedCollection<string, ObservableIndexedObjectCollection<FollowedTopic>>();
     private readonly followedTopicsPromises = new PromiseRegistry();
+    private readonly deferredSession = new DeferredTask();
 
     public constructor(private tracker: ChatStateTracker) {
         this.tracker.client.on('Session', ev => this.handleSession(ev));
@@ -40,10 +40,11 @@ export class MessagesManager {
     }
 
     /**
-     * Get collection of the messages written in topic.
+     * Get history manager for given room ID.
      */
-    public async get(location: ChatLocation): Promise<ObservableIndexedObjectCollection<Message> | undefined> {
-        return this.list.get(getCombinedId(location));
+    public async getRoomHistory(roomId: string): Promise<RoomMessagesHistory | undefined> {
+        await this.deferredSession.promise;
+        return this.roomHistories.get(roomId);
     }
 
     /**
@@ -140,32 +141,14 @@ export class MessagesManager {
      * @internal
      */
     public _deleteByTopicIds(roomId: string, ...topicIds: string[]): void {
-        this.list.delete(...topicIds.map(topicId => getCombinedId({roomId, topicId})));
         this.followedTopics.get(roomId)?.delete(...topicIds);
     }
 
-    private createHistoryForNewTopic(roomId: string, ...newTopics: Topic[]): void {
-        for (const newTopic of newTopics) {
-            const newTopicCombinedId = getCombinedId({roomId, topicId: newTopic.id});
-
-            this.list.set([newTopicCombinedId, new ObservableIndexedObjectCollection<Message>('id')]);
-
-            // If new topic refers to some message from this room, update other structures
-            if (newTopic.messageRef) {
-                const refTopicCombinedId = getCombinedId({roomId, topicId: newTopic.messageRef.topicId});
-                const refTopicMessages = this.list.get(refTopicCombinedId);
-                const refMessage = refTopicMessages?.get(newTopic.messageRef.messageId);
-
-                if (refMessage) {
-                    // Update referenced topic ID in message
-                    refTopicMessages.set({...refMessage, topicRef: newTopic.id});
-                }
-            }
-        }
+    private createHistoryForNewRoom(room: Room): void {
+        this.roomHistories.set([room.id, new RoomMessagesHistory(room, this.tracker)]);
     }
 
     private handleNewMessage(ev: NewMessage): void {
-        this.list.get(getCombinedId(ev.location))?.set(ev.message);
         this.updateLocallyFollowedTopicOnNewMessage(ev);
     }
 
@@ -182,23 +165,21 @@ export class MessagesManager {
     }
 
     private handleRoomDeleted(ev: RoomDeleted): void {
+        this.roomHistories.delete(ev.id);
         this.clearRoomFollowedTopicsStructures(ev.id);
     }
 
     private handleRoomJoin(ev: RoomJoined): void {
-        if (ev.room.defaultTopic) {
-            this.createHistoryForNewTopic(ev.room.id, ev.room.defaultTopic)
-        }
+        this.createHistoryForNewRoom(ev.room)
         this.clearRoomFollowedTopicsStructures(ev.room.id);
     }
 
     private handleRoomLeft(ev: RoomLeft): void {
+        this.roomHistories.delete(ev.id);
         this.clearRoomFollowedTopicsStructures(ev.id);
     }
 
     private async handleNewTopic(ev: NewTopic): Promise<void> {
-        this.createHistoryForNewTopic(ev.roomId, ev.topic);
-
         if (this.followedTopics.has(ev.roomId)) {
             // Check if the new topic is followed by user
             // only if client asked for followed topics list before for this room
@@ -218,11 +199,10 @@ export class MessagesManager {
     }
 
     private handleSession(ev: Session): void {
-        ev.state.rooms.forEach(room => {
-            if (room.defaultTopic) {
-                this.createHistoryForNewTopic(room.id, room.defaultTopic);
-            }
-        });
+        this.followedTopics.deleteAll();
+        this.roomHistories.deleteAll();
+        ev.state.rooms.forEach(room => this.createHistoryForNewRoom(room));
+        this.deferredSession.resolve();
     }
 
     private updateLocallyFollowedTopicOnNewMessage(ev: NewMessage): void {

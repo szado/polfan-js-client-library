@@ -23,6 +23,7 @@ export class RoomsManager {
     private readonly members = new IndexedCollection<string, ObservableIndexedObjectCollection<RoomMember>>();
     private readonly deferredSession = new DeferredTask();
     private readonly membersPromises = new PromiseRegistry();
+    private readonly topicsPromises = new PromiseRegistry();
 
     public constructor(private tracker: ChatStateTracker) {
         this.messages = new MessagesManager(tracker);
@@ -88,10 +89,29 @@ export class RoomsManager {
     }
 
     /**
-     * Get collection of room topics.
+     * Get a collection of locally cached Topic objects for given room.
+     * You can pass topic ids as second argument, to try to fetch them from the server.
      */
-    public async getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | undefined> {
+    public async getTopics(roomId: string, tryToFetchTopicIds?: string[]): Promise<ObservableIndexedObjectCollection<Topic> | undefined> {
         await this.deferredSession.promise;
+
+        if (tryToFetchTopicIds?.length) {
+            const missingIds = tryToFetchTopicIds.filter(topicId => ! this.topicsPromises.has(roomId + topicId));
+
+            if (missingIds.length) {
+                const promise = this.tracker
+                    .client
+                    .send('GetTopics', {roomId, ids: missingIds})
+                    .then(result => this.topics.get(result.data.location.roomId)?.set(...result.data.topics));
+
+                missingIds.forEach(topicId => this.topicsPromises.register(promise, roomId + topicId));
+            }
+
+            for (const topicId of tryToFetchTopicIds) {
+                await this.topicsPromises.get(roomId + topicId);
+            }
+        }
+
         return this.topics.get(roomId);
     }
 
