@@ -2046,7 +2046,7 @@ var RoomsManager = /*#__PURE__*/function () {
     value: function () {
       var _getTopics = RoomsManager_asyncToGenerator( /*#__PURE__*/RoomsManager_regeneratorRuntime().mark(function _callee5(roomId, tryToFetchTopicIds) {
         var _this3 = this;
-        var missingIds, promise, _iterator, _step, topicId;
+        var canFetch, idsToFetch, promise, _iterator, _step, topicId;
         return RoomsManager_regeneratorRuntime().wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
@@ -2055,57 +2055,60 @@ var RoomsManager = /*#__PURE__*/function () {
                 return this.deferredSession.promise;
               case 2:
                 if (!(tryToFetchTopicIds !== null && tryToFetchTopicIds !== void 0 && tryToFetchTopicIds.length)) {
-                  _context5.next = 22;
+                  _context5.next = 23;
                   break;
                 }
-                missingIds = tryToFetchTopicIds.filter(function (topicId) {
-                  return !_this3.topicsPromises.has(roomId + topicId);
-                });
-                if (missingIds.length) {
+                // Topic can be fetched if it isn't already cached and fetch is not already in progress
+                canFetch = function canFetch(topicId) {
+                  var _this3$topics$get;
+                  return !((_this3$topics$get = _this3.topics.get(roomId)) !== null && _this3$topics$get !== void 0 && _this3$topics$get.has(topicId)) && !_this3.topicsPromises.has(roomId + topicId);
+                };
+                idsToFetch = tryToFetchTopicIds.filter(canFetch);
+                if (idsToFetch.length) {
                   promise = this.tracker.client.send('GetTopics', {
                     roomId: roomId,
-                    ids: missingIds
+                    topicIds: idsToFetch
                   }).then(function (result) {
-                    var _this3$topics$get;
-                    return (_this3$topics$get = _this3.topics.get(result.data.location.roomId)) === null || _this3$topics$get === void 0 ? void 0 : _this3$topics$get.set.apply(_this3$topics$get, RoomsManager_toConsumableArray(result.data.topics));
+                    var _this3$topics$get2;
+                    return (_this3$topics$get2 = _this3.topics.get(result.data.location.roomId)) === null || _this3$topics$get2 === void 0 ? void 0 : _this3$topics$get2.set.apply(_this3$topics$get2, RoomsManager_toConsumableArray(result.data.topics));
                   });
-                  missingIds.forEach(function (topicId) {
+                  idsToFetch.forEach(function (topicId) {
                     return _this3.topicsPromises.register(promise, roomId + topicId);
                   });
                 }
                 _iterator = RoomsManager_createForOfIteratorHelper(tryToFetchTopicIds);
-                _context5.prev = 6;
+                _context5.prev = 7;
                 _iterator.s();
-              case 8:
+              case 9:
                 if ((_step = _iterator.n()).done) {
-                  _context5.next = 14;
+                  _context5.next = 15;
                   break;
                 }
                 topicId = _step.value;
-                _context5.next = 12;
+                _context5.next = 13;
                 return this.topicsPromises.get(roomId + topicId);
-              case 12:
-                _context5.next = 8;
+              case 13:
+                _context5.next = 9;
                 break;
-              case 14:
-                _context5.next = 19;
+              case 15:
+                _context5.next = 20;
                 break;
-              case 16:
-                _context5.prev = 16;
-                _context5.t0 = _context5["catch"](6);
+              case 17:
+                _context5.prev = 17;
+                _context5.t0 = _context5["catch"](7);
                 _iterator.e(_context5.t0);
-              case 19:
-                _context5.prev = 19;
+              case 20:
+                _context5.prev = 20;
                 _iterator.f();
-                return _context5.finish(19);
-              case 22:
-                return _context5.abrupt("return", this.topics.get(roomId));
+                return _context5.finish(20);
               case 23:
+                return _context5.abrupt("return", this.topics.get(roomId));
+              case 24:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this, [[6, 16, 19, 22]]);
+        }, _callee5, this, [[7, 17, 20, 23]]);
       }));
       function getTopics(_x3, _x4) {
         return _getTopics.apply(this, arguments);
