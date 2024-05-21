@@ -1,5 +1,5 @@
 import { Envelope } from "./schemes/Envelope";
-import { Message } from "./schemes/Message";
+import { Message, MessageType } from "./schemes/Message";
 import { PermissionOverwritesValue } from "./schemes/PermissionOverwritesValue";
 import { Role } from "./schemes/Role";
 import { Room } from "./schemes/Room";
@@ -85,4 +85,8 @@ import { TopicUnfollowed } from "./schemes/events/TopicUnfollowed";
 import { TopicFollowed } from "./schemes/events/TopicFollowed";
 import { GetFollowedTopics } from "./schemes/commands/GetFollowedTopics";
 import { FollowedTopicUpdated } from "./schemes/events/FollowedTopicUpdated";
-export { Envelope, Message, Role, Room, RoomType, RoomMember, RoomSummary, Space, SpaceMember, Topic, FollowedTopic, User, UserState, PermissionOverwritesValue, ChatLocation, MessageReference, Bye, Error, NewMessage, NewRole, NewRoom, NewTopic, TopicFollowed, TopicUnfollowed, FollowedTopics, FollowedTopicUpdated, ComputedPermissions, PermissionOverwrites, PermissionOverwritesUpdated, RoleDeleted, RoleUpdated, RoomDeleted, RoomUpdated, RoomJoined, RoomLeft, RoomMemberJoined, RoomMemberLeft, RoomMembers, RoomMemberUpdated, UserUpdated, Session, SpaceDeleted, SpaceUpdated, SpaceJoined, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, TopicDeleted, PermissionOverwriteTargets, Owners, Ok, AssignRole, CreateMessage, Ack, CreateRole, CreateRoom, CreateSpace, CreateTopic, FollowTopic, UnfollowTopic, GetFollowedTopics, DeassignRole, DeleteRole, DeleteRoom, DeleteSpace, DeleteTopic, SetPermissionOverwrites, GetPermissionOverwrites, GetComputedPermissions, GetRoomMembers, GetSession, GetSpaceMembers, GetSpaceRooms, JoinRoom, JoinSpace, LeaveRoom, LeaveSpace, UpdateRole, UpdateSpace, UpdateRoom, GetPermissionOverwriteTargets, CreateOwner, DeleteOwner, GetOwners, };
+import { GetMessages } from "./schemes/commands/GetMessages";
+import { Messages } from "./schemes/events/Messages";
+import { Topics } from "./schemes/events/Topics";
+import { GetTopics } from "./schemes/commands/GetTopics";
+export { Envelope, Message, MessageType, Role, Room, RoomType, RoomMember, RoomSummary, Space, SpaceMember, Topic, FollowedTopic, User, UserState, PermissionOverwritesValue, ChatLocation, MessageReference, Bye, Error, Messages, NewMessage, NewRole, NewRoom, NewTopic, TopicFollowed, TopicUnfollowed, FollowedTopics, FollowedTopicUpdated, ComputedPermissions, PermissionOverwrites, PermissionOverwritesUpdated, RoleDeleted, RoleUpdated, RoomDeleted, RoomUpdated, RoomJoined, RoomLeft, RoomMemberJoined, RoomMemberLeft, RoomMembers, RoomMemberUpdated, UserUpdated, Session, SpaceDeleted, SpaceUpdated, SpaceJoined, SpaceLeft, SpaceMemberJoined, SpaceMemberLeft, SpaceMembers, SpaceMemberUpdated, SpaceRooms, TopicDeleted, PermissionOverwriteTargets, Owners, Ok, AssignRole, GetMessages, CreateMessage, Ack, CreateRole, CreateRoom, CreateSpace, CreateTopic, FollowTopic, UnfollowTopic, GetFollowedTopics, DeassignRole, DeleteRole, DeleteRoom, DeleteSpace, DeleteTopic, SetPermissionOverwrites, GetPermissionOverwrites, GetComputedPermissions, GetRoomMembers, GetSession, GetSpaceMembers, GetSpaceRooms, JoinRoom, JoinSpace, LeaveRoom, LeaveSpace, UpdateRole, UpdateSpace, UpdateRoom, GetPermissionOverwriteTargets, CreateOwner, DeleteOwner, GetOwners, Topics, GetTopics, };

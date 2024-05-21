@@ -10,6 +10,7 @@ export declare class RoomsManager {
     private readonly members;
     private readonly deferredSession;
     private readonly membersPromises;
+    private readonly topicsPromises;
     constructor(tracker: ChatStateTracker);
     /**
      * Get collection of room members.
@@ -24,9 +25,10 @@ export declare class RoomsManager {
      */
     get(): Promise<ObservableIndexedObjectCollection<Room>>;
     /**
-     * Get collection of room topics.
+     * Get a collection of locally cached Topic objects for given room.
+     * You can pass topic ids as second argument, to try to fetch them from the server.
      */
-    getTopics(roomId: string): Promise<ObservableIndexedObjectCollection<Topic> | undefined>;
+    getTopics(roomId: string, tryToFetchTopicIds?: string[]): Promise<ObservableIndexedObjectCollection<Topic> | undefined>;
     private deleteRoom;
     private deleteRoomsBySpaceId;
     private handleSpaceMemberUpdated;

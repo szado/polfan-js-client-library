@@ -1,17 +1,18 @@
 import { ChatStateTracker } from "./ChatStateTracker";
-import { ChatLocation, Message, FollowedTopic } from "../types/src";
+import { FollowedTopic } from "../types/src";
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
-export declare const getCombinedId: (location: ChatLocation) => string;
+import { RoomMessagesHistory } from "./RoomMessagesHistory";
 export declare class MessagesManager {
     private tracker;
-    private readonly list;
+    private readonly roomHistories;
     private readonly followedTopics;
     private readonly followedTopicsPromises;
+    private readonly deferredSession;
     constructor(tracker: ChatStateTracker);
     /**
-     * Get collection of the messages written in topic.
+     * Get history manager for given room ID.
      */
-    get(location: ChatLocation): Promise<ObservableIndexedObjectCollection<Message> | undefined>;
+    getRoomHistory(roomId: string): Promise<RoomMessagesHistory | undefined>;
     /**
      * Cache followed topics for all joined rooms in a space and fetch them in bulk if necessary.
      * Then you can get them using getRoomFollowedTopics().
@@ -31,16 +32,13 @@ export declare class MessagesManager {
      * Calculate missed messages from any topic in given room.
      * @return Undefined if you are not in room, stats object otherwise.
      */
-    calculateRoomMissedMessages(roomId: string): Promise<{
-        missed: number;
-        missedMore: boolean;
-    } | undefined>;
+    calculateRoomMissedMessages(roomId: string): Promise<number | undefined>;
     /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
      * @internal
      */
     _deleteByTopicIds(roomId: string, ...topicIds: string[]): void;
-    private createHistoryForNewTopic;
+    private createHistoryForNewRoom;
     private handleNewMessage;
     private handleFollowedTopicUpdated;
     private handleTopicFollowed;
