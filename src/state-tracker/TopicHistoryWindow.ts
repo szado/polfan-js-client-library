@@ -2,7 +2,7 @@ import {Message, MessageReference, NewMessage, Room, Session, Topic} from "../ty
 import {ChatStateTracker} from "./ChatStateTracker";
 import {ObservableIndexedObjectCollection} from "../IndexedObjectCollection";
 
-export enum WindowMode {
+export enum WindowState {
     UNINITIALIZED,
     LATEST,
     PAST,
@@ -12,8 +12,8 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
     /**
      * Current mode od collection window. To change mode, call one of available fetch methods.
      */
-    public get mode(): WindowMode {
-        return this.currentMode;
+    public get state(): WindowState {
+        return this.currentState;
     }
 
     /**
@@ -22,42 +22,42 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
      */
     public limit: number | null = 50;
 
-    private currentMode: WindowMode = WindowMode.UNINITIALIZED;
-    private fetchingModeInProgress: WindowMode = undefined;
+    private currentState: WindowState = WindowState.UNINITIALIZED;
+    private fetchingState: WindowState = undefined;
 
     public async resetToLatest(): Promise<void> {
         this.throwIfFetchingInProgress();
 
-        if (this.currentMode === WindowMode.LATEST) {
+        if (this.currentState === WindowState.LATEST) {
             return;
         }
 
-        this.fetchingModeInProgress = WindowMode.LATEST;
+        this.fetchingState = WindowState.LATEST;
 
         let result;
 
         try {
             result = await this.fetchLatestItems();
         } finally {
-            this.fetchingModeInProgress = undefined;
+            this.fetchingState = undefined;
         }
 
         this.deleteAll();
         this.addItems(result, 'tail');
-        this.currentMode = WindowMode.LATEST;
+        this.currentState = WindowState.LATEST;
     }
 
     public async fetchPrevious(): Promise<void> {
         this.throwIfFetchingInProgress();
 
-        this.fetchingModeInProgress = WindowMode.PAST;
+        this.fetchingState = WindowState.PAST;
 
         let result;
 
         try {
             result = await this.fetchItemsBefore();
         } finally {
-            this.fetchingModeInProgress = undefined;
+            this.fetchingState = undefined;
         }
 
         if (! result) {
@@ -66,7 +66,7 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
         if (result.length) {
             this.addItems(result, 'head');
-            this.currentMode = (await this.isLatestItemLoaded()) ? WindowMode.LATEST : WindowMode.PAST;
+            this.currentState = (await this.isLatestItemLoaded()) ? WindowState.LATEST : WindowState.PAST;
         }
     }
 
@@ -78,7 +78,7 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
         try {
             result = await this.fetchItemsAfter();
         } finally {
-            this.fetchingModeInProgress = undefined;
+            this.fetchingState = undefined;
         }
 
         if (! result) {
@@ -88,7 +88,7 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
         if (result.length) {
             this.addItems(result, 'tail');
-            this.currentMode = (await this.isLatestItemLoaded()) ? WindowMode.LATEST : WindowMode.PAST;
+            await this.refreshMode();
         }
     }
 
@@ -100,9 +100,13 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
     protected abstract isLatestItemLoaded(): Promise<boolean>;
 
+    protected async refreshMode(): Promise<void> {
+        this.currentState = (await this.isLatestItemLoaded()) ? WindowState.LATEST : WindowState.PAST;
+    }
+
     private throwIfFetchingInProgress(): void {
-        if (this.fetchingModeInProgress) {
-            throw new Error(`Items fetching in progress: ${WindowMode[this.fetchingModeInProgress]}`);
+        if (this.fetchingState) {
+            throw new Error(`Items fetching in progress: ${WindowState[this.fetchingState]}`);
         }
     }
 
@@ -143,7 +147,7 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<Message> {
     /**
      * Reexported available window modes enum.
      */
-    public static readonly Mode: typeof WindowMode = WindowMode;
+    public readonly WindowState: typeof WindowState = WindowState;
 
     public constructor(
         private roomId: string,
@@ -170,11 +174,15 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<Message> {
 
     private async handleNewMessage(ev: NewMessage): Promise<void> {
         if (
-            this.mode === WindowMode.LATEST
+            [WindowState.LATEST, WindowState.UNINITIALIZED].includes(this.state)
             && ev.location.roomId === this.roomId
             && ev.location.topicId === this.topicId
         ) {
             this.set(ev.message);
+
+            if (this.state === WindowState.UNINITIALIZED) {
+                await this.refreshMode();
+            }
         }
     }
 

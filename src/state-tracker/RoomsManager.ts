@@ -96,15 +96,17 @@ export class RoomsManager {
         await this.deferredSession.promise;
 
         if (tryToFetchTopicIds?.length) {
-            const missingIds = tryToFetchTopicIds.filter(topicId => ! this.topicsPromises.has(roomId + topicId));
+            // Topic can be fetched if it isn't already cached and fetch is not already in progress
+            const canFetch = (topicId: string) => ! this.topics.get(roomId)?.has(topicId) && ! this.topicsPromises.has(roomId + topicId);
+            const idsToFetch = tryToFetchTopicIds.filter(canFetch);
 
-            if (missingIds.length) {
+            if (idsToFetch.length) {
                 const promise = this.tracker
                     .client
-                    .send('GetTopics', {roomId, ids: missingIds})
+                    .send('GetTopics', {roomId, topicIds: idsToFetch})
                     .then(result => this.topics.get(result.data.location.roomId)?.set(...result.data.topics));
 
-                missingIds.forEach(topicId => this.topicsPromises.register(promise, roomId + topicId));
+                idsToFetch.forEach(topicId => this.topicsPromises.register(promise, roomId + topicId));
             }
 
             for (const topicId of tryToFetchTopicIds) {

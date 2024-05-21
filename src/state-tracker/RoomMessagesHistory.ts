@@ -19,7 +19,10 @@ export class RoomMessagesHistory {
         }
     }
 
-    public async getTopicHistoryWindow(topicId: string): Promise<TopicHistoryWindow | undefined> {
+    /**
+     * Returns a history window object for the given topic ID, allowing you to view message history.
+     */
+    public async getMessagesWindow(topicId: string): Promise<TopicHistoryWindow | undefined> {
         let historyWindow = this.historyWindows.get(topicId);
 
         if (! historyWindow) {

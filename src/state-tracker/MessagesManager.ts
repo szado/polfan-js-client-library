@@ -17,10 +17,7 @@ import {
 import {DeferredTask, PromiseRegistry} from "./AsyncUtils";
 import {RoomMessagesHistory} from "./RoomMessagesHistory";
 
-export const getCombinedId = (location: ChatLocation) => (location.roomId ?? '') + (location.topicId ?? '');
-
 export class MessagesManager {
-    // Temporary not lazy loaded; server must implement GetTopicMessages command.
     private readonly roomHistories = new IndexedCollection<string, RoomMessagesHistory>();
     private readonly followedTopics = new IndexedCollection<string, ObservableIndexedObjectCollection<FollowedTopic>>();
     private readonly followedTopicsPromises = new PromiseRegistry();
