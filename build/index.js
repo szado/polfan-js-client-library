@@ -650,9 +650,10 @@ function TopicHistoryWindow_toPrimitive(input, hint) { if (TopicHistoryWindow_ty
 
 var WindowState;
 (function (WindowState) {
-  WindowState[WindowState["UNINITIALIZED"] = 0] = "UNINITIALIZED";
+  WindowState[WindowState["LIVE"] = 0] = "LIVE";
   WindowState[WindowState["LATEST"] = 1] = "LATEST";
   WindowState[WindowState["PAST"] = 2] = "PAST";
+  WindowState[WindowState["OLDEST"] = 3] = "OLDEST";
 })(WindowState || (WindowState = {}));
 var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) {
   TopicHistoryWindow_inherits(TraversableRemoteCollection, _ObservableIndexedObj);
@@ -665,7 +666,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     }
     _this = _super.call.apply(_super, [this].concat(args));
     TopicHistoryWindow_defineProperty(TopicHistoryWindow_assertThisInitialized(_this), "limit", 50);
-    TopicHistoryWindow_defineProperty(TopicHistoryWindow_assertThisInitialized(_this), "currentState", WindowState.UNINITIALIZED);
+    TopicHistoryWindow_defineProperty(TopicHistoryWindow_assertThisInitialized(_this), "currentState", WindowState.LIVE);
     TopicHistoryWindow_defineProperty(TopicHistoryWindow_assertThisInitialized(_this), "fetchingState", undefined);
     return _this;
   }
@@ -734,49 +735,46 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
+                if (!(this.state === WindowState.OLDEST)) {
+                  _context2.next = 2;
+                  break;
+                }
+                return _context2.abrupt("return");
+              case 2:
                 this.throwIfFetchingInProgress();
                 this.fetchingState = WindowState.PAST;
-                _context2.prev = 2;
-                _context2.next = 5;
+                _context2.prev = 4;
+                _context2.next = 7;
                 return this.fetchItemsBefore();
-              case 5:
+              case 7:
                 result = _context2.sent;
-              case 6:
-                _context2.prev = 6;
+              case 8:
+                _context2.prev = 8;
                 this.fetchingState = undefined;
-                return _context2.finish(6);
-              case 9:
+                return _context2.finish(8);
+              case 11:
                 if (result) {
-                  _context2.next = 11;
+                  _context2.next = 13;
                   break;
                 }
                 return _context2.abrupt("return", this.resetToLatest());
-              case 11:
-                if (!result.length) {
-                  _context2.next = 21;
+              case 13:
+                if (result.length) {
+                  _context2.next = 16;
                   break;
                 }
+                this.currentState = WindowState.OLDEST;
+                return _context2.abrupt("return");
+              case 16:
                 this.addItems(result, 'head');
-                _context2.next = 15;
-                return this.isLatestItemLoaded();
-              case 15:
-                if (!_context2.sent) {
-                  _context2.next = 19;
-                  break;
-                }
-                _context2.t0 = WindowState.LATEST;
-                _context2.next = 20;
-                break;
+                _context2.next = 19;
+                return this.refreshFetchedState();
               case 19:
-                _context2.t0 = WindowState.PAST;
-              case 20:
-                this.currentState = _context2.t0;
-              case 21:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[2,, 6, 9]]);
+        }, _callee2, this, [[4,, 8, 11]]);
       }));
       function fetchPrevious() {
         return _fetchPrevious.apply(this, arguments);
@@ -793,38 +791,39 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
             switch (_context3.prev = _context3.next) {
               case 0:
                 this.throwIfFetchingInProgress();
-                _context3.prev = 1;
-                _context3.next = 4;
+                this.fetchingState = WindowState.PAST;
+                _context3.prev = 2;
+                _context3.next = 5;
                 return this.fetchItemsAfter();
-              case 4:
-                result = _context3.sent;
               case 5:
-                _context3.prev = 5;
+                result = _context3.sent;
+              case 6:
+                _context3.prev = 6;
                 this.fetchingState = undefined;
-                return _context3.finish(5);
-              case 8:
+                return _context3.finish(6);
+              case 9:
                 if (result) {
-                  _context3.next = 12;
+                  _context3.next = 13;
                   break;
                 }
-                _context3.next = 11;
+                _context3.next = 12;
                 return this.resetToLatest();
-              case 11:
-                return _context3.abrupt("return");
               case 12:
+                return _context3.abrupt("return");
+              case 13:
                 if (!result.length) {
-                  _context3.next = 16;
+                  _context3.next = 17;
                   break;
                 }
                 this.addItems(result, 'tail');
-                _context3.next = 16;
-                return this.refreshMode();
-              case 16:
+                _context3.next = 17;
+                return this.refreshFetchedState();
+              case 17:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[1,, 5, 8]]);
+        }, _callee3, this, [[2,, 6, 9]]);
       }));
       function fetchNext() {
         return _fetchNext.apply(this, arguments);
@@ -832,9 +831,9 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       return fetchNext;
     }()
   }, {
-    key: "refreshMode",
+    key: "refreshFetchedState",
     value: function () {
-      var _refreshMode = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+      var _refreshFetchedState = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -860,18 +859,11 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
           }
         }, _callee4, this);
       }));
-      function refreshMode() {
-        return _refreshMode.apply(this, arguments);
+      function refreshFetchedState() {
+        return _refreshFetchedState.apply(this, arguments);
       }
-      return refreshMode;
+      return refreshFetchedState;
     }()
-  }, {
-    key: "throwIfFetchingInProgress",
-    value: function throwIfFetchingInProgress() {
-      if (this.fetchingState) {
-        throw new Error("Items fetching in progress: ".concat(WindowState[this.fetchingState]));
-      }
-    }
   }, {
     key: "addItems",
     value: function addItems(newItems, to) {
@@ -884,6 +876,13 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       }
       this.deleteAll();
       this.set.apply(this, TopicHistoryWindow_toConsumableArray(result));
+    }
+  }, {
+    key: "throwIfFetchingInProgress",
+    value: function throwIfFetchingInProgress() {
+      if (this.fetchingState) {
+        throw new Error("Items fetching in progress: ".concat(WindowState[this.fetchingState]));
+      }
     }
 
     /**
@@ -952,18 +951,10 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                if (!([WindowState.LATEST, WindowState.UNINITIALIZED].includes(this.state) && ev.location.roomId === this.roomId && ev.location.topicId === this.topicId)) {
-                  _context5.next = 5;
-                  break;
+                if ([WindowState.LATEST, WindowState.LIVE].includes(this.state) && ev.location.roomId === this.roomId && ev.location.topicId === this.topicId) {
+                  this.addItems([ev.message], 'tail');
                 }
-                this.set(ev.message);
-                if (!(this.state === WindowState.UNINITIALIZED)) {
-                  _context5.next = 5;
-                  break;
-                }
-                _context5.next = 5;
-                return this.refreshMode();
-              case 5:
+              case 1:
               case "end":
                 return _context5.stop();
             }
@@ -1189,7 +1180,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
                 return this.getLatestMessageId();
               case 2:
                 lastMessageId = _context11.sent;
-                return _context11.abrupt("return", lastMessageId ? this.has(lastMessageId) : false);
+                return _context11.abrupt("return", lastMessageId ? this.has(lastMessageId) : true);
               case 4:
               case "end":
                 return _context11.stop();

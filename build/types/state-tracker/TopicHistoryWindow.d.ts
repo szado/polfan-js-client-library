@@ -2,9 +2,24 @@ import { Message, MessageReference } from "../types/src";
 import { ChatStateTracker } from "./ChatStateTracker";
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
 export declare enum WindowState {
-    UNINITIALIZED = 0,
+    /**
+     * The latest messages (those received live) are available in the history window, history has not been fetched.
+     */
+    LIVE = 0,
+    /**
+     * The latest messages has been fetched and are available in the history window.
+     */
     LATEST = 1,
-    PAST = 2
+    /**
+     * The historical messages have been fetched and are available in the history window.
+     * Latest messages are not available and will not be available.
+     */
+    PAST = 2,
+    /**
+     * The oldest messages have been fetched and are available in the history window.
+     * Next attempts to fetch previous messages will result with no-op.
+     */
+    OLDEST = 3
 }
 export declare abstract class TraversableRemoteCollection<T> extends ObservableIndexedObjectCollection<T> {
     /**
@@ -25,9 +40,9 @@ export declare abstract class TraversableRemoteCollection<T> extends ObservableI
     protected abstract fetchItemsBefore(): Promise<T[] | null>;
     protected abstract fetchItemsAfter(): Promise<T[] | null>;
     protected abstract isLatestItemLoaded(): Promise<boolean>;
-    protected refreshMode(): Promise<void>;
+    protected refreshFetchedState(): Promise<void>;
+    protected addItems(newItems: T[], to: 'head' | 'tail'): void;
     private throwIfFetchingInProgress;
-    private addItems;
     /**
      * Return array with messages of count that matching limit.
      */

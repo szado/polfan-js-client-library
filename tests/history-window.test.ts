@@ -23,8 +23,17 @@ class TestableHistoryWindow extends TraversableRemoteCollection<SimpleMessage> {
     }
 
     public simulateNewMessageReceived(): void {
-        this.set(messages[messages.length - 1]);
-        this.refreshLiveState();
+        if ([WindowState.LATEST, WindowState.LIVE].includes(this.state)) {
+            const lastId = this.getAt(this.length - 1)?.id;
+
+            const messageToAdd = lastId
+                ? this.getAt(lastId + 1)
+                : messages[messages.length - 1];
+
+            if (messageToAdd) {
+                this.addItems([messageToAdd], 'tail');
+            }
+        }
     }
 
     protected async fetchItemsAfter(): Promise<SimpleMessage[]> {
@@ -63,20 +72,25 @@ test('history window - states change', async () => {
     const window = new TestableHistoryWindow();
     window.limit = 5;
 
-    expect(window.state).toEqual(WindowState.EMPTY);
+    expect(window.state).toEqual(WindowState.LIVE);
 
     window.simulateNewMessageReceived(); // [9]
 
-    expect(window.state).toEqual(WindowState.LATEST_LIVE);
+    expect(window.state).toEqual(WindowState.LIVE);
 
     await window.fetchPrevious(); // [6,7,8,9]
     await window.fetchPrevious(); // [3,4,5,6,7]
 
-    expect(window.state).toEqual(WindowState.PAST_FETCHED);
+    expect(window.state).toEqual(WindowState.PAST);
 
-    await window.resetToLatest(); // [5,6,7,8,9]
+    await window.fetchPrevious(); // [0,1,2,3,4]
+    await window.fetchPrevious(); // [0,1,2,3,4]
 
-    expect(window.state).toEqual(WindowState.LATEST_FETCHED);
+    expect(window.state).toEqual(WindowState.OLDEST);
+
+    await window.resetToLatest(); // [7,8,9]
+
+    expect(window.state).toEqual(WindowState.LATEST);
 });
 
 test('history window - traverse back', async () => {
@@ -85,13 +99,13 @@ test('history window - traverse back', async () => {
 
     await window.fetchPrevious(); // 7,8,9
 
-    expect(window.state).toEqual(WindowState.LATEST_FETCHED);
+    expect(window.state).toEqual(WindowState.LATEST);
     expect(window.items).toHaveLength(3);
     [7,8,9].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 
     await window.fetchPrevious(); // 4,5,6,7,8
 
-    expect(window.state).toEqual(WindowState.PAST_FETCHED);
+    expect(window.state).toEqual(WindowState.PAST);
     expect(window.items).toHaveLength(5);
     [4,5,6,7,8].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 
@@ -99,7 +113,7 @@ test('history window - traverse back', async () => {
     await window.fetchPrevious(); // 0,1,2,3,4
     await window.fetchPrevious(); // 0,1,2,3,4
 
-    expect(window.state).toEqual(WindowState.PAST_FETCHED);
+    expect(window.state).toEqual(WindowState.OLDEST);
     expect(window.items).toHaveLength(5);
     [0,1,2,3,4].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 });
@@ -108,9 +122,9 @@ test('history window - traverse forward', async () => {
     const window = new TestableHistoryWindow();
     window.limit = 5;
 
-    await window.fetchNext();
+    await window.fetchNext(); // [7,8,9]
 
-    expect(window.state).toEqual(WindowState.LATEST_FETCHED);
+    expect(window.state).toEqual(WindowState.LATEST);
     expect(window.items).toHaveLength(3);
     [7,8,9].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 
@@ -118,7 +132,7 @@ test('history window - traverse forward', async () => {
     await window.fetchPrevious(); // [1,2,3,4,5]
     await window.fetchNext(); // [4,5,6,7,8]
 
-    expect(window.state).toEqual(WindowState.PAST_FETCHED);
+    expect(window.state).toEqual(WindowState.PAST);
     expect(window.items).toHaveLength(5);
     [4,5,6,7,8].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 
@@ -126,7 +140,7 @@ test('history window - traverse forward', async () => {
     await window.fetchNext();
     await window.fetchNext(); // move to latest
 
-    expect(window.state).toEqual(WindowState.LATEST_FETCHED);
+    expect(window.state).toEqual(WindowState.LATEST);
     expect(window.items).toHaveLength(5);
     [5,6,7,8,9].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 });
@@ -135,19 +149,43 @@ test('history window - reset to latest', async () => {
     const window = new TestableHistoryWindow();
     window.limit = 5;
 
-    await window.fetchPrevious();
+    await window.fetchPrevious(); // [7,8,9]
+    await window.fetchPrevious(); // [4,5,6,7,8]
+    await window.fetchPrevious(); // [1,2,3,4,5]
 
-    expect(window.state).toEqual(WindowState.LATEST_FETCHED);
-
-    await window.fetchPrevious();
-    await window.fetchPrevious();
-    await window.fetchPrevious(); // Move to start
-
-    expect(window.state).toEqual(WindowState.PAST_FETCHED);
+    expect(window.state).toEqual(WindowState.PAST);
 
     await window.resetToLatest();
 
-    expect(window.state).toEqual(WindowState.LATEST_FETCHED);
+    expect(window.state).toEqual(WindowState.LATEST);
     expect(window.items).toHaveLength(3);
     [7,8,9].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
+});
+
+test('history window - trim messages window to limit', async () => {
+    const window = new TestableHistoryWindow();
+    window.limit = 5;
+
+    expect(window.items).toHaveLength(0);
+
+    await window.fetchPrevious(); // [7,8,9]
+
+    expect(window.items).toHaveLength(3);
+
+    await window.fetchPrevious(); // [4,5,6,7,8]
+
+    expect(window.items).toHaveLength(5);
+
+    await window.fetchNext(); // [5,6,7,8,9]
+
+    expect(window.items).toHaveLength(5);
+
+    await window.fetchPrevious(); // [2,3,4,5,6]
+
+    expect(window.items).toHaveLength(5);
+
+    window.simulateNewMessageReceived();
+    window.simulateNewMessageReceived();
+
+    expect(window.items).toHaveLength(5);
 });

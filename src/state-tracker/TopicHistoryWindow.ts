@@ -4,25 +4,26 @@ import {ObservableIndexedObjectCollection} from "../IndexedObjectCollection";
 
 export enum WindowState {
     /**
-     * No messages exist in the history window.
-     */
-    EMPTY,
-
-    /**
      * The latest messages (those received live) are available in the history window, history has not been fetched.
      */
-    LATEST_LIVE,
+    LIVE,
 
     /**
      * The latest messages has been fetched and are available in the history window.
      */
-    LATEST_FETCHED,
+    LATEST,
 
     /**
      * The historical messages have been fetched and are available in the history window.
      * Latest messages are not available and will not be available.
      */
-    PAST_FETCHED,
+    PAST,
+
+    /**
+     * The oldest messages have been fetched and are available in the history window.
+     * Next attempts to fetch previous messages will result with no-op.
+     */
+    OLDEST,
 }
 
 export abstract class TraversableRemoteCollection<T> extends ObservableIndexedObjectCollection<T> {
@@ -39,17 +40,17 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
      */
     public limit: number | null = 50;
 
-    private currentState: WindowState = WindowState.EMPTY;
+    private currentState: WindowState = WindowState.LIVE;
     private fetchingState: WindowState = undefined;
 
     public async resetToLatest(): Promise<void> {
         this.throwIfFetchingInProgress();
 
-        if (this.currentState === WindowState.LATEST_FETCHED) {
+        if (this.currentState === WindowState.LATEST) {
             return;
         }
 
-        this.fetchingState = WindowState.LATEST_FETCHED;
+        this.fetchingState = WindowState.LATEST;
 
         let result;
 
@@ -61,13 +62,17 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
         this.deleteAll();
         this.addItems(result, 'tail');
-        this.currentState = WindowState.LATEST_FETCHED;
+        this.currentState = WindowState.LATEST;
     }
 
     public async fetchPrevious(): Promise<void> {
+        if (this.state === WindowState.OLDEST) {
+            return;
+        }
+
         this.throwIfFetchingInProgress();
 
-        this.fetchingState = WindowState.PAST_FETCHED;
+        this.fetchingState = WindowState.PAST;
 
         let result;
 
@@ -78,17 +83,22 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
         }
 
         if (! result) {
-            return  this.resetToLatest();
+            return this.resetToLatest();
         }
 
-        if (result.length) {
-            this.addItems(result, 'head');
-            await this.refreshFetchedState();
+        if (! result.length) {
+            this.currentState = WindowState.OLDEST;
+            return;
         }
+
+        this.addItems(result, 'head');
+        await this.refreshFetchedState();
     }
 
     public async fetchNext(): Promise<void> {
         this.throwIfFetchingInProgress();
+
+        this.fetchingState = WindowState.PAST;
 
         let result;
 
@@ -118,22 +128,10 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
     protected abstract isLatestItemLoaded(): Promise<boolean>;
 
     protected async refreshFetchedState(): Promise<void> {
-        this.currentState = (await this.isLatestItemLoaded()) ? WindowState.LATEST_FETCHED : WindowState.PAST_FETCHED;
+        this.currentState = (await this.isLatestItemLoaded()) ? WindowState.LATEST : WindowState.PAST;
     }
 
-    protected refreshLiveState(): void {
-        if (this.currentState === WindowState.EMPTY && this.length) {
-            this.currentState = WindowState.LATEST_LIVE;
-        }
-    }
-
-    private throwIfFetchingInProgress(): void {
-        if (this.fetchingState) {
-            throw new Error(`Items fetching in progress: ${WindowState[this.fetchingState]}`);
-        }
-    }
-
-    private addItems(newItems: T[], to: 'head' | 'tail'): void {
+    protected addItems(newItems: T[], to: 'head' | 'tail'): void {
         let result;
 
         if (to === 'head') {
@@ -146,6 +144,12 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
         this.deleteAll();
         this.set(...result);
+    }
+
+    private throwIfFetchingInProgress(): void {
+        if (this.fetchingState) {
+            throw new Error(`Items fetching in progress: ${WindowState[this.fetchingState]}`);
+        }
     }
 
     /**
@@ -197,12 +201,11 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<Message> {
 
     private async handleNewMessage(ev: NewMessage): Promise<void> {
         if (
-            [WindowState.LATEST_FETCHED, WindowState.LATEST_LIVE, WindowState.EMPTY].includes(this.state)
+            [WindowState.LATEST, WindowState.LIVE].includes(this.state)
             && ev.location.roomId === this.roomId
             && ev.location.topicId === this.topicId
         ) {
-            this.set(ev.message);
-            this.refreshLiveState();
+            this.addItems([ev.message], 'tail');
         }
     }
 
