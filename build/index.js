@@ -2320,7 +2320,7 @@ var RoomsManager = /*#__PURE__*/function () {
     key: "handleNewMessage",
     value: function handleNewMessage(ev) {
       var topics = this.topics.get(ev.location.roomId);
-      var topic = topics.get(ev.location.topicId);
+      var topic = topics === null || topics === void 0 ? void 0 : topics.get(ev.location.topicId);
       if (topic) {
         topics.set(RoomsManager_objectSpread(RoomsManager_objectSpread({}, topic), {}, {
           messageCount: topic.messageCount + 1,

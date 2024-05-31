@@ -294,7 +294,7 @@ export class RoomsManager {
 
     private handleNewMessage(ev: NewMessage): void {
         const topics = this.topics.get(ev.location.roomId);
-        const topic = topics.get(ev.location.topicId);
+        const topic = topics?.get(ev.location.topicId);
 
         if (topic) {
             topics.set({
