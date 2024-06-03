@@ -42,11 +42,18 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
     private currentState: WindowState = WindowState.LIVE;
     private fetchingState: WindowState = undefined;
+    public oldestId: string = null;
+
+    public get hasLatest(): boolean {
+        return [WindowState.LATEST, WindowState.LIVE].includes(this.state);
+    }
+
+    public get hasOldest(): boolean {
+        return this.state === WindowState.OLDEST || this.oldestId !== null && this.has(this.oldestId);
+    }
 
     public async resetToLatest(): Promise<void> {
-        this.throwIfFetchingInProgress();
-
-        if (this.currentState === WindowState.LATEST) {
+        if (this.fetchingState || this.currentState === WindowState.LATEST) {
             return;
         }
 
@@ -66,11 +73,9 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
     }
 
     public async fetchPrevious(): Promise<void> {
-        if (this.state === WindowState.OLDEST) {
+        if (this.fetchingState || this.hasOldest) {
             return;
         }
-
-        this.throwIfFetchingInProgress();
 
         this.fetchingState = WindowState.PAST;
 
@@ -87,7 +92,17 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
         }
 
         if (! result.length) {
-            this.currentState = WindowState.OLDEST;
+            const firstItem = this.getAt(0);
+            console.log(firstItem)
+            this.oldestId = firstItem ? this.getId(firstItem) : null;
+
+            await this.refreshFetchedState();
+
+            // LATEST state has priority over OLDEST
+            if (this.currentState === WindowState.PAST) {
+                this.currentState = WindowState.OLDEST;
+            }
+
             return;
         }
 
@@ -96,7 +111,9 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
     }
 
     public async fetchNext(): Promise<void> {
-        this.throwIfFetchingInProgress();
+        if (this.fetchingState || this.hasLatest) {
+            return;
+        }
 
         this.fetchingState = WindowState.PAST;
 
@@ -116,6 +133,7 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
         if (result.length) {
             this.addItems(result, 'tail');
             await this.refreshFetchedState();
+            return;
         }
     }
 
@@ -144,12 +162,6 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
         this.deleteAll();
         this.set(...result);
-    }
-
-    private throwIfFetchingInProgress(): void {
-        if (this.fetchingState) {
-            throw new Error(`Items fetching in progress: ${WindowState[this.fetchingState]}`);
-        }
     }
 
     /**

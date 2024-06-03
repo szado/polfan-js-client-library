@@ -33,6 +33,9 @@ export declare abstract class TraversableRemoteCollection<T> extends ObservableI
     limit: number | null;
     private currentState;
     private fetchingState;
+    oldestId: string;
+    get hasLatest(): boolean;
+    get hasOldest(): boolean;
     resetToLatest(): Promise<void>;
     fetchPrevious(): Promise<void>;
     fetchNext(): Promise<void>;
@@ -42,7 +45,6 @@ export declare abstract class TraversableRemoteCollection<T> extends ObservableI
     protected abstract isLatestItemLoaded(): Promise<boolean>;
     protected refreshFetchedState(): Promise<void>;
     protected addItems(newItems: T[], to: 'head' | 'tail'): void;
-    private throwIfFetchingInProgress;
     /**
      * Return array with messages of count that matching limit.
      */
