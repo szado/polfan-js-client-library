@@ -197,6 +197,7 @@ export class MessagesManager {
 
     private handleSession(ev: Session): void {
         this.followedTopics.deleteAll();
+        this.followedTopicsPromises.forgetAll();
         this.roomHistories.deleteAll();
         ev.state.rooms.forEach(room => this.createHistoryForNewRoom(room));
         this.deferredSession.resolve();

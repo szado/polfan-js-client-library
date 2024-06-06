@@ -35,4 +35,8 @@ export class PromiseRegistry {
     public forget(...keys: string[]): void {
         this.promises.delete(...keys);
     }
+
+    public forgetAll(): void {
+        this.promises.deleteAll();
+    }
 }

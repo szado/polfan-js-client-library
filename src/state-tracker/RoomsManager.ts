@@ -77,7 +77,7 @@ export class RoomsManager {
         }
 
         const members = await this.getMembers(roomId);
-        return members.items.find(member => (member.user?.id ?? member.spaceMember.user.id) === userId);
+        return members?.items.find(member => (member.user?.id ?? member.spaceMember.user.id) === userId);
     }
 
     /**
@@ -264,7 +264,9 @@ export class RoomsManager {
     private handleSession(ev: Session): void {
         this.list.deleteAll();
         this.topics.deleteAll();
+        this.topicsPromises.forgetAll();
         this.members.deleteAll();
+        this.membersPromises.forgetAll();
 
         this.addJoinedRooms(...ev.state.rooms);
 

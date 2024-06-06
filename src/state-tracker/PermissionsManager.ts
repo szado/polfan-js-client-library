@@ -6,7 +6,7 @@ import {
     PermissionOverwritesValue,
     RoleDeleted,
     RoomDeleted,
-    RoomLeft, RoomMember, RoomMemberUpdated,
+    RoomLeft, RoomMember, RoomMemberUpdated, Session,
     SpaceDeleted,
     SpaceLeft, SpaceMember,
     SpaceMemberUpdated,
@@ -53,6 +53,7 @@ export class PermissionsManager extends EventTarget {
         this.tracker.client.on('RoleDeleted', ev => this.handleRoleDeleted(ev));
         this.tracker.client.on('SpaceMemberUpdated', ev => this.handleSpaceMemberUpdated(ev));
         this.tracker.client.on('RoomMemberUpdated', ev => this.handleRoomMemberUpdated(ev));
+        this.tracker.client.on('Session', ev => this.handleSession(ev));
     }
 
     public async getOverwrites(
@@ -302,5 +303,10 @@ export class PermissionsManager extends EventTarget {
         if (location.topicId && ! location.roomId) {
             throw new Error('Corrupted arguments hierarchy');
         }
+    }
+
+    private handleSession(ev: Session): void {
+        this.overwrites.deleteAll();
+        this.overwritesPromises.forgetAll();
     }
 }

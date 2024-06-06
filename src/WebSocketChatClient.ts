@@ -24,7 +24,7 @@ export class WebSocketChatClient extends AbstractChatClient implements Observabl
     public readonly state?: ChatStateTracker;
 
     protected ws: WebSocket|null = null;
-    protected sendQueue: [commandType: keyof CommandsMap, commandData: any][] = [];
+    protected sendQueue: Envelope[] = [];
     protected connectingTimeoutId: any;
     protected authenticated: boolean;
     protected authenticatedResolvers: [() => void, (error: Error) => void];
@@ -64,18 +64,24 @@ export class WebSocketChatClient extends AbstractChatClient implements Observabl
             throw new Error('Cannot send; close or closing connection state');
         }
 
+        const envelope = this.createEnvelope<CommandsMap[CommandType][0]>(commandType, commandData);
+        const promise = this.createPromiseFromCommandEnvelope<CommandType>(envelope);
+
         if (this.ws.readyState === this.ws.CONNECTING || !this.authenticated) {
-            this.sendQueue.push([commandType, commandData] as any);
-            return;
+            this.sendQueue.push(envelope);
+            return promise;
         }
 
         if (this.ws.readyState !== this.ws.OPEN) {
             throw new Error(`Invalid websocket state=${this.ws.readyState}`);
         }
 
-        const envelope = this.createEnvelope<CommandsMap[CommandType][0]>(commandType, commandData);
+        this.sendEnvelope(envelope);
+        return promise;
+    }
+
+    private sendEnvelope(envelope: Envelope): void {
         this.ws.send(JSON.stringify(envelope));
-        return this.createPromiseFromCommandEnvelope<CommandType>(envelope);
     }
 
     private onMessage(event: MessageEvent): void {
@@ -111,8 +117,8 @@ export class WebSocketChatClient extends AbstractChatClient implements Observabl
         // Send awaiting data to server
         let lastDelay = 0;
         for (const dataIndex in this.sendQueue) {
-            const data = this.sendQueue[dataIndex];
-            setTimeout(() => this.send(...data), lastDelay);
+            const envelope = this.sendQueue[dataIndex];
+            setTimeout(() => this.sendEnvelope(envelope), lastDelay);
             lastDelay += this.options.awaitQueueSendDelayMs ?? 500;
         }
         this.sendQueue = [];

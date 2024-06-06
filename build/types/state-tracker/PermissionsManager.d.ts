@@ -37,5 +37,6 @@ export declare class PermissionsManager extends EventTarget {
     private getRootAccessValue;
     private fetchMembersOrFail;
     private validateLocation;
+    private handleSession;
 }
 export {};

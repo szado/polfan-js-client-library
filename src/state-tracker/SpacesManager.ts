@@ -120,7 +120,7 @@ export class SpacesManager {
         }
 
         const members = await this.getMembers(spaceId);
-        return members.items.find(member => member.user.id === userId);
+        return members?.items.find(member => member.user.id === userId);
     }
 
     private handleNewRole(ev: NewRole): void {
@@ -244,7 +244,9 @@ export class SpacesManager {
         this.list.deleteAll();
         this.roles.deleteAll();
         this.rooms.deleteAll();
+        this.roomsPromises.forgetAll();
         this.members.deleteAll();
+        this.membersPromises.forgetAll();
         this.roomIdToSpaceId.deleteAll();
 
         this.addJoinedSpaces(...ev.state.spaces);

@@ -11,4 +11,5 @@ export declare class PromiseRegistry {
     has(key: string): boolean;
     notExist(key: string): boolean;
     forget(...keys: string[]): void;
+    forgetAll(): void;
 }
