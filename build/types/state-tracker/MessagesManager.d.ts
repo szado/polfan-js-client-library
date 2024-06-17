@@ -18,7 +18,7 @@ export declare class MessagesManager {
      * Then you can get them using getRoomFollowedTopics().
      * @see getRoomFollowedTopics
      */
-    cacheSpaceFollowedTopic(spaceId: string): Promise<void>;
+    cacheSpaceFollowedTopics(spaceId: string): Promise<void>;
     /**
      * Get followed topics for the given room.
      * @return Undefined if you are not in the room, collection otherwise.
@@ -30,9 +30,14 @@ export declare class MessagesManager {
     ackRoomFollowedTopics(roomId: string): Promise<void>;
     /**
      * Calculate missed messages from any topic in given room.
-     * @return Undefined if you are not in room, stats object otherwise.
+     * @return Undefined if you are not in room.
      */
     calculateRoomMissedMessages(roomId: string): Promise<number | undefined>;
+    /**
+     * Calculate missed messages from any topic in given space.
+     * @return Undefined if you are not in space.
+     */
+    calculateSpaceMissedMessages(spaceId: string): Promise<number | undefined>;
     /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
      * @internal
