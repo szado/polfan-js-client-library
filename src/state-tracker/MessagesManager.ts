@@ -49,7 +49,7 @@ export class MessagesManager {
      * Then you can get them using getRoomFollowedTopics().
      * @see getRoomFollowedTopics
      */
-    public async cacheSpaceFollowedTopic(spaceId: string): Promise<void> {
+    public async cacheSpaceFollowedTopics(spaceId: string): Promise<void> {
         if (! (await this.tracker.spaces.get()).has(spaceId)) {
             throw new Error(`You are not in space ${spaceId}`);
         }
@@ -118,7 +118,7 @@ export class MessagesManager {
 
     /**
      * Calculate missed messages from any topic in given room.
-     * @return Undefined if you are not in room, stats object otherwise.
+     * @return Undefined if you are not in room.
      */
     public async calculateRoomMissedMessages(roomId: string): Promise<number | undefined> {
         const collection = await this.getRoomFollowedTopics(roomId);
@@ -131,6 +131,25 @@ export class MessagesManager {
         }
 
         return undefined;
+    }
+
+    /**
+     * Calculate missed messages from any topic in given space.
+     * @return Undefined if you are not in space.
+     */
+    public async calculateSpaceMissedMessages(spaceId: string): Promise<number | undefined> {
+        if (! (await this.tracker.spaces.get()).has(spaceId)) {
+            return undefined;
+        }
+
+        const rooms = (await this.tracker.rooms.get()).findBy('spaceId', spaceId);
+        let count = 0;
+
+        for (const room of rooms.items) {
+            count += await this.calculateRoomMissedMessages(room.id);
+        }
+
+        return count;
     }
 
     /**

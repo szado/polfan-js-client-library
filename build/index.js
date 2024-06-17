@@ -1433,9 +1433,9 @@ var MessagesManager = /*#__PURE__*/function () {
      * @see getRoomFollowedTopics
      */
   }, {
-    key: "cacheSpaceFollowedTopic",
+    key: "cacheSpaceFollowedTopics",
     value: function () {
-      var _cacheSpaceFollowedTopic = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee2(spaceId) {
+      var _cacheSpaceFollowedTopics = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee2(spaceId) {
         var roomIds, result;
         return MessagesManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) {
@@ -1484,10 +1484,10 @@ var MessagesManager = /*#__PURE__*/function () {
           }
         }, _callee2, this);
       }));
-      function cacheSpaceFollowedTopic(_x2) {
-        return _cacheSpaceFollowedTopic.apply(this, arguments);
+      function cacheSpaceFollowedTopics(_x2) {
+        return _cacheSpaceFollowedTopics.apply(this, arguments);
       }
-      return cacheSpaceFollowedTopic;
+      return cacheSpaceFollowedTopics;
     }()
     /**
      * Get followed topics for the given room.
@@ -1628,7 +1628,7 @@ var MessagesManager = /*#__PURE__*/function () {
     }()
     /**
      * Calculate missed messages from any topic in given room.
-     * @return Undefined if you are not in room, stats object otherwise.
+     * @return Undefined if you are not in room.
      */
   }, {
     key: "calculateRoomMissedMessages",
@@ -1664,6 +1664,75 @@ var MessagesManager = /*#__PURE__*/function () {
         return _calculateRoomMissedMessages.apply(this, arguments);
       }
       return calculateRoomMissedMessages;
+    }()
+    /**
+     * Calculate missed messages from any topic in given space.
+     * @return Undefined if you are not in space.
+     */
+  }, {
+    key: "calculateSpaceMissedMessages",
+    value: function () {
+      var _calculateSpaceMissedMessages = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee7(spaceId) {
+        var rooms, count, _iterator2, _step2, room;
+        return MessagesManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return this.tracker.spaces.get();
+              case 2:
+                if (_context7.sent.has(spaceId)) {
+                  _context7.next = 4;
+                  break;
+                }
+                return _context7.abrupt("return", undefined);
+              case 4:
+                _context7.next = 6;
+                return this.tracker.rooms.get();
+              case 6:
+                rooms = _context7.sent.findBy('spaceId', spaceId);
+                count = 0;
+                _iterator2 = MessagesManager_createForOfIteratorHelper(rooms.items);
+                _context7.prev = 9;
+                _iterator2.s();
+              case 11:
+                if ((_step2 = _iterator2.n()).done) {
+                  _context7.next = 19;
+                  break;
+                }
+                room = _step2.value;
+                _context7.t0 = count;
+                _context7.next = 16;
+                return this.calculateRoomMissedMessages(room.id);
+              case 16:
+                count = _context7.t0 += _context7.sent;
+              case 17:
+                _context7.next = 11;
+                break;
+              case 19:
+                _context7.next = 24;
+                break;
+              case 21:
+                _context7.prev = 21;
+                _context7.t1 = _context7["catch"](9);
+                _iterator2.e(_context7.t1);
+              case 24:
+                _context7.prev = 24;
+                _iterator2.f();
+                return _context7.finish(24);
+              case 27:
+                return _context7.abrupt("return", count);
+              case 28:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this, [[9, 21, 24, 27]]);
+      }));
+      function calculateSpaceMissedMessages(_x6) {
+        return _calculateSpaceMissedMessages.apply(this, arguments);
+      }
+      return calculateSpaceMissedMessages;
     }()
     /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
@@ -1726,17 +1795,17 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "handleNewTopic",
     value: function () {
-      var _handleNewTopic = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee7(ev) {
+      var _handleNewTopic = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee8(ev) {
         var result, followedTopic;
-        return MessagesManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
+        return MessagesManager_regeneratorRuntime().wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 if (!this.followedTopics.has(ev.roomId)) {
-                  _context7.next = 6;
+                  _context8.next = 6;
                   break;
                 }
-                _context7.next = 3;
+                _context8.next = 3;
                 return this.tracker.client.send('GetFollowedTopics', {
                   location: {
                     roomId: ev.roomId,
@@ -1744,19 +1813,19 @@ var MessagesManager = /*#__PURE__*/function () {
                   }
                 });
               case 3:
-                result = _context7.sent;
+                result = _context8.sent;
                 followedTopic = result.data.followedTopics[0];
                 if (followedTopic) {
                   this.followedTopics.get(ev.roomId).set(followedTopic);
                 }
               case 6:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
-      function handleNewTopic(_x6) {
+      function handleNewTopic(_x7) {
         return _handleNewTopic.apply(this, arguments);
       }
       return handleNewTopic;
@@ -2280,6 +2349,22 @@ var RoomsManager = /*#__PURE__*/function () {
         var room = _rooms[_i2];
         if (room.defaultTopic) {
           this.addJoinedRoomTopics(room.id, room.defaultTopic);
+        }
+        if (room.type === 'Pm' && room.recipients) {
+          // Treat PM recipients as normal room members.
+          // We are registering fake promise in `memberPromises`
+          // because GetMembers are not supported for PM rooms.
+          this.handleRoomMembers({
+            id: room.id,
+            members: room.recipients.map(function (user) {
+              return {
+                user: user,
+                spaceMember: null,
+                roles: null
+              };
+            })
+          });
+          this.membersPromises.register(Promise.resolve(), room.id);
         }
       }
       (_this$list2 = this.list).set.apply(_this$list2, rooms);

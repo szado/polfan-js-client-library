@@ -1,5 +1,6 @@
 import { Topic } from "./Topic";
-export type RoomType = 'Text';
+import { User } from "./User";
+export type RoomType = 'Text' | 'Pm';
 export interface Room {
     id: string;
     spaceId: string | null;
@@ -7,4 +8,5 @@ export interface Room {
     description: string;
     type: RoomType;
     defaultTopic: Topic | null;
+    recipients: User[] | null;
 }

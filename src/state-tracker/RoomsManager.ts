@@ -229,6 +229,17 @@ export class RoomsManager {
             if (room.defaultTopic) {
                 this.addJoinedRoomTopics(room.id, room.defaultTopic);
             }
+
+            if (room.type === 'Pm' && room.recipients) {
+                // Treat PM recipients as normal room members.
+                // We are registering fake promise in `memberPromises`
+                // because GetMembers are not supported for PM rooms.
+                this.handleRoomMembers({
+                    id: room.id,
+                    members: room.recipients.map(user => ({user, spaceMember: null, roles: null})),
+                });
+                this.membersPromises.register(Promise.resolve(), room.id);
+            }
         }
         this.list.set(...rooms);
     }
