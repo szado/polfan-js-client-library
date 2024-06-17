@@ -34,11 +34,6 @@ export declare class MessagesManager {
      */
     calculateRoomMissedMessages(roomId: string): Promise<number | undefined>;
     /**
-     * Calculate missed messages from any topic in given space.
-     * @return Undefined if you are not in space.
-     */
-    calculateSpaceMissedMessages(spaceId: string): Promise<number | undefined>;
-    /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
      * @internal
      */

@@ -774,25 +774,24 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
                 return _context2.abrupt("return", this.resetToLatest());
               case 12:
                 if (result.length) {
-                  _context2.next = 20;
+                  _context2.next = 19;
                   break;
                 }
                 firstItem = this.getAt(0);
-                console.log(firstItem);
                 this.oldestId = firstItem ? this.getId(firstItem) : null;
-                _context2.next = 18;
+                _context2.next = 17;
                 return this.refreshFetchedState();
-              case 18:
+              case 17:
                 // LATEST state has priority over OLDEST
                 if (this.currentState === WindowState.PAST) {
                   this.currentState = WindowState.OLDEST;
                 }
                 return _context2.abrupt("return");
-              case 20:
+              case 19:
                 this.addItems(result, 'head');
-                _context2.next = 23;
+                _context2.next = 22;
                 return this.refreshFetchedState();
-              case 23:
+              case 22:
               case "end":
                 return _context2.stop();
             }
@@ -1666,75 +1665,6 @@ var MessagesManager = /*#__PURE__*/function () {
       return calculateRoomMissedMessages;
     }()
     /**
-     * Calculate missed messages from any topic in given space.
-     * @return Undefined if you are not in space.
-     */
-  }, {
-    key: "calculateSpaceMissedMessages",
-    value: function () {
-      var _calculateSpaceMissedMessages = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee7(spaceId) {
-        var rooms, count, _iterator2, _step2, room;
-        return MessagesManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                _context7.next = 2;
-                return this.tracker.spaces.get();
-              case 2:
-                if (_context7.sent.has(spaceId)) {
-                  _context7.next = 4;
-                  break;
-                }
-                return _context7.abrupt("return", undefined);
-              case 4:
-                _context7.next = 6;
-                return this.tracker.rooms.get();
-              case 6:
-                rooms = _context7.sent.findBy('spaceId', spaceId);
-                count = 0;
-                _iterator2 = MessagesManager_createForOfIteratorHelper(rooms.items);
-                _context7.prev = 9;
-                _iterator2.s();
-              case 11:
-                if ((_step2 = _iterator2.n()).done) {
-                  _context7.next = 19;
-                  break;
-                }
-                room = _step2.value;
-                _context7.t0 = count;
-                _context7.next = 16;
-                return this.calculateRoomMissedMessages(room.id);
-              case 16:
-                count = _context7.t0 += _context7.sent;
-              case 17:
-                _context7.next = 11;
-                break;
-              case 19:
-                _context7.next = 24;
-                break;
-              case 21:
-                _context7.prev = 21;
-                _context7.t1 = _context7["catch"](9);
-                _iterator2.e(_context7.t1);
-              case 24:
-                _context7.prev = 24;
-                _iterator2.f();
-                return _context7.finish(24);
-              case 27:
-                return _context7.abrupt("return", count);
-              case 28:
-              case "end":
-                return _context7.stop();
-            }
-          }
-        }, _callee7, this, [[9, 21, 24, 27]]);
-      }));
-      function calculateSpaceMissedMessages(_x6) {
-        return _calculateSpaceMissedMessages.apply(this, arguments);
-      }
-      return calculateSpaceMissedMessages;
-    }()
-    /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
      * @internal
      */
@@ -1795,17 +1725,17 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "handleNewTopic",
     value: function () {
-      var _handleNewTopic = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee8(ev) {
+      var _handleNewTopic = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee7(ev) {
         var result, followedTopic;
-        return MessagesManager_regeneratorRuntime().wrap(function _callee8$(_context8) {
+        return MessagesManager_regeneratorRuntime().wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 if (!this.followedTopics.has(ev.roomId)) {
-                  _context8.next = 6;
+                  _context7.next = 6;
                   break;
                 }
-                _context8.next = 3;
+                _context7.next = 3;
                 return this.tracker.client.send('GetFollowedTopics', {
                   location: {
                     roomId: ev.roomId,
@@ -1813,19 +1743,19 @@ var MessagesManager = /*#__PURE__*/function () {
                   }
                 });
               case 3:
-                result = _context8.sent;
+                result = _context7.sent;
                 followedTopic = result.data.followedTopics[0];
                 if (followedTopic) {
                   this.followedTopics.get(ev.roomId).set(followedTopic);
                 }
               case 6:
               case "end":
-                return _context8.stop();
+                return _context7.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee7, this);
       }));
-      function handleNewTopic(_x7) {
+      function handleNewTopic(_x6) {
         return _handleNewTopic.apply(this, arguments);
       }
       return handleNewTopic;

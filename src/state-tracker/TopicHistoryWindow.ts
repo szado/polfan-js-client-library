@@ -93,7 +93,6 @@ export abstract class TraversableRemoteCollection<T> extends ObservableIndexedOb
 
         if (! result.length) {
             const firstItem = this.getAt(0);
-            console.log(firstItem)
             this.oldestId = firstItem ? this.getId(firstItem) : null;
 
             await this.refreshFetchedState();

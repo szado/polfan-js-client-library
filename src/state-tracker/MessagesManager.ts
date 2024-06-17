@@ -134,25 +134,6 @@ export class MessagesManager {
     }
 
     /**
-     * Calculate missed messages from any topic in given space.
-     * @return Undefined if you are not in space.
-     */
-    public async calculateSpaceMissedMessages(spaceId: string): Promise<number | undefined> {
-        if (! (await this.tracker.spaces.get()).has(spaceId)) {
-            return undefined;
-        }
-
-        const rooms = (await this.tracker.rooms.get()).findBy('spaceId', spaceId);
-        let count = 0;
-
-        for (const room of rooms.items) {
-            count += await this.calculateRoomMissedMessages(room.id);
-        }
-
-        return count;
-    }
-
-    /**
      * For internal use. If you want to delete the message, execute a proper command on client object.
      * @internal
      */
