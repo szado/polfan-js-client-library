@@ -23,15 +23,6 @@ export abstract class AbstractRestClient {
         uri: string,
         data: any = undefined
     ): Promise<RestClientResponse<ResponseT>> {
-        const headers: any = {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        };
-
-        if (this.options.token) {
-            headers.Authorization = `Bearer ${this.options.token}`;
-        }
-
         let url = this.getUrl(uri);
         let body = undefined;
 
@@ -43,17 +34,34 @@ export abstract class AbstractRestClient {
             }
         }
 
-        const result = await fetch(url, {method, body, headers});
+        const result = await fetch(url, {method, body, headers: this.getHeaders()});
 
+        return this.convertFetchResponse(result);
+    }
+
+    protected getHeaders(): any {
+        const headers: any = {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        };
+
+        if (this.options.token) {
+            headers.Authorization = `Bearer ${this.options.token}`;
+        }
+
+        return headers;
+    }
+
+    protected getUrl(uri: string): string {
+        return this.removeEndingSlash(this.options.url ?? this.defaultUrl) + '/' + this.removeStartingSlash(uri);
+    }
+
+    protected async convertFetchResponse<T>(result: Response): Promise<RestClientResponse<T>> {
         return {
             ok: result.ok,
             status: result.status,
             data: result.headers.get('content-type')?.includes('json') ? await result.json() : await result.text(),
         };
-    }
-
-    protected getUrl(uri: string): string {
-        return this.removeEndingSlash(this.options.url ?? this.defaultUrl) + '/' + this.removeStartingSlash(uri);
     }
 
     private removeStartingSlash(text: string): string {

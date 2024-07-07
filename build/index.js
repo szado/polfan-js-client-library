@@ -50,15 +50,33 @@ __webpack_require__.r(__webpack_exports__);
 // EXPORTS
 __webpack_require__.d(__webpack_exports__, {
   "AuthClient": () => (/* reexport */ AuthClient),
+  "File": () => (/* reexport */ FilesClient_namespaceObject.File),
+  "FilesClient": () => (/* reexport */ FilesClient),
   "IndexedCollection": () => (/* reexport */ IndexedCollection),
   "IndexedObjectCollection": () => (/* reexport */ IndexedObjectCollection),
   "Layer": () => (/* reexport */ Layer),
+  "MyAccountInterface": () => (/* reexport */ AuthClient_namespaceObject.MyAccountInterface),
   "ObservableIndexedCollection": () => (/* reexport */ ObservableIndexedCollection),
   "ObservableIndexedObjectCollection": () => (/* reexport */ ObservableIndexedObjectCollection),
   "PermissionDefinition": () => (/* reexport */ PermissionDefinition),
   "Permissions": () => (/* reexport */ Permissions),
+  "TokenInterface": () => (/* reexport */ AuthClient_namespaceObject.TokenInterface),
   "WebApiChatClient": () => (/* reexport */ WebApiChatClient),
   "WebSocketChatClient": () => (/* reexport */ WebSocketChatClient)
+});
+
+// NAMESPACE OBJECT: ./src/AuthClient.ts
+var AuthClient_namespaceObject = {};
+__webpack_require__.r(AuthClient_namespaceObject);
+__webpack_require__.d(AuthClient_namespaceObject, {
+  "L": () => (AuthClient)
+});
+
+// NAMESPACE OBJECT: ./src/FilesClient.ts
+var FilesClient_namespaceObject = {};
+__webpack_require__.r(FilesClient_namespaceObject);
+__webpack_require__.d(FilesClient_namespaceObject, {
+  "Q": () => (FilesClient)
 });
 
 ;// CONCATENATED MODULE: ./src/EventTarget.ts
@@ -1441,27 +1459,34 @@ var MessagesManager = /*#__PURE__*/function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _context2.next = 2;
+                _context2.t0 = spaceId;
+                if (!_context2.t0) {
+                  _context2.next = 5;
+                  break;
+                }
+                _context2.next = 4;
                 return this.tracker.spaces.get();
-              case 2:
-                if (_context2.sent.has(spaceId)) {
-                  _context2.next = 4;
+              case 4:
+                _context2.t0 = !_context2.sent.has(spaceId);
+              case 5:
+                if (!_context2.t0) {
+                  _context2.next = 7;
                   break;
                 }
                 throw new Error("You are not in space ".concat(spaceId));
-              case 4:
-                _context2.next = 6;
+              case 7:
+                _context2.next = 9;
                 return this.tracker.rooms.get();
-              case 6:
+              case 9:
                 roomIds = _context2.sent.findBy('spaceId', spaceId).items.map(function (room) {
                   return room.id;
                 });
                 if (roomIds.length) {
-                  _context2.next = 9;
+                  _context2.next = 12;
                   break;
                 }
                 return _context2.abrupt("return");
-              case 9:
+              case 12:
                 resultPromise = this.tracker.client.send('GetFollowedTopics', {
                   location: {
                     spaceId: spaceId
@@ -1470,18 +1495,18 @@ var MessagesManager = /*#__PURE__*/function () {
                 roomIds.forEach(function (roomId) {
                   return _this2.followedTopicsPromises.register(resultPromise, roomId);
                 });
-                _context2.next = 13;
+                _context2.next = 16;
                 return resultPromise;
-              case 13:
+              case 16:
                 result = _context2.sent;
                 if (!result.error) {
-                  _context2.next = 16;
+                  _context2.next = 19;
                   break;
                 }
                 throw result.error;
-              case 16:
+              case 19:
                 this.setFollowedTopicsArray(roomIds, result.data.followedTopics);
-              case 17:
+              case 20:
               case "end":
                 return _context2.stop();
             }
@@ -4062,9 +4087,7 @@ var AbstractRestClient = /*#__PURE__*/function () {
     key: "send",
     value: function () {
       var _send = AbstractRestClient_asyncToGenerator( /*#__PURE__*/AbstractRestClient_regeneratorRuntime().mark(function _callee(method, uri) {
-        var _result$headers$get;
         var data,
-          headers,
           url,
           body,
           result,
@@ -4074,13 +4097,6 @@ var AbstractRestClient = /*#__PURE__*/function () {
             switch (_context.prev = _context.next) {
               case 0:
                 data = _args.length > 2 && _args[2] !== undefined ? _args[2] : undefined;
-                headers = {
-                  'Content-Type': 'application/json',
-                  Accept: 'application/json'
-                };
-                if (this.options.token) {
-                  headers.Authorization = "Bearer ".concat(this.options.token);
-                }
                 url = this.getUrl(uri);
                 body = undefined;
                 if (data) {
@@ -4090,39 +4106,16 @@ var AbstractRestClient = /*#__PURE__*/function () {
                     body = JSON.stringify(data);
                   }
                 }
-                _context.next = 8;
+                _context.next = 6;
                 return fetch(url, {
                   method: method,
                   body: body,
-                  headers: headers
+                  headers: this.getHeaders()
                 });
-              case 8:
+              case 6:
                 result = _context.sent;
-                _context.t0 = result.ok;
-                _context.t1 = result.status;
-                if (!((_result$headers$get = result.headers.get('content-type')) !== null && _result$headers$get !== void 0 && _result$headers$get.includes('json'))) {
-                  _context.next = 17;
-                  break;
-                }
-                _context.next = 14;
-                return result.json();
-              case 14:
-                _context.t2 = _context.sent;
-                _context.next = 20;
-                break;
-              case 17:
-                _context.next = 19;
-                return result.text();
-              case 19:
-                _context.t2 = _context.sent;
-              case 20:
-                _context.t3 = _context.t2;
-                return _context.abrupt("return", {
-                  ok: _context.t0,
-                  status: _context.t1,
-                  data: _context.t3
-                });
-              case 22:
+                return _context.abrupt("return", this.convertFetchResponse(result));
+              case 8:
               case "end":
                 return _context.stop();
             }
@@ -4135,11 +4128,68 @@ var AbstractRestClient = /*#__PURE__*/function () {
       return send;
     }()
   }, {
+    key: "getHeaders",
+    value: function getHeaders() {
+      var headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      };
+      if (this.options.token) {
+        headers.Authorization = "Bearer ".concat(this.options.token);
+      }
+      return headers;
+    }
+  }, {
     key: "getUrl",
     value: function getUrl(uri) {
       var _this$options$url;
       return this.removeEndingSlash((_this$options$url = this.options.url) !== null && _this$options$url !== void 0 ? _this$options$url : this.defaultUrl) + '/' + this.removeStartingSlash(uri);
     }
+  }, {
+    key: "convertFetchResponse",
+    value: function () {
+      var _convertFetchResponse = AbstractRestClient_asyncToGenerator( /*#__PURE__*/AbstractRestClient_regeneratorRuntime().mark(function _callee2(result) {
+        var _result$headers$get;
+        return AbstractRestClient_regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.t0 = result.ok;
+                _context2.t1 = result.status;
+                if (!((_result$headers$get = result.headers.get('content-type')) !== null && _result$headers$get !== void 0 && _result$headers$get.includes('json'))) {
+                  _context2.next = 8;
+                  break;
+                }
+                _context2.next = 5;
+                return result.json();
+              case 5:
+                _context2.t2 = _context2.sent;
+                _context2.next = 11;
+                break;
+              case 8:
+                _context2.next = 10;
+                return result.text();
+              case 10:
+                _context2.t2 = _context2.sent;
+              case 11:
+                _context2.t3 = _context2.t2;
+                return _context2.abrupt("return", {
+                  ok: _context2.t0,
+                  status: _context2.t1,
+                  data: _context2.t3
+                });
+              case 13:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+      function convertFetchResponse(_x3) {
+        return _convertFetchResponse.apply(this, arguments);
+      }
+      return convertFetchResponse;
+    }()
   }, {
     key: "removeStartingSlash",
     value: function removeStartingSlash(text) {
@@ -4292,7 +4342,98 @@ var AuthClient = /*#__PURE__*/function (_AbstractRestClient) {
   }]);
   return AuthClient;
 }(AbstractRestClient);
+;// CONCATENATED MODULE: ./src/FilesClient.ts
+function FilesClient_typeof(obj) { "@babel/helpers - typeof"; return FilesClient_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, FilesClient_typeof(obj); }
+function FilesClient_regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ FilesClient_regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == FilesClient_typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) { if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; } return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) { keys.push(key); } return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) { "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); } }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
+function FilesClient_asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+function FilesClient_asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { FilesClient_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { FilesClient_asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+function FilesClient_classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function FilesClient_defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, FilesClient_toPropertyKey(descriptor.key), descriptor); } }
+function FilesClient_createClass(Constructor, protoProps, staticProps) { if (protoProps) FilesClient_defineProperties(Constructor.prototype, protoProps); if (staticProps) FilesClient_defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+function FilesClient_inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) FilesClient_setPrototypeOf(subClass, superClass); }
+function FilesClient_setPrototypeOf(o, p) { FilesClient_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return FilesClient_setPrototypeOf(o, p); }
+function FilesClient_createSuper(Derived) { var hasNativeReflectConstruct = FilesClient_isNativeReflectConstruct(); return function _createSuperInternal() { var Super = FilesClient_getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = FilesClient_getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return FilesClient_possibleConstructorReturn(this, result); }; }
+function FilesClient_possibleConstructorReturn(self, call) { if (call && (FilesClient_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return FilesClient_assertThisInitialized(self); }
+function FilesClient_assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+function FilesClient_isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+function FilesClient_getPrototypeOf(o) { FilesClient_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return FilesClient_getPrototypeOf(o); }
+function FilesClient_defineProperty(obj, key, value) { key = FilesClient_toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function FilesClient_toPropertyKey(arg) { var key = FilesClient_toPrimitive(arg, "string"); return FilesClient_typeof(key) === "symbol" ? key : String(key); }
+function FilesClient_toPrimitive(input, hint) { if (FilesClient_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (FilesClient_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+var FilesClient = /*#__PURE__*/function (_AbstractRestClient) {
+  FilesClient_inherits(FilesClient, _AbstractRestClient);
+  var _super = FilesClient_createSuper(FilesClient);
+  function FilesClient() {
+    var _this;
+    FilesClient_classCallCheck(this, FilesClient);
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    _this = _super.call.apply(_super, [this].concat(args));
+    FilesClient_defineProperty(FilesClient_assertThisInitialized(_this), "defaultUrl", 'https://polfan.pl/webservice/api/files');
+    return _this;
+  }
+  FilesClient_createClass(FilesClient, [{
+    key: "uploadFile",
+    value: function () {
+      var _uploadFile = FilesClient_asyncToGenerator( /*#__PURE__*/FilesClient_regeneratorRuntime().mark(function _callee(file) {
+        var formData, headers, response;
+        return FilesClient_regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                formData = new FormData();
+                formData.append('file', file);
+                headers = this.getHeaders();
+                headers['Content-Type'] = 'multipart/form-data';
+                _context.next = 6;
+                return fetch(this.defaultUrl, {
+                  method: 'POST',
+                  body: formData,
+                  headers: headers
+                });
+              case 6:
+                response = _context.sent;
+                return _context.abrupt("return", this.convertFetchResponse(response));
+              case 8:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+      function uploadFile(_x) {
+        return _uploadFile.apply(this, arguments);
+      }
+      return uploadFile;
+    }()
+  }, {
+    key: "getFileMetadata",
+    value: function () {
+      var _getFileMetadata = FilesClient_asyncToGenerator( /*#__PURE__*/FilesClient_regeneratorRuntime().mark(function _callee2(id) {
+        return FilesClient_regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt("return", this.send('GET', '/' + id));
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+      function getFileMetadata(_x2) {
+        return _getFileMetadata.apply(this, arguments);
+      }
+      return getFileMetadata;
+    }()
+  }]);
+  return FilesClient;
+}(AbstractRestClient);
 ;// CONCATENATED MODULE: ./src/index.ts
+
 
 
 

@@ -6,7 +6,8 @@ import {
     ObservableIndexedCollection,
     ObservableIndexedObjectCollection
 } from "./IndexedObjectCollection";
-import { AuthClient } from "./AuthClient";
+import { AuthClient, MyAccountInterface, TokenInterface } from "./AuthClient";
+import {FilesClient, File} from "./FilesClient";
 import { Permissions, PermissionDefinition, Layer } from "./Permissions";
 import * as ChatTypes from './types/src';
 
@@ -15,7 +16,8 @@ export {
     IndexedObjectCollection, ObservableIndexedObjectCollection,
     Permissions, PermissionDefinition, Layer,
     WebSocketChatClient, WebApiChatClient,
-    AuthClient,
+    AuthClient, MyAccountInterface, TokenInterface,
+    FilesClient, File
 };
 
 export type {ChatTypes};
