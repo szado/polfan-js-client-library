@@ -49,8 +49,8 @@ export class MessagesManager {
      * Then you can get them using getRoomFollowedTopics().
      * @see getRoomFollowedTopics
      */
-    public async cacheSpaceFollowedTopics(spaceId: string): Promise<void> {
-        if (! (await this.tracker.spaces.get()).has(spaceId)) {
+    public async cacheSpaceFollowedTopics(spaceId: string | null): Promise<void> {
+        if (spaceId && ! (await this.tracker.spaces.get()).has(spaceId)) {
             throw new Error(`You are not in space ${spaceId}`);
         }
 
@@ -61,8 +61,11 @@ export class MessagesManager {
             return;
         }
 
-        // If we don't have ack reports for all rooms in space, fetch them
-        const result = await this.tracker.client.send('GetFollowedTopics', {location: {spaceId}});
+        const resultPromise = this.tracker.client.send('GetFollowedTopics', {location: {spaceId}});
+
+        roomIds.forEach(roomId => this.followedTopicsPromises.register(resultPromise, roomId));
+
+        const result = await resultPromise;
 
         if (result.error) {
             throw result.error;

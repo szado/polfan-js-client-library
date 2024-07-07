@@ -1435,7 +1435,8 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "cacheSpaceFollowedTopics",
     value: function () {
       var _cacheSpaceFollowedTopics = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee2(spaceId) {
-        var roomIds, result;
+        var _this2 = this;
+        var roomIds, resultPromise, result;
         return MessagesManager_regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -1461,22 +1462,26 @@ var MessagesManager = /*#__PURE__*/function () {
                 }
                 return _context2.abrupt("return");
               case 9:
-                _context2.next = 11;
-                return this.tracker.client.send('GetFollowedTopics', {
+                resultPromise = this.tracker.client.send('GetFollowedTopics', {
                   location: {
                     spaceId: spaceId
                   }
                 });
-              case 11:
+                roomIds.forEach(function (roomId) {
+                  return _this2.followedTopicsPromises.register(resultPromise, roomId);
+                });
+                _context2.next = 13;
+                return resultPromise;
+              case 13:
                 result = _context2.sent;
                 if (!result.error) {
-                  _context2.next = 14;
+                  _context2.next = 16;
                   break;
                 }
                 throw result.error;
-              case 14:
+              case 16:
                 this.setFollowedTopicsArray(roomIds, result.data.followedTopics);
-              case 15:
+              case 17:
               case "end":
                 return _context2.stop();
             }
@@ -1496,7 +1501,7 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "getRoomFollowedTopics",
     value: function () {
       var _getRoomFollowedTopics = MessagesManager_asyncToGenerator( /*#__PURE__*/MessagesManager_regeneratorRuntime().mark(function _callee4(roomId) {
-        var _this2 = this;
+        var _this3 = this;
         return MessagesManager_regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -1522,7 +1527,7 @@ var MessagesManager = /*#__PURE__*/function () {
                         switch (_context3.prev = _context3.next) {
                           case 0:
                             _context3.next = 2;
-                            return _this2.tracker.client.send('GetFollowedTopics', {
+                            return _this3.tracker.client.send('GetFollowedTopics', {
                               location: {
                                 roomId: roomId
                               }
@@ -1535,7 +1540,7 @@ var MessagesManager = /*#__PURE__*/function () {
                             }
                             throw result.error;
                           case 5:
-                            _this2.setFollowedTopicsArray([roomId], result.data.followedTopics);
+                            _this3.setFollowedTopicsArray([roomId], result.data.followedTopics);
                           case 6:
                           case "end":
                             return _context3.stop();
@@ -1769,12 +1774,12 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      var _this3 = this;
+      var _this4 = this;
       this.followedTopics.deleteAll();
       this.followedTopicsPromises.forgetAll();
       this.roomHistories.deleteAll();
       ev.state.rooms.forEach(function (room) {
-        return _this3.createHistoryForNewRoom(room);
+        return _this4.createHistoryForNewRoom(room);
       });
       this.deferredSession.resolve();
     }
@@ -1807,7 +1812,7 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "setFollowedTopicsArray",
     value: function setFollowedTopicsArray(roomIds, followedTopics) {
-      var _this4 = this;
+      var _this5 = this;
       var roomToTopics = {};
 
       // Reassign followed topics to limit collection change event emit
@@ -1817,14 +1822,14 @@ var MessagesManager = /*#__PURE__*/function () {
         roomToTopics[followedTopic.location.roomId].push(followedTopic);
       });
       roomIds.forEach(function (roomId) {
-        if (!_this4.followedTopics.has(roomId)) {
-          _this4.followedTopics.set([roomId, new ObservableIndexedObjectCollection(function (followedTopic) {
+        if (!_this5.followedTopics.has(roomId)) {
+          _this5.followedTopics.set([roomId, new ObservableIndexedObjectCollection(function (followedTopic) {
             return followedTopic.location.topicId;
           })]);
         }
         if (roomToTopics[roomId]) {
-          var _this4$followedTopics;
-          (_this4$followedTopics = _this4.followedTopics.get(roomId)).set.apply(_this4$followedTopics, MessagesManager_toConsumableArray(roomToTopics[roomId]));
+          var _this5$followedTopics;
+          (_this5$followedTopics = _this5.followedTopics.get(roomId)).set.apply(_this5$followedTopics, MessagesManager_toConsumableArray(roomToTopics[roomId]));
         }
       });
     }
