@@ -1,4 +1,5 @@
 export interface UpdateSpace {
     id: string;
-    name: string;
+    name?: string;
+    systemRoom?: string | null;
 }
