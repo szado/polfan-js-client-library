@@ -13,7 +13,9 @@ export declare abstract class AbstractRestClient {
     protected abstract defaultUrl: string;
     constructor(options: RestClientOptions);
     protected send<ResponseT = any>(method: HttpMethod, uri: string, data?: any): Promise<RestClientResponse<ResponseT>>;
+    protected getAuthHeaders(): any;
     protected getUrl(uri: string): string;
+    protected convertFetchResponse<T>(result: Response): Promise<RestClientResponse<T>>;
     private removeStartingSlash;
     private removeEndingSlash;
 }

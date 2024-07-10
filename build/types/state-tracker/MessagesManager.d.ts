@@ -18,7 +18,7 @@ export declare class MessagesManager {
      * Then you can get them using getRoomFollowedTopics().
      * @see getRoomFollowedTopics
      */
-    cacheSpaceFollowedTopics(spaceId: string): Promise<void>;
+    cacheSpaceFollowedTopics(spaceId: string | null): Promise<void>;
     /**
      * Get followed topics for the given room.
      * @return Undefined if you are not in the room, collection otherwise.

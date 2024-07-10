@@ -34,16 +34,19 @@ export abstract class AbstractRestClient {
             }
         }
 
-        const result = await fetch(url, {method, body, headers: this.getHeaders()});
+        const headers = {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            ...this.getAuthHeaders(),
+        };
+
+        const result = await fetch(url, {method, body, headers});
 
         return this.convertFetchResponse(result);
     }
 
-    protected getHeaders(): any {
-        const headers: any = {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-        };
+    protected getAuthHeaders(): any {
+        const headers = {} as any;
 
         if (this.options.token) {
             headers.Authorization = `Bearer ${this.options.token}`;

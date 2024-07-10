@@ -15,8 +15,7 @@ export class FilesClient extends AbstractRestClient {
         const formData = new FormData();
         formData.append('file', file);
 
-        let headers = this.getHeaders();
-        headers['Content-Type'] = 'multipart/form-data';
+        let headers = {...this.getAuthHeaders(), Accept: 'application/json'};
 
         const response = await fetch(this.defaultUrl, {method: 'POST', body: formData, headers});
 
