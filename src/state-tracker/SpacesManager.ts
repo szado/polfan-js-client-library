@@ -160,10 +160,7 @@ export class SpacesManager {
     }
 
     private handleSpaceUpdated(ev: SpaceUpdated): void {
-        this.list.set({
-            ...this.list.get(ev.space.id),
-            name: ev.space.name,
-        } as Space);
+        this.list.set(ev.space);
     }
 
     private handleSpaceDeleted(ev: SpaceDeleted | SpaceLeft): void {

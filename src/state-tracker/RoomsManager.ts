@@ -213,11 +213,7 @@ export class RoomsManager {
     }
 
     private handleRoomUpdated(ev: RoomUpdated): void {
-        this.list.set({
-            ...this.list.get(ev.room.id),
-            name: ev.room.name,
-            description: ev.room.description,
-        } as Room);
+        this.list.set(ev.room);
     }
 
     private handleRoomDeleted(ev: RoomDeleted): void {

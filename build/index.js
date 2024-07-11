@@ -114,6 +114,7 @@ var EventTarget = /*#__PURE__*/function () {
         return this;
       }
       this.events.get(eventName).splice(index, 1);
+      return this;
     }
   }, {
     key: "emit",
@@ -2288,10 +2289,7 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "handleRoomUpdated",
     value: function handleRoomUpdated(ev) {
-      this.list.set(RoomsManager_objectSpread(RoomsManager_objectSpread({}, this.list.get(ev.room.id)), {}, {
-        name: ev.room.name,
-        description: ev.room.description
-      }));
+      this.list.set(ev.room);
     }
   }, {
     key: "handleRoomDeleted",
@@ -2779,9 +2777,7 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceUpdated",
     value: function handleSpaceUpdated(ev) {
-      this.list.set(SpacesManager_objectSpread(SpacesManager_objectSpread({}, this.list.get(ev.space.id)), {}, {
-        name: ev.space.name
-      }));
+      this.list.set(ev.space);
     }
   }, {
     key: "handleSpaceDeleted",

@@ -27,6 +27,7 @@ export class EventTarget<EventT = any> implements ObservableInterface<EventT> {
             return this;
         }
         this.events.get(eventName).splice(index, 1);
+        return this;
     }
 
     public emit(eventName: string, event?: EventT): this {
