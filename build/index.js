@@ -974,13 +974,13 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
    * @internal
    */
   TopicHistoryWindow_createClass(TopicHistoryWindow, [{
-    key: "_setTopicReference",
-    value: function _setTopicReference(ref) {
-      var refMessage = this.get(ref.messageId);
+    key: "_updateMessageReference",
+    value: function _updateMessageReference(refTopic) {
+      var refMessage = this.get(refTopic.refMessage.id);
       if (refMessage) {
         // Update referenced topic ID in message
         this.set(_objectSpread(_objectSpread({}, refMessage), {}, {
-          topicRef: ref.topicId
+          topicRef: refTopic.id
         }));
       }
     }
@@ -992,7 +992,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                if ([WindowState.LATEST, WindowState.LIVE].includes(this.state) && ev.location.roomId === this.roomId && ev.location.topicId === this.topicId) {
+                if ([WindowState.LATEST, WindowState.LIVE].includes(this.state) && ev.message.location.roomId === this.roomId && ev.message.location.topicId === this.topicId) {
                   this.addItems([ev.message], 'tail');
                 }
               case 1:
@@ -1342,13 +1342,9 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
       this.historyWindows.set([topic.id, new TopicHistoryWindow(this.room.id, topic.id, this.tracker)]);
 
       // If new topic refers to some message from this room, update other structures
-      if (topic.messageRef) {
-        var refHistoryWindow = this.historyWindows.get(topic.messageRef.topicId);
-        refHistoryWindow._setTopicReference({
-          topicId: topic.id,
-          // Reverse the reference
-          messageId: topic.messageRef.messageId
-        });
+      if (topic.refMessage) {
+        var refHistoryWindow = this.historyWindows.get(topic.refMessage.location.topicId);
+        refHistoryWindow === null || refHistoryWindow === void 0 ? void 0 : refHistoryWindow._updateMessageReference(topic);
       }
     }
   }]);
@@ -1813,8 +1809,8 @@ var MessagesManager = /*#__PURE__*/function () {
     key: "updateLocallyFollowedTopicOnNewMessage",
     value: function updateLocallyFollowedTopicOnNewMessage(ev) {
       var _this$tracker$me;
-      var roomFollowedTopics = this.followedTopics.get(ev.location.roomId);
-      var followedTopic = roomFollowedTopics === null || roomFollowedTopics === void 0 ? void 0 : roomFollowedTopics.get(ev.location.topicId);
+      var roomFollowedTopics = this.followedTopics.get(ev.message.location.roomId);
+      var followedTopic = roomFollowedTopics === null || roomFollowedTopics === void 0 ? void 0 : roomFollowedTopics.get(ev.message.location.topicId);
       if (!roomFollowedTopics || !followedTopic) {
         // Skip if we don't follow this room or targeted topic
         return;
@@ -2388,8 +2384,8 @@ var RoomsManager = /*#__PURE__*/function () {
   }, {
     key: "handleNewMessage",
     value: function handleNewMessage(ev) {
-      var topics = this.topics.get(ev.location.roomId);
-      var topic = topics === null || topics === void 0 ? void 0 : topics.get(ev.location.topicId);
+      var topics = this.topics.get(ev.message.location.roomId);
+      var topic = topics === null || topics === void 0 ? void 0 : topics.get(ev.message.location.topicId);
       if (topic) {
         topics.set(RoomsManager_objectSpread(RoomsManager_objectSpread({}, topic), {}, {
           messageCount: topic.messageCount + 1,

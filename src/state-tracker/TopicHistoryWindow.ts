@@ -1,4 +1,4 @@
-import {Message, MessageReference, NewMessage, Session, Topic} from "../types/src";
+import {Message, NewMessage, Session, Topic} from "../types/src";
 import {ChatStateTracker} from "./ChatStateTracker";
 import {ObservableIndexedObjectCollection} from "../IndexedObjectCollection";
 
@@ -201,20 +201,20 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<Message> {
      * For internal use.
      * @internal
      */
-    public _setTopicReference(ref: MessageReference): void {
-        const refMessage = this.get(ref.messageId);
+    public _updateMessageReference(refTopic: Topic): void {
+        const refMessage = this.get(refTopic.refMessage.id);
 
         if (refMessage) {
             // Update referenced topic ID in message
-            this.set({...refMessage, topicRef: ref.topicId});
+            this.set({...refMessage, topicRef: refTopic.id});
         }
     }
 
     private async handleNewMessage(ev: NewMessage): Promise<void> {
         if (
             [WindowState.LATEST, WindowState.LIVE].includes(this.state)
-            && ev.location.roomId === this.roomId
-            && ev.location.topicId === this.topicId
+            && ev.message.location.roomId === this.roomId
+            && ev.message.location.topicId === this.topicId
         ) {
             this.addItems([ev.message], 'tail');
         }

@@ -66,13 +66,9 @@ export class RoomMessagesHistory {
         this.historyWindows.set([topic.id, new TopicHistoryWindow(this.room.id, topic.id, this.tracker)]);
 
         // If new topic refers to some message from this room, update other structures
-        if (topic.messageRef) {
-            const refHistoryWindow = this.historyWindows.get(topic.messageRef.topicId);
-
-            refHistoryWindow._setTopicReference({
-                topicId: topic.id, // Reverse the reference
-                messageId: topic.messageRef.messageId,
-            });
+        if (topic.refMessage) {
+            const refHistoryWindow = this.historyWindows.get(topic.refMessage.location.topicId);
+            refHistoryWindow?._updateMessageReference(topic);
         }
     }
 }

@@ -207,8 +207,8 @@ export class MessagesManager {
     }
 
     private updateLocallyFollowedTopicOnNewMessage(ev: NewMessage): void {
-        const roomFollowedTopics = this.followedTopics.get(ev.location.roomId);
-        const followedTopic = roomFollowedTopics?.get(ev.location.topicId);
+        const roomFollowedTopics = this.followedTopics.get(ev.message.location.roomId);
+        const followedTopic = roomFollowedTopics?.get(ev.message.location.topicId);
 
         if (! roomFollowedTopics || ! followedTopic) {
             // Skip if we don't follow this room or targeted topic

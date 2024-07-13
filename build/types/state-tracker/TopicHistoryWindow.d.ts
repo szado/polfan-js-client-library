@@ -1,4 +1,4 @@
-import { Message, MessageReference } from "../types/src";
+import { Message, Topic } from "../types/src";
 import { ChatStateTracker } from "./ChatStateTracker";
 import { ObservableIndexedObjectCollection } from "../IndexedObjectCollection";
 export declare enum WindowState {
@@ -63,7 +63,7 @@ export declare class TopicHistoryWindow extends TraversableRemoteCollection<Mess
      * For internal use.
      * @internal
      */
-    _setTopicReference(ref: MessageReference): void;
+    _updateMessageReference(refTopic: Topic): void;
     private handleNewMessage;
     private handleSession;
     protected fetchItemsAfter(): Promise<Message[] | null>;
