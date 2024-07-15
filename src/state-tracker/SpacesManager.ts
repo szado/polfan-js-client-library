@@ -147,6 +147,7 @@ export class SpacesManager {
 
     private async handleRoomDeleted(ev: RoomDeleted): Promise<void> {
         const spaceId = this.roomIdToSpaceId.get(ev.id);
+        this.roomIdToSpaceId.delete(ev.id);
 
         if (! spaceId) {
             return;
@@ -230,6 +231,7 @@ export class SpacesManager {
     private handleSpaceRooms(ev: SpaceRooms): void {
         if (! this.rooms.has(ev.id)) {
             this.rooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
+            ev.summaries.forEach(summary => this.roomIdToSpaceId.set([summary.id, ev.id]));
         }
     }
 
