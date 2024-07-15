@@ -148,8 +148,27 @@ export class SpacesManager {
     private async handleRoomDeleted(ev: RoomDeleted): Promise<void> {
         const spaceId = this.roomIdToSpaceId.get(ev.id);
 
-        if (spaceId && this.rooms.has(spaceId)) {
-            this.rooms.get(spaceId).delete(ev.id);
+        if (! spaceId) {
+            return;
+        }
+
+        const space = this.list.get(spaceId);
+        let spaceChanged = false;
+
+        this.rooms.get(spaceId)?.delete(ev.id);
+
+        if (space.systemRoom === ev.id) {
+            space.systemRoom = null;
+            spaceChanged = true;
+        }
+
+        if (space.defaultRooms.includes(ev.id)) {
+            space.defaultRooms = space.defaultRooms.filter(roomId => roomId !== ev.id);
+            spaceChanged = true;
+        }
+
+        if (spaceChanged) {
+            this.list.set(space);
         }
     }
 

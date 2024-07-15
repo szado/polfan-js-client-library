@@ -2742,16 +2742,36 @@ var SpacesManager = /*#__PURE__*/function () {
     key: "handleRoomDeleted",
     value: function () {
       var _handleRoomDeleted = SpacesManager_asyncToGenerator( /*#__PURE__*/SpacesManager_regeneratorRuntime().mark(function _callee8(ev) {
-        var spaceId;
+        var _this$rooms$get2;
+        var spaceId, space, spaceChanged;
         return SpacesManager_regeneratorRuntime().wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
                 spaceId = this.roomIdToSpaceId.get(ev.id);
-                if (spaceId && this.rooms.has(spaceId)) {
-                  this.rooms.get(spaceId)["delete"](ev.id);
+                if (spaceId) {
+                  _context8.next = 3;
+                  break;
                 }
-              case 2:
+                return _context8.abrupt("return");
+              case 3:
+                space = this.list.get(spaceId);
+                spaceChanged = false;
+                (_this$rooms$get2 = this.rooms.get(spaceId)) === null || _this$rooms$get2 === void 0 ? void 0 : _this$rooms$get2["delete"](ev.id);
+                if (space.systemRoom === ev.id) {
+                  space.systemRoom = null;
+                  spaceChanged = true;
+                }
+                if (space.defaultRooms.includes(ev.id)) {
+                  space.defaultRooms = space.defaultRooms.filter(function (roomId) {
+                    return roomId !== ev.id;
+                  });
+                  spaceChanged = true;
+                }
+                if (spaceChanged) {
+                  this.list.set(space);
+                }
+              case 9:
               case "end":
                 return _context8.stop();
             }
@@ -2778,8 +2798,8 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceDeleted",
     value: function handleSpaceDeleted(ev) {
-      var _this$rooms$get$map, _this$rooms$get2, _this$roomIdToSpaceId;
-      var roomIds = (_this$rooms$get$map = (_this$rooms$get2 = this.rooms.get(ev.id)) === null || _this$rooms$get2 === void 0 ? void 0 : _this$rooms$get2.map(function (item) {
+      var _this$rooms$get$map, _this$rooms$get3, _this$roomIdToSpaceId;
+      var roomIds = (_this$rooms$get$map = (_this$rooms$get3 = this.rooms.get(ev.id)) === null || _this$rooms$get3 === void 0 ? void 0 : _this$rooms$get3.map(function (item) {
         return item.id;
       })) !== null && _this$rooms$get$map !== void 0 ? _this$rooms$get$map : [];
       (_this$roomIdToSpaceId = this.roomIdToSpaceId)["delete"].apply(_this$roomIdToSpaceId, SpacesManager_toConsumableArray(roomIds));
