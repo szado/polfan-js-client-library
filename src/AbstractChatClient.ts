@@ -72,7 +72,7 @@ import {
     Messages,
     GetMessages,
     Topics,
-    GetTopics,
+    GetTopics, TopicUpdated, UpdateTopic,
 } from "./types/src/index";
 import {EventTarget} from "./EventTarget";
 
@@ -179,6 +179,7 @@ export type EventsMap = {
     FollowedTopicUpdated: FollowedTopicUpdated,
     Messages: Messages,
     Topics: Topics,
+    TopicUpdated: TopicUpdated,
 };
 
 /**
@@ -224,4 +225,5 @@ export type CommandsMap = {
     GetFollowedTopics: [GetFollowedTopics, EventsMap['FollowedTopics']],
     GetMessages: [GetMessages, EventsMap['Messages']],
     GetTopics: [GetTopics, EventsMap['Topics']],
+    UpdateTopic: [UpdateTopic, EventsMap['TopicUpdated']],
 }

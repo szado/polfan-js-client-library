@@ -8,7 +8,7 @@ import {
     RoomMemberUpdated, RoomUpdated, Session, SpaceDeleted, SpaceLeft, SpaceMemberLeft,
     SpaceMemberUpdated,
     Topic,
-    TopicDeleted,
+    TopicDeleted, TopicUpdated,
     UserUpdated,
 } from "../types/src";
 import {ChatStateTracker} from "./ChatStateTracker";
@@ -35,6 +35,7 @@ export class RoomsManager {
         this.tracker.client.on('RoomLeft', ev => this.handleRoomLeft(ev));
         this.tracker.client.on('RoomUpdated', ev => this.handleRoomUpdated(ev));
         this.tracker.client.on('RoomDeleted', ev => this.handleRoomDeleted(ev));
+        this.tracker.client.on('TopicUpdated', ev => this.handleTopicUpdated(ev));
         this.tracker.client.on('RoomMemberJoined', ev => this.handleRoomMemberJoined(ev));
         this.tracker.client.on('RoomMemberLeft', ev => this.handleRoomMemberLeft(ev));
         this.tracker.client.on('RoomMembers', ev => this.handleRoomMembers(ev));
@@ -218,6 +219,19 @@ export class RoomsManager {
 
     private handleRoomDeleted(ev: RoomDeleted): void {
         this.deleteRoom(ev.id);
+    }
+
+    private handleTopicUpdated(ev: TopicUpdated): void {
+        const room = this.list.get(ev.location.roomId);
+
+        if (this.topics.get(ev.location.roomId)?.has(ev.topic.id)) {
+            this.topics.get(ev.location.roomId).set(ev.topic);
+        }
+
+        if (room.defaultTopic.id === ev.topic.id) {
+            room.defaultTopic = ev.topic;
+            this.list.set(room);
+        }
     }
 
     private addJoinedRooms(...rooms: Room[]): void {

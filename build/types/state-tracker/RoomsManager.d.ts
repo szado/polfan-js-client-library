@@ -41,6 +41,7 @@ export declare class RoomsManager {
     private handleRoomJoined;
     private handleRoomUpdated;
     private handleRoomDeleted;
+    private handleTopicUpdated;
     private addJoinedRooms;
     private handleRoomLeft;
     private handleRoomMemberJoined;

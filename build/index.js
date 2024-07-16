@@ -1921,6 +1921,9 @@ var RoomsManager = /*#__PURE__*/function () {
     this.tracker.client.on('RoomDeleted', function (ev) {
       return _this.handleRoomDeleted(ev);
     });
+    this.tracker.client.on('TopicUpdated', function (ev) {
+      return _this.handleTopicUpdated(ev);
+    });
     this.tracker.client.on('RoomMemberJoined', function (ev) {
       return _this.handleRoomMemberJoined(ev);
     });
@@ -2291,6 +2294,19 @@ var RoomsManager = /*#__PURE__*/function () {
     key: "handleRoomDeleted",
     value: function handleRoomDeleted(ev) {
       this.deleteRoom(ev.id);
+    }
+  }, {
+    key: "handleTopicUpdated",
+    value: function handleTopicUpdated(ev) {
+      var _this$topics$get3;
+      var room = this.list.get(ev.location.roomId);
+      if ((_this$topics$get3 = this.topics.get(ev.location.roomId)) !== null && _this$topics$get3 !== void 0 && _this$topics$get3.has(ev.topic.id)) {
+        this.topics.get(ev.location.roomId).set(ev.topic);
+      }
+      if (room.defaultTopic.id === ev.topic.id) {
+        room.defaultTopic = ev.topic;
+        this.list.set(room);
+      }
     }
   }, {
     key: "addJoinedRooms",
@@ -2749,12 +2765,13 @@ var SpacesManager = /*#__PURE__*/function () {
             switch (_context8.prev = _context8.next) {
               case 0:
                 spaceId = this.roomIdToSpaceId.get(ev.id);
+                this.roomIdToSpaceId["delete"](ev.id);
                 if (spaceId) {
-                  _context8.next = 3;
+                  _context8.next = 4;
                   break;
                 }
                 return _context8.abrupt("return");
-              case 3:
+              case 4:
                 space = this.list.get(spaceId);
                 spaceChanged = false;
                 (_this$rooms$get2 = this.rooms.get(spaceId)) === null || _this$rooms$get2 === void 0 ? void 0 : _this$rooms$get2["delete"](ev.id);
@@ -2771,7 +2788,7 @@ var SpacesManager = /*#__PURE__*/function () {
                 if (spaceChanged) {
                   this.list.set(space);
                 }
-              case 9:
+              case 10:
               case "end":
                 return _context8.stop();
             }
@@ -2853,8 +2870,12 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSpaceRooms",
     value: function handleSpaceRooms(ev) {
+      var _this4 = this;
       if (!this.rooms.has(ev.id)) {
         this.rooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
+        ev.summaries.forEach(function (summary) {
+          return _this4.roomIdToSpaceId.set([summary.id, ev.id]);
+        });
       }
     }
   }, {
