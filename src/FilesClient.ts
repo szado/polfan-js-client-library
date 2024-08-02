@@ -3,9 +3,11 @@ import {AbstractRestClient, RestClientResponse} from "./AbstractRestClient";
 export interface File {
     id: string;
     url: string;
+    original_url: string;
     original_name: string;
     mime_type: string;
     size: number;
+    image_dimensions: [number, number] | null;
 }
 
 export class FilesClient extends AbstractRestClient {
