@@ -73,6 +73,7 @@ import {
     GetMessages,
     Topics,
     GetTopics, TopicUpdated, UpdateTopic,
+    GetDiscoverableSpaces, DiscoverableSpaces,
 } from "./types/src/index";
 import {EventTarget} from "./EventTarget";
 
@@ -146,6 +147,7 @@ export type EventsMap = {
     PermissionOverwriteTargets: PermissionOverwriteTargets,
     Owners: Owners,
     // Space events
+    DiscoverableSpaces: DiscoverableSpaces,
     SpaceJoined: SpaceJoined,
     SpaceLeft: SpaceLeft,
     SpaceMemberJoined: SpaceMemberJoined,
@@ -196,6 +198,7 @@ export type CommandsMap = {
     CreateOwner: [CreateOwner, EventsMap['Owners']],
     DeleteOwner: [CreateOwner, EventsMap['Owners']],
     // Space commands
+    GetDiscoverableSpaces: [GetDiscoverableSpaces, EventsMap['DiscoverableSpaces']],
     JoinSpace: [JoinSpace, EventsMap['SpaceJoined']],
     LeaveSpace: [LeaveSpace, EventsMap['SpaceLeft']],
     CreateSpace: [CreateSpace, EventsMap['SpaceJoined']],
