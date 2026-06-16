@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "devana_client"
+version = "0.1.0"
+description = "Asynchronous Python client library for Devana"
+readme = "README.md"
+authors = [{ name = "Jules", email = "jules@example.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp>=3.8.0",
+    "websockets>=10.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/example/devana"
