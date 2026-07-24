@@ -547,6 +547,53 @@ var ObservableIndexedObjectCollection = /*#__PURE__*/function (_IndexedObjectCol
         });
       }
     }
+
+    /**
+     * Bring the collection to exactly match the provided items: upsert every
+     * provided item and remove any existing item whose id is not present in the
+     * provided set. Emits at most a single `change` event describing both the
+     * set and the deleted ids, so bound consumers can update in place without
+     * ever observing an intermediate empty state (unlike deleteAll + set).
+     */
+  }, {
+    key: "reconcile",
+    value: function reconcile() {
+      var _this8 = this,
+        _this$_items3;
+      for (var _len8 = arguments.length, items = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        items[_key8] = arguments[_key8];
+      }
+      var incomingIds = new Set(items.map(function (item) {
+        return _this8.getId(item);
+      }));
+      var deletedItems = [];
+      var _iterator3 = _createForOfIteratorHelper(this.items),
+        _step3;
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var existing = _step3.value;
+          var _id2 = this.getId(existing);
+          if (!incomingIds.has(_id2)) {
+            deletedItems.push(_id2);
+          }
+        }
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
+      if (!items.length && !deletedItems.length) {
+        return;
+      }
+      (_this$_items3 = this._items)["delete"].apply(_this$_items3, deletedItems);
+      _superPropGet(ObservableIndexedObjectCollection, "set", this, 3)(items);
+      this.eventTarget.emit('change', {
+        setItems: items.map(function (item) {
+          return _this8.getId(item);
+        }),
+        deletedItems: deletedItems
+      });
+    }
   }, {
     key: "createMirror",
     value: function createMirror() {
@@ -781,11 +828,15 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     key: "resetToLatest",
     value: function () {
       var _resetToLatest = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var result, originalState;
+        var force,
+          result,
+          originalState,
+          _args = arguments;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.p = _context.n) {
             case 0:
-              if (!(this.internalState.ongoing || this.internalState.current === WindowState.LATEST)) {
+              force = _args.length > 0 && _args[0] !== undefined ? _args[0] : false;
+              if (!(this.internalState.ongoing || !force && this.internalState.current === WindowState.LATEST)) {
                 _context.n = 1;
                 break;
               }
@@ -1133,16 +1184,19 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
     key: "resetToLatest",
     value: function () {
       var _resetToLatest2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
+        var force,
+          _args7 = arguments;
         return _regenerator().w(function (_context7) {
           while (1) switch (_context7.n) {
             case 0:
+              force = _args7.length > 0 && _args7[0] !== undefined ? _args7[0] : false;
               if (!this.internalState.traverseLock) {
                 _context7.n = 1;
                 break;
               }
               return _context7.a(2);
             case 1:
-              return _context7.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resetToLatest", this, 3)([]));
+              return _context7.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resetToLatest", this, 3)([force]));
           }
         }, _callee7, this);
       }));
@@ -1618,17 +1672,78 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
         return _getMessagesWindow.apply(this, arguments);
       }
       return getMessagesWindow;
-    }())
+    }()
+    /**
+     * Re-synchronise this room's history after a reconnect without discarding
+     * the existing window objects (which would blank the UI and, for ephemeral
+     * rooms, permanently drop live-only history).
+     *
+     * The window bindings are preserved; only windows that the application had
+     * actually pulled to the latest page (state === LATEST) are refreshed, with
+     * a single resetToLatest instead of a chain of catch-up requests. Windows
+     * that were never pulled (LIVE) or belong to an ephemeral room are left
+     * untouched so their in-memory context survives the reconnect.
+     */
+    )
   }, {
-    key: "handleRoomUpdated",
-    value: function () {
-      var _handleRoomUpdated = RoomMessagesHistory_asyncToGenerator(/*#__PURE__*/RoomMessagesHistory_regenerator().m(function _callee2(ev) {
+    key: "resync",
+    value: (function () {
+      var _resync = RoomMessagesHistory_asyncToGenerator(/*#__PURE__*/RoomMessagesHistory_regenerator().m(function _callee2(room) {
         var _i, _Array$from, _Array$from$_i, window;
         return RoomMessagesHistory_regenerator().w(function (_context2) {
           while (1) switch (_context2.n) {
             case 0:
-              if (!(this.room.id === ev.room.id)) {
+              this.room = room;
+              this.updateTraverseLock(room);
+              if (this.room.defaultTopic) {
+                this.createHistoryWindowForTopic(this.room.defaultTopic);
+              }
+              _i = 0, _Array$from = Array.from(this.historyWindows.items);
+            case 1:
+              if (!(_i < _Array$from.length)) {
+                _context2.n = 5;
+                break;
+              }
+              _Array$from$_i = RoomMessagesHistory_slicedToArray(_Array$from[_i], 2), window = _Array$from$_i[1];
+              _context2.n = 2;
+              return window.setTraverseLock(this.traverseLock);
+            case 2:
+              if (!this.traverseLock) {
                 _context2.n = 3;
+                break;
+              }
+              return _context2.a(3, 4);
+            case 3:
+              if (!(window.state === WindowState.LATEST)) {
+                _context2.n = 4;
+                break;
+              }
+              _context2.n = 4;
+              return window.resetToLatest(true);
+            case 4:
+              _i++;
+              _context2.n = 1;
+              break;
+            case 5:
+              return _context2.a(2);
+          }
+        }, _callee2, this);
+      }));
+      function resync(_x2) {
+        return _resync.apply(this, arguments);
+      }
+      return resync;
+    }())
+  }, {
+    key: "handleRoomUpdated",
+    value: function () {
+      var _handleRoomUpdated = RoomMessagesHistory_asyncToGenerator(/*#__PURE__*/RoomMessagesHistory_regenerator().m(function _callee3(ev) {
+        var _i2, _Array$from2, _Array$from2$_i, window;
+        return RoomMessagesHistory_regenerator().w(function (_context3) {
+          while (1) switch (_context3.n) {
+            case 0:
+              if (!(this.room.id === ev.room.id)) {
+                _context3.n = 3;
                 break;
               }
               this.room = ev.room;
@@ -1636,25 +1751,25 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
               if (ev.room.defaultTopic) {
                 this.createHistoryWindowForTopic(ev.room.defaultTopic);
               }
-              _i = 0, _Array$from = Array.from(this.historyWindows.items);
+              _i2 = 0, _Array$from2 = Array.from(this.historyWindows.items);
             case 1:
-              if (!(_i < _Array$from.length)) {
-                _context2.n = 3;
+              if (!(_i2 < _Array$from2.length)) {
+                _context3.n = 3;
                 break;
               }
-              _Array$from$_i = RoomMessagesHistory_slicedToArray(_Array$from[_i], 2), window = _Array$from$_i[1];
-              _context2.n = 2;
+              _Array$from2$_i = RoomMessagesHistory_slicedToArray(_Array$from2[_i2], 2), window = _Array$from2$_i[1];
+              _context3.n = 2;
               return window.setTraverseLock(this.traverseLock);
             case 2:
-              _i++;
-              _context2.n = 1;
+              _i2++;
+              _context3.n = 1;
               break;
             case 3:
-              return _context2.a(2);
+              return _context3.a(2);
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
-      function handleRoomUpdated(_x2) {
+      function handleRoomUpdated(_x3) {
         return _handleRoomUpdated.apply(this, arguments);
       }
       return handleRoomUpdated;
@@ -1718,6 +1833,9 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
 }();
 ;// ./src/state-tracker/MessagesManager.ts
 function MessagesManager_typeof(o) { "@babel/helpers - typeof"; return MessagesManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, MessagesManager_typeof(o); }
+function MessagesManager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = MessagesManager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function MessagesManager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return MessagesManager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? MessagesManager_arrayLikeToArray(r, a) : void 0; } }
+function MessagesManager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function MessagesManager_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return MessagesManager_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (MessagesManager_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, MessagesManager_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, MessagesManager_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), MessagesManager_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", MessagesManager_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), MessagesManager_regeneratorDefine2(u), MessagesManager_regeneratorDefine2(u, o, "Generator"), MessagesManager_regeneratorDefine2(u, n, function () { return this; }), MessagesManager_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (MessagesManager_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function MessagesManager_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } MessagesManager_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { MessagesManager_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, MessagesManager_regeneratorDefine2(e, r, n, t); }
 function MessagesManager_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -1840,11 +1958,38 @@ var MessagesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      var _this2 = this;
-      this.roomHistories.deleteAll();
-      ev.state.rooms.forEach(function (room) {
-        return _this2.createHistoryForNewRoom(room);
-      });
+      var stateRoomIds = new Set(ev.state.rooms.map(function (room) {
+        return room.id;
+      }));
+
+      // Drop histories only for rooms that no longer exist server-side.
+      for (var _i = 0, _Array$from = Array.from(this.roomHistories.items.keys()); _i < _Array$from.length; _i++) {
+        var roomId = _Array$from[_i];
+        if (!stateRoomIds.has(roomId)) {
+          this.roomHistories["delete"](roomId);
+        }
+      }
+
+      // Keep existing histories (preserving loaded messages and, crucially,
+      // live-only ephemeral history), create histories for newly joined
+      // rooms, and resync survivors against the fresh room snapshot.
+      var _iterator = MessagesManager_createForOfIteratorHelper(ev.state.rooms),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var room = _step.value;
+          var history = this.roomHistories.get(room.id);
+          if (history) {
+            void history.resync(room);
+          } else {
+            this.createHistoryForNewRoom(room);
+          }
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
       this.deferredSession.resolve();
     }
   }]);
@@ -1889,6 +2034,11 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
     FollowedTopicsManager_defineProperty(_this, "followedTopicsPromises", new PromiseRegistry());
     FollowedTopicsManager_defineProperty(_this, "deferredSession", new DeferredTask());
     FollowedTopicsManager_defineProperty(_this, "summariesCache", new Map());
+    /**
+     * Rooms whose cached followed-topics are stale after a reconnect and must
+     * be refetched (and reconciled in place) the next time they are accessed.
+     */
+    FollowedTopicsManager_defineProperty(_this, "staleRooms", new Set());
     _this.tracker = tracker;
     _this.tracker.client.on('Session', function (ev) {
       return _this.handleSession(ev);
@@ -1934,7 +2084,7 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
     value: (function () {
       var _cacheForSpace = FollowedTopicsManager_asyncToGenerator(/*#__PURE__*/FollowedTopicsManager_regenerator().m(function _callee2(spaceId) {
         var _this2 = this;
-        var rooms, roomIds, isAlreadyCached, spaceRegistryKey, _t;
+        var rooms, roomIds, needsFetch, spaceRegistryKey, _t;
         return FollowedTopicsManager_regenerator().w(function (_context2) {
           while (1) switch (_context2.n) {
             case 0:
@@ -1971,10 +2121,10 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
               }
               return _context2.a(2);
             case 5:
-              isAlreadyCached = roomIds.every(function (roomId) {
-                return _this2.followedTopics.has(roomId);
+              needsFetch = roomIds.some(function (roomId) {
+                return !_this2.followedTopics.has(roomId) || _this2.staleRooms.has(roomId);
               });
-              if (!isAlreadyCached) {
+              if (needsFetch) {
                 _context2.n = 6;
                 break;
               }
@@ -2001,7 +2151,7 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
                         }
                         throw result.error;
                       case 2:
-                        _this2.setFollowedTopicsArray(roomIds, result.data.followedTopics);
+                        _this2.reconcileRoomsFollowedTopics(roomIds, result.data.followedTopics);
                       case 3:
                         return _context.a(2);
                     }
@@ -2042,7 +2192,7 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
               }
               return _context4.a(2, undefined);
             case 2:
-              if (this.followedTopics.has(roomId)) {
+              if (!(!this.followedTopics.has(roomId) || this.staleRooms.has(roomId))) {
                 _context4.n = 3;
                 break;
               }
@@ -2066,7 +2216,8 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
                         }
                         throw result.error;
                       case 2:
-                        _this3.setFollowedTopicsArray([roomId], result.data.followedTopics);
+                        _this3.applyRoomFollowedTopics(roomId, result.data.followedTopics);
+                        _this3.invalidateUnreadSummaries(roomId);
                       case 3:
                         return _context3.a(2);
                     }
@@ -2324,7 +2475,22 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      this.followedTopics.deleteAll();
+      // Keep cached followed-topic collections (they drive unread indicators
+      // that would otherwise blank on reconnect), but mark them stale and drop
+      // the fetch guards so the next access/caching refetches and reconciles
+      // them in place.
+      var _iterator4 = FollowedTopicsManager_createForOfIteratorHelper(this.followedTopics.items.keys()),
+        _step4;
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var roomId = _step4.value;
+          this.staleRooms.add(roomId);
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
       this.followedTopicsPromises.forgetAll();
       this.invalidateUnreadSummaries();
       this.deferredSession.resolve();
@@ -2424,34 +2590,34 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
         if (topicId) {
           this.summariesCache["delete"]("topic:".concat(roomId, ":").concat(topicId));
         } else {
-          var _iterator4 = FollowedTopicsManager_createForOfIteratorHelper(this.summariesCache.keys()),
-            _step4;
+          var _iterator5 = FollowedTopicsManager_createForOfIteratorHelper(this.summariesCache.keys()),
+            _step5;
           try {
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              var key = _step4.value;
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var key = _step5.value;
               if (key.startsWith("topic:".concat(roomId, ":"))) {
                 this.summariesCache["delete"](key);
               }
             }
           } catch (err) {
-            _iterator4.e(err);
+            _iterator5.e(err);
           } finally {
-            _iterator4.f();
+            _iterator5.f();
           }
         }
-        var _iterator5 = FollowedTopicsManager_createForOfIteratorHelper(this.summariesCache.keys()),
-          _step5;
+        var _iterator6 = FollowedTopicsManager_createForOfIteratorHelper(this.summariesCache.keys()),
+          _step6;
         try {
-          for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-            var _key2 = _step5.value;
+          for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+            var _key2 = _step6.value;
             if (_key2.startsWith('space:') || _key2 === 'spaceless') {
               this.summariesCache["delete"](_key2);
             }
           }
         } catch (err) {
-          _iterator5.e(err);
+          _iterator6.e(err);
         } finally {
-          _iterator5.f();
+          _iterator6.f();
         }
       } else {
         this.summariesCache.clear();
@@ -2466,11 +2632,11 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
       roomIds.forEach(function (roomId) {
         _this5.summariesCache["delete"]("room:".concat(roomId));
       });
-      var _iterator6 = FollowedTopicsManager_createForOfIteratorHelper(this.summariesCache.keys()),
-        _step6;
+      var _iterator7 = FollowedTopicsManager_createForOfIteratorHelper(this.summariesCache.keys()),
+        _step7;
       try {
-        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-          var key = _step6.value;
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          var key = _step7.value;
           if (key.startsWith('space:') || key === 'spaceless') {
             this.summariesCache["delete"](key);
             continue;
@@ -2483,9 +2649,9 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
           }
         }
       } catch (err) {
-        _iterator6.e(err);
+        _iterator7.e(err);
       } finally {
-        _iterator6.f();
+        _iterator7.f();
       }
       this.emit('change');
     }
@@ -2563,27 +2729,66 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
       }
       return updateLocallyFollowedTopicOnNewMessage;
     }()
+    /**
+     * Reconcile the followed-topics collection for a single room to exactly
+     * match the provided list (upsert present, drop absent) without emitting an
+     * intermediate empty state, and clear its stale marker. Does not touch the
+     * unread summaries cache - callers decide how to invalidate it.
+     */
+  }, {
+    key: "applyRoomFollowedTopics",
+    value: function applyRoomFollowedTopics(roomId, followedTopics) {
+      var _this$followedTopics$5;
+      if (!this.followedTopics.has(roomId)) {
+        this.followedTopics.set([roomId, new ObservableIndexedObjectCollection(function (followedTopic) {
+          return followedTopic.location.topicId;
+        })]);
+      }
+      (_this$followedTopics$5 = this.followedTopics.get(roomId)).reconcile.apply(_this$followedTopics$5, FollowedTopicsManager_toConsumableArray(followedTopics));
+      this.staleRooms["delete"](roomId);
+    }
+
+    /**
+     * Reconcile a batch of rooms from a single bulk GetFollowedTopics response.
+     * Rooms with no followed topics in the response are reconciled to empty, so
+     * topics unfollowed/removed during the downtime are correctly dropped.
+     */
+  }, {
+    key: "reconcileRoomsFollowedTopics",
+    value: function reconcileRoomsFollowedTopics(roomIds, followedTopics) {
+      var _this6 = this;
+      var roomToTopics = {};
+      followedTopics.forEach(function (followedTopic) {
+        var _followedTopic$locati, _roomToTopics$_follow;
+        ((_roomToTopics$_follow = roomToTopics[_followedTopic$locati = followedTopic.location.roomId]) !== null && _roomToTopics$_follow !== void 0 ? _roomToTopics$_follow : roomToTopics[_followedTopic$locati] = []).push(followedTopic);
+      });
+      roomIds.forEach(function (roomId) {
+        var _roomToTopics$roomId;
+        return _this6.applyRoomFollowedTopics(roomId, (_roomToTopics$roomId = roomToTopics[roomId]) !== null && _roomToTopics$roomId !== void 0 ? _roomToTopics$roomId : []);
+      });
+      this.invalidateUnreadSummariesForRooms(roomIds);
+    }
   }, {
     key: "setFollowedTopicsArray",
     value: function setFollowedTopicsArray(roomIds, followedTopics) {
-      var _this6 = this;
+      var _this7 = this;
       var roomToTopics = {};
 
       // Reassign followed topics to limit collection change event emit
       followedTopics.forEach(function (followedTopic) {
-        var _followedTopic$locati, _roomToTopics$_follow;
-        (_roomToTopics$_follow = roomToTopics[_followedTopic$locati = followedTopic.location.roomId]) !== null && _roomToTopics$_follow !== void 0 ? _roomToTopics$_follow : roomToTopics[_followedTopic$locati] = [];
+        var _followedTopic$locati2, _roomToTopics$_follow2;
+        (_roomToTopics$_follow2 = roomToTopics[_followedTopic$locati2 = followedTopic.location.roomId]) !== null && _roomToTopics$_follow2 !== void 0 ? _roomToTopics$_follow2 : roomToTopics[_followedTopic$locati2] = [];
         roomToTopics[followedTopic.location.roomId].push(followedTopic);
       });
       roomIds.forEach(function (roomId) {
-        if (!_this6.followedTopics.has(roomId)) {
-          _this6.followedTopics.set([roomId, new ObservableIndexedObjectCollection(function (followedTopic) {
+        if (!_this7.followedTopics.has(roomId)) {
+          _this7.followedTopics.set([roomId, new ObservableIndexedObjectCollection(function (followedTopic) {
             return followedTopic.location.topicId;
           })]);
         }
         if (roomToTopics[roomId]) {
-          var _this6$followedTopics;
-          (_this6$followedTopics = _this6.followedTopics.get(roomId)).set.apply(_this6$followedTopics, FollowedTopicsManager_toConsumableArray(roomToTopics[roomId]));
+          var _this7$followedTopics;
+          (_this7$followedTopics = _this7.followedTopics.get(roomId)).set.apply(_this7$followedTopics, FollowedTopicsManager_toConsumableArray(roomToTopics[roomId]));
         }
       });
       this.invalidateUnreadSummariesForRooms(roomIds);
@@ -2593,6 +2798,7 @@ var FollowedTopicsManager = /*#__PURE__*/function (_EventTarget) {
     value: function clearRoomFollowedTopicsStructures(roomId) {
       this.followedTopics["delete"](roomId);
       this.followedTopicsPromises.forget(roomId);
+      this.staleRooms["delete"](roomId);
       this.invalidateUnreadSummaries(roomId);
     }
   }]);
@@ -3108,16 +3314,39 @@ var RoomsManager = /*#__PURE__*/function () {
           var _member$user$id2, _member$user2;
           return (_member$user$id2 = (_member$user2 = member.user) === null || _member$user2 === void 0 ? void 0 : _member$user2.id) !== null && _member$user$id2 !== void 0 ? _member$user$id2 : member.spaceMember.user.id;
         }, ev.members)]);
+      } else {
+        var _this$members$get;
+        // Reconcile into the existing (bound) collection so a reconnect
+        // refetch updates it in place instead of leaving stale members.
+        (_this$members$get = this.members.get(ev.id)).reconcile.apply(_this$members$get, RoomsManager_toConsumableArray(ev.members));
       }
     }
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      this.list.deleteAll();
-      this.topics.deleteAll();
-      this.topicsPromises.forgetAll();
-      this.members.deleteAll();
+      var stateRoomIds = new Set(ev.state.rooms.map(function (room) {
+        return room.id;
+      }));
+
+      // Remove only rooms that were left/deleted on the server during the
+      // downtime, reusing the cascade cleanup (members, topics, followed
+      // topics). Surviving rooms keep their identity and bindings.
+      var removedRoomIds = this.list.items.filter(function (room) {
+        return !stateRoomIds.has(room.id);
+      }).map(function (room) {
+        return room.id;
+      });
+      if (removedRoomIds.length) {
+        this.deleteRoom.apply(this, RoomsManager_toConsumableArray(removedRoomIds));
+      }
+
+      // Invalidate lazy caches so the next access refetches fresh data, but
+      // keep the collection objects: handleRoomMembers reconciles into them,
+      // so bound views refresh in place without blanking.
       this.membersPromises.forgetAll();
+      this.topicsPromises.forgetAll();
+
+      // Upsert surviving/new rooms from the authoritative snapshot.
       this.addJoinedRooms.apply(this, RoomsManager_toConsumableArray(ev.state.rooms));
       this.deferredSession.resolve();
     }
@@ -3251,6 +3480,7 @@ function extractUserFromMember(member) {
 }
 ;// ./src/state-tracker/SpacesManager.ts
 function SpacesManager_typeof(o) { "@babel/helpers - typeof"; return SpacesManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, SpacesManager_typeof(o); }
+function SpacesManager_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = SpacesManager_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function SpacesManager_toConsumableArray(r) { return SpacesManager_arrayWithoutHoles(r) || SpacesManager_iterableToArray(r) || SpacesManager_unsupportedIterableToArray(r) || SpacesManager_nonIterableSpread(); }
 function SpacesManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function SpacesManager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return SpacesManager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? SpacesManager_arrayLikeToArray(r, a) : void 0; } }
@@ -3654,6 +3884,11 @@ var SpacesManager = /*#__PURE__*/function () {
         this.members.set([ev.id, new ObservableIndexedObjectCollection(function (member) {
           return member === null || member === void 0 ? void 0 : member.user.id;
         }, ev.members)]);
+      } else {
+        var _this$members$get;
+        // Reconcile into the existing (bound) collection so a reconnect
+        // refetch updates it in place instead of leaving stale members.
+        (_this$members$get = this.members.get(ev.id)).reconcile.apply(_this$members$get, SpacesManager_toConsumableArray(ev.members));
       }
     }
   }, {
@@ -3662,10 +3897,13 @@ var SpacesManager = /*#__PURE__*/function () {
       var _this4 = this;
       if (!this.rooms.has(ev.id)) {
         this.rooms.set([ev.id, new ObservableIndexedObjectCollection('id', ev.summaries)]);
-        ev.summaries.forEach(function (summary) {
-          return _this4.roomIdToSpaceId.set([summary.id, ev.id]);
-        });
+      } else {
+        var _this$rooms$get4;
+        (_this$rooms$get4 = this.rooms.get(ev.id)).reconcile.apply(_this$rooms$get4, SpacesManager_toConsumableArray(ev.summaries));
       }
+      ev.summaries.forEach(function (summary) {
+        return _this4.roomIdToSpaceId.set([summary.id, ev.id]);
+      });
     }
   }, {
     key: "handleRoomSummaryUpdated",
@@ -3733,14 +3971,58 @@ var SpacesManager = /*#__PURE__*/function () {
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      this.list.deleteAll();
-      this.roles.deleteAll();
-      this.rooms.deleteAll();
+      var _this$list2;
+      var stateSpaceIds = new Set(ev.state.spaces.map(function (space) {
+        return space.id;
+      }));
+
+      // Remove only spaces that were left/deleted on the server during the
+      // downtime, reusing the cascade cleanup (roles, rooms, members, index).
+      var removedSpaceIds = this.list.items.filter(function (space) {
+        return !stateSpaceIds.has(space.id);
+      }).map(function (space) {
+        return space.id;
+      });
+      var _iterator = SpacesManager_createForOfIteratorHelper(removedSpaceIds),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var spaceId = _step.value;
+          this.handleSpaceDeleted({
+            id: spaceId
+          });
+        }
+
+        // Invalidate lazy caches (rooms/members) but keep their objects so the
+        // next access refetches and reconciles them in place.
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
       this.roomsPromises.forgetAll();
-      this.members.deleteAll();
       this.membersPromises.forgetAll();
-      this.roomIdToSpaceId.deleteAll();
-      this.addJoinedSpaces.apply(this, SpacesManager_toConsumableArray(ev.state.spaces));
+
+      // Reconcile roles in place (kept, possibly bound object) and upsert the
+      // spaces from the authoritative snapshot.
+      var _iterator2 = SpacesManager_createForOfIteratorHelper(ev.state.spaces),
+        _step2;
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var space = _step2.value;
+          if (this.roles.has(space.id)) {
+            var _this$roles$get2;
+            (_this$roles$get2 = this.roles.get(space.id)).reconcile.apply(_this$roles$get2, SpacesManager_toConsumableArray(space.roles));
+          } else {
+            this.roles.set([space.id, new ObservableIndexedObjectCollection('id', space.roles)]);
+          }
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+      (_this$list2 = this.list).set.apply(_this$list2, SpacesManager_toConsumableArray(ev.state.spaces));
       this.deferredSession.resolve();
     }
   }, {
@@ -4464,8 +4746,12 @@ var PermissionsManager = /*#__PURE__*/function (_EventTarget) {
   }, {
     key: "handleSession",
     value: function handleSession(ev) {
-      this.overwrites.deleteAll();
+      // Drop the fetch guards so permission checks recompute against fresh
+      // overwrites (getOverwrites refetches and upserts on the next access),
+      // and notify consumers to recompute so bound permission UI is never
+      // left showing stale results after a reconnect.
       this.overwritesPromises.forgetAll();
+      this.emit('change');
     }
   }]);
 }(EventTarget);
@@ -4563,13 +4849,16 @@ var EmoticonsManager = /*#__PURE__*/function () {
   }, {
     key: "handleEmoticons",
     value: function handleEmoticons(event) {
-      var _event$location$space;
+      var _event$location$space, _this$list$get;
       var spaceId = (_event$location$space = event.location.spaceId) !== null && _event$location$space !== void 0 ? _event$location$space : GLOBAL_KEY;
       if (!this.list.has(spaceId)) {
         this.list.set([spaceId, new ObservableIndexedObjectCollection('id')]);
       }
-      var collection = this.list.get(spaceId);
-      collection.set.apply(collection, EmoticonsManager_toConsumableArray(event.emoticons));
+
+      // handleEmoticons always carries the full list for a location, so
+      // reconcile in place: a reconnect refetch drops removed emoticons and
+      // adds new ones without blanking a bound (visible) collection.
+      (_this$list$get = this.list.get(spaceId)).reconcile.apply(_this$list$get, EmoticonsManager_toConsumableArray(event.emoticons));
     }
   }, {
     key: "handleNewEmoticon",
@@ -4593,7 +4882,9 @@ var EmoticonsManager = /*#__PURE__*/function () {
   }, {
     key: "handleSession",
     value: function handleSession() {
-      this.list.deleteAll();
+      // Keep cached emoticon collections (they may be bound to visible
+      // pickers); just drop the fetch guards so the next access refetches and
+      // reconciles them in place.
       this.emoticonsPromises.forgetAll();
     }
   }]);
@@ -4682,7 +4973,9 @@ var UsersManager = /*#__PURE__*/function () {
   }, {
     key: "handleSession",
     value: function handleSession(session) {
-      this.users.deleteAll();
+      // Keep the "seen users" cache across reconnects so bound user lists do
+      // not blank out; just ensure our own user is present/updated. Stale
+      // entries are refreshed as member/message collections refetch.
       this.handleUsers([session.user]);
     }
   }, {
@@ -4702,6 +4995,12 @@ var UsersManager = /*#__PURE__*/function () {
 }();
 ;// ./src/state-tracker/RelationshipsManager.ts
 function RelationshipsManager_typeof(o) { "@babel/helpers - typeof"; return RelationshipsManager_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, RelationshipsManager_typeof(o); }
+function RelationshipsManager_toConsumableArray(r) { return RelationshipsManager_arrayWithoutHoles(r) || RelationshipsManager_iterableToArray(r) || RelationshipsManager_unsupportedIterableToArray(r) || RelationshipsManager_nonIterableSpread(); }
+function RelationshipsManager_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function RelationshipsManager_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return RelationshipsManager_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? RelationshipsManager_arrayLikeToArray(r, a) : void 0; } }
+function RelationshipsManager_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function RelationshipsManager_arrayWithoutHoles(r) { if (Array.isArray(r)) return RelationshipsManager_arrayLikeToArray(r); }
+function RelationshipsManager_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function RelationshipsManager_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return RelationshipsManager_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (RelationshipsManager_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, RelationshipsManager_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, RelationshipsManager_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), RelationshipsManager_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", RelationshipsManager_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), RelationshipsManager_regeneratorDefine2(u), RelationshipsManager_regeneratorDefine2(u, o, "Generator"), RelationshipsManager_regeneratorDefine2(u, n, function () { return this; }), RelationshipsManager_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (RelationshipsManager_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function RelationshipsManager_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } RelationshipsManager_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { RelationshipsManager_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, RelationshipsManager_regeneratorDefine2(e, r, n, t); }
 function RelationshipsManager_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -4803,11 +5102,10 @@ var RelationshipsManager = /*#__PURE__*/function () {
   }, {
     key: "handleRelationships",
     value: function handleRelationships(ev) {
-      var _this3 = this;
-      this.relationships.deleteAll();
-      ev.relationships.forEach(function (relationship) {
-        _this3.relationships.set(relationship);
-      });
+      var _this$relationships;
+      // Full list from the server: reconcile in place so a reconnect refetch
+      // updates a bound (visible) list without an intermediate empty state.
+      (_this$relationships = this.relationships).reconcile.apply(_this$relationships, RelationshipsManager_toConsumableArray(ev.relationships));
     }
   }, {
     key: "handleNewRelationship",
@@ -4826,8 +5124,9 @@ var RelationshipsManager = /*#__PURE__*/function () {
   }, {
     key: "handleSession",
     value: function handleSession() {
+      // Keep the (possibly bound) collection; just drop the fetch guard so the
+      // next get() refetches and reconciles it in place.
       this.promises.forgetAll();
-      this.relationships.deleteAll();
     }
   }]);
 }();
