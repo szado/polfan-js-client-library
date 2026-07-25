@@ -15,6 +15,11 @@ type Responder = (data: any) => any;
 
 class FakeClient extends EventTarget {
     public readonly sent: { type: string; data: any }[] = [];
+    /**
+     * When set, commands reject the way the real client rejects them once the
+     * connection is gone, instead of hanging forever.
+     */
+    public offline = false;
     private readonly responders: Record<string, Responder> = {};
 
     public respondTo(type: string, responder: Responder): void {
@@ -23,6 +28,11 @@ class FakeClient extends EventTarget {
 
     public async send(type: string, data: any): Promise<{ data: any; error: any }> {
         this.sent.push({ type, data });
+
+        if (this.offline) {
+            throw new Error('Connection closed before the command was answered');
+        }
+
         const responder = this.responders[type];
         return { data: responder ? responder(data) : undefined, error: null };
     }
@@ -253,5 +263,77 @@ describe('reconnect - SpacesManager', () => {
         expect(membersAfter).toBe(membersBefore);
         expect(client.countSent('GetSpaceMembers')).toBe(2);
         expect(membersAfter.items.map((m: any) => m.user.id)).toEqual(['me']);
+    });
+});
+
+describe('recovery after a request issued while the client was offline', () => {
+    const member = (id: string): any => ({
+        user: { id }, spaceMember: null, roles: null, customColor: null, customNick: null, extras: '',
+    });
+
+    test('room member list fills in on the next access instead of staying empty', async () => {
+        const { client, tracker } = createTracker();
+        emitSession(client, [createRoom('A')]);
+
+        // Opening the room while offline: the command rejects (it must never
+        // hang) and the caller sees the failure.
+        client.offline = true;
+        await expect(tracker.rooms.getMembers('A')).rejects.toThrow('Connection closed');
+
+        // The failed lookup must not be cached - otherwise every later access
+        // would replay the same rejection and the list would stay empty for the
+        // rest of the session, even after a successful reconnect.
+        client.offline = false;
+        client.respondTo('GetRoomMembers', (data: any) => ({
+            id: data.id,
+            members: [member('me'), member('u1')],
+        }));
+
+        const members = await tracker.rooms.getMembers('A');
+
+        expect(members.items.map((m: any) => m.user.id).sort()).toEqual(['me', 'u1']);
+    });
+
+    test('a lazy space collection recovers the same way', async () => {
+        const { client, tracker } = createTracker();
+        emitSession(client, [], [createSpace('S1')]);
+
+        client.offline = true;
+        await expect(tracker.spaces.getRooms('S1')).rejects.toThrow('Connection closed');
+
+        client.offline = false;
+        client.respondTo('GetSpaceRooms', (data: any) => ({
+            id: data.id,
+            summaries: [{ id: 'R1', name: 'R1', description: '' }],
+        }));
+
+        const rooms = await tracker.spaces.getRooms('S1');
+
+        expect(rooms.items.map((r: any) => r.id)).toEqual(['R1']);
+    });
+
+    test('a reconnect refetch reconciles a list that changed while offline', async () => {
+        const { client, tracker } = createTracker();
+        emitSession(client, [createRoom('A')]);
+
+        client.respondTo('GetRoomMembers', (data: any) => ({
+            id: data.id,
+            members: [member('me'), member('u1'), member('u2')],
+        }));
+        const members = await tracker.rooms.getMembers('A');
+        expect(members.length).toBe(3);
+
+        // While disconnected u1 left and u3 joined.
+        client.respondTo('GetRoomMembers', (data: any) => ({
+            id: data.id,
+            members: [member('me'), member('u2'), member('u3')],
+        }));
+        emitSession(client, [createRoom('A')]);
+
+        const refreshed = await tracker.rooms.getMembers('A');
+
+        // Same object (bindings intact) reconciled to the fresh membership.
+        expect(refreshed).toBe(members);
+        expect(refreshed.items.map((m: any) => m.user.id).sort()).toEqual(['me', 'u2', 'u3']);
     });
 });
