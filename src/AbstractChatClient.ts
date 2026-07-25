@@ -165,6 +165,28 @@ export abstract class AbstractChatClient<AdditionalEvents extends ExtraEventMap 
         this.awaitingResponse.get(envelope.ref)[1](error);
         this.awaitingResponse.delete(envelope.ref);
     }
+
+    /**
+     * Reject every command that is still waiting for a response.
+     *
+     * Call this whenever the transport can no longer deliver an answer (the
+     * connection dropped). The server will never reply to those commands, so
+     * leaving them pending would hang every caller awaiting them forever -
+     * including cached lookups in the state tracker, which would then keep a
+     * view stuck on a loader even after a successful reconnect.
+     */
+    protected failAwaitingResponses(error: any): void {
+        if (! this.awaitingResponse.size) {
+            return;
+        }
+
+        const pending = Array.from(this.awaitingResponse.values());
+        this.awaitingResponse.clear();
+
+        for (const [, reject] of pending) {
+            reject(error);
+        }
+    }
 }
 
 export type CommandResult<ResultT> = {data?: ResultT, error?: ErrorType};

@@ -14,6 +14,17 @@ export class PromiseRegistry {
 
     public register<T = any>(promise: Promise<T>, key: string): void {
         this.promises.set([key, promise]);
+
+        // Never cache a failed lookup: drop it so the next access retries
+        // instead of replaying the same rejection forever (a request issued
+        // while the client was offline would otherwise poison the key). The
+        // handler also keeps the cached promise from surfacing as an unhandled
+        // rejection - callers still receive the rejection from their own await.
+        promise.catch(() => {
+            if (this.promises.get(key) === promise) {
+                this.promises.delete(key);
+            }
+        });
     }
 
     public registerByFunction(fn: () => Promise<any>, key: string): void {

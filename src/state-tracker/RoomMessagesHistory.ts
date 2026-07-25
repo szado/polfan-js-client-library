@@ -59,16 +59,22 @@ export class RoomMessagesHistory {
         }
 
         for (const [, window] of Array.from(this.historyWindows.items)) {
-            await window.setTraverseLock(this.traverseLock);
+            try {
+                await window.setTraverseLock(this.traverseLock);
 
-            // Ephemeral history lives only in memory (the server does not
-            // persist it), so never refetch/replace it on reconnect.
-            if (this.traverseLock) {
-                continue;
-            }
+                // Ephemeral history lives only in memory (the server does not
+                // persist it), so never refetch/replace it on reconnect.
+                if (this.traverseLock) {
+                    continue;
+                }
 
-            if (window.state === WindowState.LATEST) {
-                await window.resetToLatest(true);
+                if (window.state === WindowState.LATEST) {
+                    await window.resetToLatest(true);
+                }
+            } catch (_e) {
+                // Best effort: the connection can drop again mid-resync. The
+                // window keeps its current content and stays usable, so the
+                // application can refresh it on demand.
             }
         }
     }

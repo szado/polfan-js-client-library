@@ -14,6 +14,16 @@ export declare abstract class AbstractChatClient<AdditionalEvents extends ExtraE
     protected createPromiseFromCommandEnvelope<CommandT extends keyof CommandsMap>(envelope: Envelope<CommandRequest<CommandT>>): Promise<CommandResult<CommandResponse<CommandT>>>;
     protected handleIncomingEnvelope(envelope: Envelope): void;
     protected handleEnvelopeSendError(envelope: Envelope, error: any): void;
+    /**
+     * Reject every command that is still waiting for a response.
+     *
+     * Call this whenever the transport can no longer deliver an answer (the
+     * connection dropped). The server will never reply to those commands, so
+     * leaving them pending would hang every caller awaiting them forever -
+     * including cached lookups in the state tracker, which would then keep a
+     * view stuck on a loader even after a successful reconnect.
+     */
+    protected failAwaitingResponses(error: any): void;
 }
 export type CommandResult<ResultT> = {
     data?: ResultT;

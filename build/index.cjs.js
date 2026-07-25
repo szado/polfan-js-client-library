@@ -118,6 +118,12 @@ var EventTarget = /*#__PURE__*/function () {
 }();
 ;// ./src/AbstractChatClient.ts
 function AbstractChatClient_typeof(o) { "@babel/helpers - typeof"; return AbstractChatClient_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, AbstractChatClient_typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function AbstractChatClient_classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function AbstractChatClient_defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, AbstractChatClient_toPropertyKey(o.key), o); } }
 function AbstractChatClient_createClass(e, r, t) { return r && AbstractChatClient_defineProperties(e.prototype, r), t && AbstractChatClient_defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
@@ -187,6 +193,30 @@ var AbstractChatClient = /*#__PURE__*/function (_EventTarget) {
       this.awaitingResponse.get(envelope.ref)[1](error);
       this.awaitingResponse["delete"](envelope.ref);
     }
+
+    /**
+     * Reject every command that is still waiting for a response.
+     *
+     * Call this whenever the transport can no longer deliver an answer (the
+     * connection dropped). The server will never reply to those commands, so
+     * leaving them pending would hang every caller awaiting them forever -
+     * including cached lookups in the state tracker, which would then keep a
+     * view stuck on a loader even after a successful reconnect.
+     */
+  }, {
+    key: "failAwaitingResponses",
+    value: function failAwaitingResponses(error) {
+      if (!this.awaitingResponse.size) {
+        return;
+      }
+      var pending = Array.from(this.awaitingResponse.values());
+      this.awaitingResponse.clear();
+      for (var _i = 0, _pending = pending; _i < _pending.length; _i++) {
+        var _pending$_i = _slicedToArray(_pending[_i], 2),
+          reject = _pending$_i[1];
+        reject(error);
+      }
+    }
   }]);
 }(EventTarget);
 
@@ -209,17 +239,17 @@ function _superPropBase(t, o) { for (; !{}.hasOwnProperty.call(t, o) && null !==
 function IndexedObjectCollection_getPrototypeOf(t) { return IndexedObjectCollection_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, IndexedObjectCollection_getPrototypeOf(t); }
 function IndexedObjectCollection_inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && IndexedObjectCollection_setPrototypeOf(t, e); }
 function IndexedObjectCollection_setPrototypeOf(t, e) { return IndexedObjectCollection_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, IndexedObjectCollection_setPrototypeOf(t, e); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function IndexedObjectCollection_slicedToArray(r, e) { return IndexedObjectCollection_arrayWithHoles(r) || IndexedObjectCollection_iterableToArrayLimit(r, e) || IndexedObjectCollection_unsupportedIterableToArray(r, e) || IndexedObjectCollection_nonIterableRest(); }
+function IndexedObjectCollection_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function IndexedObjectCollection_iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function IndexedObjectCollection_arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = IndexedObjectCollection_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || IndexedObjectCollection_unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function IndexedObjectCollection_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return IndexedObjectCollection_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? IndexedObjectCollection_arrayLikeToArray(r, a) : void 0; } }
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return IndexedObjectCollection_arrayLikeToArray(r); }
+function IndexedObjectCollection_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function IndexedObjectCollection_classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function IndexedObjectCollection_defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, IndexedObjectCollection_toPropertyKey(o.key), o); } }
 function IndexedObjectCollection_createClass(e, r, t) { return r && IndexedObjectCollection_defineProperties(e.prototype, r), t && IndexedObjectCollection_defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
@@ -290,7 +320,7 @@ var IndexedCollection = /*#__PURE__*/function () {
         _step;
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var _step$value = _slicedToArray(_step.value, 2),
+          var _step$value = IndexedObjectCollection_slicedToArray(_step.value, 2),
             key = _step$value[0],
             value = _step$value[1];
           if (result.length >= limit) {
@@ -648,7 +678,19 @@ var PromiseRegistry = /*#__PURE__*/function () {
   return AsyncUtils_createClass(PromiseRegistry, [{
     key: "register",
     value: function register(promise, key) {
+      var _this2 = this;
       this.promises.set([key, promise]);
+
+      // Never cache a failed lookup: drop it so the next access retries
+      // instead of replaying the same rejection forever (a request issued
+      // while the client was offline would otherwise poison the key). The
+      // handler also keeps the cached promise from surfacing as an unhandled
+      // rejection - callers still receive the rejection from their own await.
+      promise["catch"](function () {
+        if (_this2.promises.get(key) === promise) {
+          _this2.promises["delete"](key);
+        }
+      });
     }
   }, {
     key: "registerByFunction",
@@ -1689,9 +1731,9 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
     key: "resync",
     value: (function () {
       var _resync = RoomMessagesHistory_asyncToGenerator(/*#__PURE__*/RoomMessagesHistory_regenerator().m(function _callee2(room) {
-        var _i, _Array$from, _Array$from$_i, window;
+        var _i, _Array$from, _Array$from$_i, window, _t;
         return RoomMessagesHistory_regenerator().w(function (_context2) {
-          while (1) switch (_context2.n) {
+          while (1) switch (_context2.p = _context2.n) {
             case 0:
               this.room = room;
               this.updateTraverseLock(room);
@@ -1701,33 +1743,40 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
               _i = 0, _Array$from = Array.from(this.historyWindows.items);
             case 1:
               if (!(_i < _Array$from.length)) {
-                _context2.n = 5;
+                _context2.n = 8;
                 break;
               }
               _Array$from$_i = RoomMessagesHistory_slicedToArray(_Array$from[_i], 2), window = _Array$from$_i[1];
-              _context2.n = 2;
+              _context2.p = 2;
+              _context2.n = 3;
               return window.setTraverseLock(this.traverseLock);
-            case 2:
-              if (!this.traverseLock) {
-                _context2.n = 3;
-                break;
-              }
-              return _context2.a(3, 4);
             case 3:
-              if (!(window.state === WindowState.LATEST)) {
+              if (!this.traverseLock) {
                 _context2.n = 4;
                 break;
               }
-              _context2.n = 4;
-              return window.resetToLatest(true);
+              return _context2.a(3, 7);
             case 4:
+              if (!(window.state === WindowState.LATEST)) {
+                _context2.n = 5;
+                break;
+              }
+              _context2.n = 5;
+              return window.resetToLatest(true);
+            case 5:
+              _context2.n = 7;
+              break;
+            case 6:
+              _context2.p = 6;
+              _t = _context2.v;
+            case 7:
               _i++;
               _context2.n = 1;
               break;
-            case 5:
+            case 8:
               return _context2.a(2);
           }
-        }, _callee2, this);
+        }, _callee2, this, [[2, 6]]);
       }));
       function resync(_x2) {
         return _resync.apply(this, arguments);
@@ -5225,6 +5274,9 @@ var ChatStateTracker = /*#__PURE__*/function () {
 }();
 ;// ./src/WebSocketChatClient.ts
 function WebSocketChatClient_typeof(o) { "@babel/helpers - typeof"; return WebSocketChatClient_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, WebSocketChatClient_typeof(o); }
+function WebSocketChatClient_createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = WebSocketChatClient_unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function WebSocketChatClient_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return WebSocketChatClient_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? WebSocketChatClient_arrayLikeToArray(r, a) : void 0; } }
+function WebSocketChatClient_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function WebSocketChatClient_regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return WebSocketChatClient_regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (WebSocketChatClient_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, WebSocketChatClient_regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, WebSocketChatClient_regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), WebSocketChatClient_regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", WebSocketChatClient_regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), WebSocketChatClient_regeneratorDefine2(u), WebSocketChatClient_regeneratorDefine2(u, o, "Generator"), WebSocketChatClient_regeneratorDefine2(u, n, function () { return this; }), WebSocketChatClient_regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (WebSocketChatClient_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function WebSocketChatClient_regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } WebSocketChatClient_regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { WebSocketChatClient_regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, WebSocketChatClient_regeneratorDefine2(e, r, n, t); }
 function WebSocketChatClient_asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -5263,7 +5315,13 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
     WebSocketChatClient_defineProperty(_this, "sendQueue", []);
     WebSocketChatClient_defineProperty(_this, "connectingTimeoutId", void 0);
     WebSocketChatClient_defineProperty(_this, "authenticated", void 0);
-    WebSocketChatClient_defineProperty(_this, "authenticatedResolvers", void 0);
+    WebSocketChatClient_defineProperty(_this, "authenticatedResolvers", null);
+    /**
+     * Pending promise returned by connect(). Kept until the client is either
+     * authenticated or gives up, so that an automatic reconnect settles the
+     * original caller instead of stranding it on a superseded promise.
+     */
+    WebSocketChatClient_defineProperty(_this, "connectPromise", null);
     WebSocketChatClient_defineProperty(_this, "pingMonitorInterval", void 0);
     WebSocketChatClient_defineProperty(_this, "inFlightPingTimeout", void 0);
     WebSocketChatClient_defineProperty(_this, "lastReceivedMessageAt", void 0);
@@ -5282,10 +5340,11 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
     key: "connect",
     value: function () {
       var _connect = WebSocketChatClient_asyncToGenerator(/*#__PURE__*/WebSocketChatClient_regenerator().m(function _callee() {
-        var _this$options$queryPa,
+        var _this$connectPromise2,
           _this2 = this,
+          _this$options$queryPa,
           _this$options$connect;
-        var params;
+        var _this$connectPromise, params;
         return WebSocketChatClient_regenerator().w(function (_context) {
           while (1) switch (_context.n) {
             case 0:
@@ -5293,8 +5352,17 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
                 _context.n = 1;
                 break;
               }
-              return _context.a(2);
+              return _context.a(2, (_this$connectPromise = this.connectPromise) !== null && _this$connectPromise !== void 0 ? _this$connectPromise : undefined);
             case 1:
+              // Reuse the promise of an attempt that has not settled yet (an
+              // automatic reconnect), so the caller that started connecting is
+              // resolved by whichever attempt eventually authenticates.
+              (_this$connectPromise2 = this.connectPromise) !== null && _this$connectPromise2 !== void 0 ? _this$connectPromise2 : this.connectPromise = new Promise(function () {
+                for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+                  args[_key] = arguments[_key];
+                }
+                return _this2.authenticatedResolvers = args;
+              });
               params = new URLSearchParams((_this$options$queryPa = this.options.queryParams) !== null && _this$options$queryPa !== void 0 ? _this$options$queryPa : {});
               params.set('token', this.options.token);
               this.ws = new WebSocket("".concat(this.options.url, "?").concat(params));
@@ -5308,12 +5376,7 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
                 return _this2.triggerConnectionTimeout();
               }, (_this$options$connect = this.options.connectingTimeoutMs) !== null && _this$options$connect !== void 0 ? _this$options$connect : 10000);
               this.authenticated = false;
-              return _context.a(2, new Promise(function () {
-                for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-                  args[_key] = arguments[_key];
-                }
-                return _this2.authenticatedResolvers = args;
-              }));
+              return _context.a(2, this.connectPromise);
           }
         }, _callee, this);
       }));
@@ -5326,7 +5389,7 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
     key: "disconnect",
     value: function disconnect() {
       var _this$ws;
-      this.sendQueue = [];
+      this.failPendingCommands(new Error('Client disconnected before the command was answered'));
       (_this$ws = this.ws) === null || _this$ws === void 0 || _this$ws.close(1000); // Normal closure
       this.ws = null;
     }
@@ -5387,11 +5450,11 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
         this.authenticated = isAuthenticated;
         if (isAuthenticated) {
           this.startConnectionMonitor();
-          this.authenticatedResolvers[0]();
+          this.settleConnect();
           this.emit(this.Event.connect);
           this.sendFromQueue();
         } else {
-          this.authenticatedResolvers[1](envelope.data);
+          this.settleConnect(envelope.data);
         }
       }
     }
@@ -5401,10 +5464,58 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
       this.stopConnectionMonitor();
       clearTimeout(this.connectingTimeoutId);
       var reconnect = event.code !== 1000; // Connection was closed because of error
+
+      // The server can no longer answer anything that was queued or in
+      // flight, so settle those promises instead of leaving them pending.
+      this.failPendingCommands(new Error('Connection closed before the command was answered'));
       if (reconnect) {
+        // Keep a pending connect() promise unsettled - the retry below is
+        // expected to authenticate and will resolve it.
         void this.connect();
+      } else {
+        this.settleConnect(new Error('Connection closed before authentication'));
       }
       this.emit(this.Event.disconnect, reconnect);
+    }
+
+    /**
+     * Resolve (or reject, when an error is given) a pending connect() promise.
+     * No-op when there is nothing pending.
+     */
+  }, {
+    key: "settleConnect",
+    value: function settleConnect(error) {
+      var resolvers = this.authenticatedResolvers;
+      this.authenticatedResolvers = null;
+      this.connectPromise = null;
+      if (!resolvers) {
+        return;
+      }
+      error ? resolvers[1](error) : resolvers[0]();
+    }
+
+    /**
+     * Reject every command that has not been answered yet - both the ones still
+     * waiting in the send queue and the ones already sent to the server.
+     */
+  }, {
+    key: "failPendingCommands",
+    value: function failPendingCommands(error) {
+      var queued = this.sendQueue;
+      this.sendQueue = [];
+      var _iterator = WebSocketChatClient_createForOfIteratorHelper(queued),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var envelope = _step.value;
+          this.handleEnvelopeSendError(envelope, error);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+      this.failAwaitingResponses(error);
     }
   }, {
     key: "sendFromQueue",
@@ -5470,7 +5581,12 @@ var WebSocketChatClient = /*#__PURE__*/function (_AbstractChatClient) {
                 _this4.inFlightPingTimeout = undefined;
                 _this4.ws.close(3000); // Service Restart (reconnect)
               }, _this4.options.ping.pongBackTimeoutMs);
-              _this4.send('Ping', {}).then(function () {
+
+              // A rejection here means the connection dropped while the ping was
+              // in flight; onClose already handles that, so just stop waiting.
+              _this4.send('Ping', {})["catch"](function () {
+                return undefined;
+              }).then(function () {
                 clearTimeout(_this4.inFlightPingTimeout);
                 _this4.inFlightPingTimeout = undefined;
               });
