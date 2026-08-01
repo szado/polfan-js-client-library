@@ -3325,6 +3325,7 @@ var RoomsManager = /*#__PURE__*/function () {
                 roles: null,
                 customColor: null,
                 customNick: null,
+                customAvatar: null,
                 extras: ''
               };
             })
