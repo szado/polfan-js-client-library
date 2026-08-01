@@ -4224,7 +4224,7 @@ Permissions_defineProperty(Permissions, "list", {
     value: 1 << 16,
     maxLayer: Layer.Room
   },
-  ChangeOwnNick: {
+  ChangeOwnProfile: {
     value: 1 << 17,
     maxLayer: Layer.Space
   },
