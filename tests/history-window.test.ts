@@ -244,12 +244,27 @@ test('history window - resync to latest discards loaded items when a gap is poss
 
     await window.jumpTo('1'); // [0,1,2]
 
-    // The newest loaded item (2) is not in the fetched page ([7,8,9]), so items
-    // in between are missing and the window falls back to the latest page only.
+    // A full page ([7,8,9]) that does not reach the newest loaded item (2):
+    // items in between are missing, so the window falls back to the page only.
     await window.resyncToLatest();
 
     expect(window.state).toEqual(WindowState.LATEST);
     expect(window.items.map(item => item.id)).toEqual([7, 8, 9]);
+});
+
+test('history window - resync to latest keeps loaded items when the page is not full', async () => {
+    const window = new TestableHistoryWindow();
+    window.limit = 10;
+    window.fetchLimit = 5; // The fetch returns 3 items only - all there is.
+
+    await window.jumpTo('1'); // [0,1,2,3]
+
+    // Nothing is missing in between: the page is everything the remote side has,
+    // so the loaded items are kept even though the page does not reach them.
+    await window.resyncToLatest();
+
+    expect(window.state).toEqual(WindowState.LATEST);
+    expect(window.items.map(item => item.id)).toEqual([0, 1, 2, 3, 7, 8, 9]);
 });
 
 test('history window - jump to message', async () => {

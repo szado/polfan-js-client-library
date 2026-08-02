@@ -56,7 +56,10 @@ export class RoomMessagesHistory {
      * always be traversed back), while rooms with a time-limited history
      * (MaxAge) load the messages missed during the downtime on top of the
      * already loaded ones that still fit in the room's time window - messages
-     * that aged out of it in the meantime are dropped.
+     * that aged out of it in the meantime are dropped. Messages returned in both
+     * are deduplicated, and a room where nothing (or almost nothing) was written
+     * during the downtime keeps its loaded history instead of being emptied by a
+     * short latest page.
      */
     public async resync(room: Room): Promise<void> {
         this.room = room;

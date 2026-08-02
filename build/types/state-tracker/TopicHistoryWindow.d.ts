@@ -74,11 +74,13 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
      * on top of the retained ones, so the context the application already had
      * does not disappear.
      *
-     * The retained items are kept only when the fetched page proves both parts
-     * are contiguous, i.e. the newest loaded item came back within that page.
-     * When it did not, more items than a single page appeared in the meantime
-     * and keeping the loaded ones would leave a silent hole in the window - in
-     * that case the window falls back to the plain resetToLatest result.
+     * An empty or partial page is not a reason to drop anything: it only means
+     * the collection has little (or nothing) left on the remote side, while the
+     * items loaded earlier are still valid. They are dropped only when the
+     * fetched page is full and does not reach them, because then items in
+     * between are missing and keeping the loaded ones would leave a silent hole
+     * in the window - in that case the window falls back to the plain
+     * resetToLatest result.
      */
     resyncToLatest(retain?: (item: ItemT) => boolean): Promise<void>;
     fetchPrevious(): Promise<void>;

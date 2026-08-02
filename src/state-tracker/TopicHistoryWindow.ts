@@ -142,11 +142,13 @@ export abstract class TraversableRemoteCollection<
      * on top of the retained ones, so the context the application already had
      * does not disappear.
      *
-     * The retained items are kept only when the fetched page proves both parts
-     * are contiguous, i.e. the newest loaded item came back within that page.
-     * When it did not, more items than a single page appeared in the meantime
-     * and keeping the loaded ones would leave a silent hole in the window - in
-     * that case the window falls back to the plain resetToLatest result.
+     * An empty or partial page is not a reason to drop anything: it only means
+     * the collection has little (or nothing) left on the remote side, while the
+     * items loaded earlier are still valid. They are dropped only when the
+     * fetched page is full and does not reach them, because then items in
+     * between are missing and keeping the loaded ones would leave a silent hole
+     * in the window - in that case the window falls back to the plain
+     * resetToLatest result.
      */
     public async resyncToLatest(retain: (item: ItemT) => boolean = () => true): Promise<void> {
         if (this.internalState.ongoing) {
@@ -309,15 +311,22 @@ export abstract class TraversableRemoteCollection<
     private mergeWithLoadedItems(fetched: ItemT[], retain: (item: ItemT) => boolean): ItemT[] {
         const loaded = this.items;
 
-        if (! loaded.length || ! fetched.length) {
+        if (! loaded.length) {
             return fetched;
         }
 
         const fetchedIds = new Set(fetched.map(item => this.getId(item)));
 
-        // Without the newest known item in the fetched page there is no way to
-        // tell how many items are missing in between, so nothing can be kept.
-        if (! fetchedIds.has(this.getId(loaded[loaded.length - 1]))) {
+        // Nothing can be missing between the loaded items and the page when the
+        // page is everything the remote side has (it is shorter than the
+        // requested limit), or when it reaches the newest loaded item. Only a
+        // full page not reaching it means there are items in between that have
+        // not been fetched - the loaded ones are then dropped rather than shown
+        // with a hole in front of them.
+        const isContinuous = fetched.length < this.internalState.fetchLimit
+            || fetchedIds.has(this.getId(loaded[loaded.length - 1]));
+
+        if (! isContinuous) {
             return fetched;
         }
 

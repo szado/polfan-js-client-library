@@ -314,6 +314,61 @@ describe('reconnect - time limited (MaxAge) room history', () => {
         expect(window.items.map((m: any) => m.id)).toEqual(['m3', 'm4', 'm5', 'm6']);
     });
 
+    test('keeps the loaded history when a short latest page does not reach it', async () => {
+        const store = [
+            message('m1', 5), message('m2', 4), message('m3', 3),
+            message('m4', 2), message('m5', 1),
+        ];
+        const { client, window } = await openWindowWithHistory(store);
+
+        // The server dropped everything the client had loaded and holds a single
+        // message written during the downtime. The loaded messages are still
+        // inside the room time window, so they must not disappear from the
+        // window just because they are not in the (partial) page.
+        store.length = 0;
+        store.push(message('m6', 0));
+
+        emitSession(client, [maxAgeRoom(store)]);
+        await flush();
+
+        expect(window.state).toBe(WindowState.LATEST);
+        expect(window.items.map((m: any) => m.id))
+            .toEqual(['m1', 'm2', 'm3', 'm4', 'm5', 'm6']);
+    });
+
+    test('keeps the loaded history when nothing was written during the downtime', async () => {
+        const store = [
+            message('m1', 5), message('m2', 4), message('m3', 3),
+            message('m4', 2), message('m5', 1),
+        ];
+        const { client, window } = await openWindowWithHistory(store);
+
+        // Empty latest page - the room is quiet and the server no longer keeps
+        // the messages the client has. Emptying the window here is exactly what
+        // must not happen.
+        store.length = 0;
+
+        emitSession(client, [maxAgeRoom(store)]);
+        await flush();
+
+        expect(window.state).toBe(WindowState.LATEST);
+        expect(window.items.map((m: any) => m.id)).toEqual(['m1', 'm2', 'm3', 'm4', 'm5']);
+    });
+
+    test('deduplicates the messages returned in both the page and the local history', async () => {
+        const store = [
+            message('m1', 5), message('m2', 4), message('m3', 3),
+            message('m4', 2), message('m5', 1),
+        ];
+        const { client, window } = await openWindowWithHistory(store);
+
+        // Same messages come back in the page (nothing new was written).
+        emitSession(client, [maxAgeRoom(store)]);
+        await flush();
+
+        expect(window.items.map((m: any) => m.id)).toEqual(['m1', 'm2', 'm3', 'm4', 'm5']);
+    });
+
     test('falls back to the latest page when the missed messages leave a gap', async () => {
         const store = [
             message('m1', 5), message('m2', 4), message('m3', 3),
