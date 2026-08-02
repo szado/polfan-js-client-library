@@ -45,6 +45,7 @@ export abstract class TraversableRemoteCollection<
         fetchLimit: number,
         lastFetchCount: number,
         oldestId: string | null,
+        gaps: string[],
     } = {
         current: WindowState.LIVE,
         ongoing: undefined,
@@ -53,6 +54,7 @@ export abstract class TraversableRemoteCollection<
         fetchLimit: 50,
         lastFetchCount: 0,
         oldestId: null,
+        gaps: [],
     };
 
     /**
@@ -103,6 +105,21 @@ export abstract class TraversableRemoteCollection<
         return [WindowState.LATEST, WindowState.LIVE].includes(this.state);
     }
 
+    /**
+     * IDs of the items the window could not stitch to the ones loaded before
+     * them: there is a gap in front of each of them, i.e. the item right above
+     * it in the window is not its real predecessor and an unknown number of
+     * items in between was never fetched.
+     *
+     * Such a gap appears when the collection is resynchronised after a
+     * reconnect (see resyncToLatest) and more items than a single page arrived
+     * while the connection was down. The markers are kept in the window order
+     * and disappear together with the items they point at.
+     */
+    public get gaps(): readonly string[] {
+        return [...this.internalState.gaps];
+    }
+
     public get hasOldest(): boolean {
         return this.state === WindowState.OLDEST
             || this.state === WindowState.LATEST && this.length < this.fetchLimit
@@ -128,7 +145,64 @@ export abstract class TraversableRemoteCollection<
         }
 
         this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+        this.internalState.gaps = []; // Whole content is replaced, old markers mean nothing.
         this.addItems(result, 'tail');
+        this.internalState.current = WindowState.LATEST;
+        this.emitChangeWithDiff(true, originalState);
+    }
+
+    /**
+     * Refresh the window with the latest page, keeping the already loaded items
+     * instead of replacing them.
+     *
+     * This is the reconnect-friendly variant of resetToLatest: the items missed
+     * while the connection was down are pulled with a single request and merged
+     * on top of the loaded ones (items returned in both are deduplicated), so
+     * the context the application already had does not disappear. The window
+     * size limit is the only thing that pushes the oldest items out.
+     *
+     * An empty or partial page is not a reason to drop anything: it only means
+     * the collection has little (or nothing) left on the remote side, while the
+     * items loaded earlier are still valid. When the page is full and does not
+     * reach the loaded items, an unknown number of items in between was never
+     * fetched - both parts are still kept, and the seam between them is recorded
+     * in `gaps` so the application can show where the history is not continuous.
+     */
+    public async resyncToLatest(): Promise<void> {
+        if (this.internalState.ongoing) {
+            return;
+        }
+
+        let result;
+        const originalState = this.state;
+        this.internalState.ongoing = WindowState.LATEST;
+
+        try {
+            result = await this.fetchLatestItems();
+            this.internalState.lastFetchCount = result.length;
+        } finally {
+            this.internalState.ongoing = undefined;
+        }
+
+        const loaded = this.items;
+        const fetchedIds = new Set(result.map(item => this.getId(item)));
+        // Items present in the page are taken from it - the server copy is the
+        // up-to-date one.
+        const retained = loaded.filter(item => ! fetchedIds.has(this.getId(item)));
+
+        // Nothing can be missing in between when there is nothing to stitch,
+        // when the page is everything the remote side has (it is shorter than
+        // the requested limit), or when the page reaches the newest loaded item.
+        const isContinuous = ! retained.length
+            || result.length < this.internalState.fetchLimit
+            || fetchedIds.has(this.getId(loaded[loaded.length - 1]));
+
+        if (! isContinuous) {
+            this.markGapBefore(this.getId(result[0]));
+        }
+
+        this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+        this.addItems([...retained, ...result], 'tail');
         this.internalState.current = WindowState.LATEST;
         this.emitChangeWithDiff(true, originalState);
     }
@@ -140,6 +214,7 @@ export abstract class TraversableRemoteCollection<
 
         let result;
         const originalState = this.state;
+        const firstItem = this.getAt(0);
         this.internalState.ongoing = WindowState.PAST;
 
         try {
@@ -154,7 +229,6 @@ export abstract class TraversableRemoteCollection<
         }
 
         if (! result.length) {
-            const firstItem = this.getAt(0);
             this.internalState.oldestId = firstItem ? this.getId(firstItem) : null;
 
             await this.refreshFetchedState();
@@ -166,6 +240,13 @@ export abstract class TraversableRemoteCollection<
 
             this.emitChangeWithDiff(false, originalState);
             return;
+        }
+
+        if (firstItem) {
+            // The fetch asked for the items right before the one that was first,
+            // so whatever came back is its real predecessor: a gap marked in
+            // front of it (it used to be the top of the window) is closed now.
+            this.clearGapBefore(this.getId(firstItem));
         }
 
         this.addItems(result, 'head');
@@ -217,6 +298,7 @@ export abstract class TraversableRemoteCollection<
 
             if (result) {
                 this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+                this.internalState.gaps = []; // Whole content is replaced, old markers mean nothing.
                 this.addItems(result, 'tail');
                 await this.refreshFetchedState();
             }
@@ -225,6 +307,16 @@ export abstract class TraversableRemoteCollection<
         }
 
         this.emitChangeWithDiff(!!result, originalState);
+    }
+
+    public delete(...ids: string[]): void {
+        super.delete(...ids);
+        this.dropDanglingGaps();
+    }
+
+    public deleteAll(): void {
+        super.deleteAll();
+        this.internalState.gaps = [];
     }
 
     protected abstract fetchLatestItems(): Promise<ItemT[]>;
@@ -255,12 +347,45 @@ export abstract class TraversableRemoteCollection<
         // Directly calls to prevent event emit.
         this._items.deleteAll();
         this._items.set(...(result.map(item => [this.getId(item), item] as [string, ItemT])));
+
+        this.dropDanglingGaps();
     }
 
     protected emitChangeWithDiff(itemChanged: boolean, originalState: WindowState): void {
         if (itemChanged || originalState !== this.state) {
             this.eventTarget.emit('change', { setItems: Array.from(this._items.items.keys()) })
         }
+    }
+
+    /**
+     * Record that the history is not continuous in front of the given item.
+     */
+    protected markGapBefore(id: string): void {
+        if (! this.internalState.gaps.includes(id)) {
+            this.internalState.gaps = [...this.internalState.gaps, id];
+        }
+    }
+
+    /**
+     * Forget the gap in front of the given item - the items before it are known
+     * to be its real predecessors now.
+     */
+    protected clearGapBefore(id: string): void {
+        if (this.internalState.gaps.includes(id)) {
+            this.internalState.gaps = this.internalState.gaps.filter(gapId => gapId !== id);
+        }
+    }
+
+    /**
+     * Forget the gap markers pointing at items that are no longer in the window
+     * (trimmed, deleted or replaced), so `gaps` never refers to nothing.
+     */
+    protected dropDanglingGaps(): void {
+        if (! this.internalState.gaps.length) {
+            return;
+        }
+
+        this.internalState.gaps = this.internalState.gaps.filter(id => this.has(id));
     }
 
     /**
@@ -345,6 +470,13 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<
             return;
         }
         return super.resetToLatest(force);
+    }
+
+    public async resyncToLatest(): Promise<void> {
+        if (this.internalState.traverseLock) {
+            return;
+        }
+        return super.resyncToLatest();
     }
 
     public async fetchNext(): Promise<void> {

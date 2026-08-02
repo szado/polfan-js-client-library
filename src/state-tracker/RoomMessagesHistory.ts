@@ -6,6 +6,7 @@ import {TopicHistoryWindow, WindowState} from "./TopicHistoryWindow";
 export class RoomMessagesHistory {
     private historyWindows = new IndexedCollection<string, TopicHistoryWindow>();
     private traverseLock: boolean = false;
+    private timeLimitedHistory: boolean = false;
 
     public constructor(
         private room: Room,
@@ -15,7 +16,7 @@ export class RoomMessagesHistory {
         this.tracker.client.on('NewTopic', ev => this.handleNewTopic(ev));
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
 
-        this.updateTraverseLock(this.room);
+        this.updateHistoryMode(this.room);
 
         if (this.room.defaultTopic) {
             this.createHistoryWindowForTopic(this.room.defaultTopic);
@@ -46,13 +47,23 @@ export class RoomMessagesHistory {
      *
      * The window bindings are preserved; only windows that the application had
      * actually pulled to the latest page (state === LATEST) are refreshed, with
-     * a single resetToLatest instead of a chain of catch-up requests. Windows
-     * that were never pulled (LIVE) or belong to an ephemeral room are left
-     * untouched so their in-memory context survives the reconnect.
+     * a single request instead of a chain of catch-up requests. Windows that
+     * were never pulled (LIVE) or belong to an ephemeral room are left untouched
+     * so their in-memory context survives the reconnect.
+     *
+     * How a refreshed window is rebuilt depends on the room history mode: rooms
+     * keeping the full history are simply reset to the latest page (it can
+     * always be traversed back on demand), while rooms with a time-limited
+     * history (MaxAge) load the messages missed during the downtime on top of
+     * the already loaded ones, with the messages returned in both deduplicated.
+     * The maxAge retention applies to what the server serves - so that users
+     * joining later do not see the older conversation - and never to what this
+     * client already has: messages the user witnessed stay in the window until
+     * they are pushed out by its own size limit.
      */
     public async resync(room: Room): Promise<void> {
         this.room = room;
-        this.updateTraverseLock(room);
+        this.updateHistoryMode(room);
 
         if (this.room.defaultTopic) {
             this.createHistoryWindowForTopic(this.room.defaultTopic);
@@ -68,7 +79,13 @@ export class RoomMessagesHistory {
                     continue;
                 }
 
-                if (window.state === WindowState.LATEST) {
+                if (window.state !== WindowState.LATEST) {
+                    continue;
+                }
+
+                if (this.timeLimitedHistory) {
+                    await window.resyncToLatest();
+                } else {
                     await window.resetToLatest(true);
                 }
             } catch (_e) {
@@ -83,7 +100,7 @@ export class RoomMessagesHistory {
         if (this.room.id === ev.room.id) {
             this.room = ev.room;
 
-            this.updateTraverseLock(ev.room);
+            this.updateHistoryMode(ev.room);
 
             if (ev.room.defaultTopic) {
                 this.createHistoryWindowForTopic(ev.room.defaultTopic);
@@ -134,7 +151,8 @@ export class RoomMessagesHistory {
         }
     }
 
-    private updateTraverseLock(room: Room): void {
-        this.traverseLock = room.history.mode === 'Ephemeral';
+    private updateHistoryMode(room: Room): void {
+        this.traverseLock = room.history?.mode === 'Ephemeral';
+        this.timeLimitedHistory = room.history?.mode === 'MaxAge';
     }
 }

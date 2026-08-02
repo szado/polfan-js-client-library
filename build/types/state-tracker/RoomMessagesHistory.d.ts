@@ -6,6 +6,7 @@ export declare class RoomMessagesHistory {
     private tracker;
     private historyWindows;
     private traverseLock;
+    private timeLimitedHistory;
     constructor(room: Room, tracker: ChatStateTracker);
     /**
      * Returns a history window object for the given topic ID, allowing you to view message history.
@@ -20,14 +21,24 @@ export declare class RoomMessagesHistory {
      *
      * The window bindings are preserved; only windows that the application had
      * actually pulled to the latest page (state === LATEST) are refreshed, with
-     * a single resetToLatest instead of a chain of catch-up requests. Windows
-     * that were never pulled (LIVE) or belong to an ephemeral room are left
-     * untouched so their in-memory context survives the reconnect.
+     * a single request instead of a chain of catch-up requests. Windows that
+     * were never pulled (LIVE) or belong to an ephemeral room are left untouched
+     * so their in-memory context survives the reconnect.
+     *
+     * How a refreshed window is rebuilt depends on the room history mode: rooms
+     * keeping the full history are simply reset to the latest page (it can
+     * always be traversed back on demand), while rooms with a time-limited
+     * history (MaxAge) load the messages missed during the downtime on top of
+     * the already loaded ones, with the messages returned in both deduplicated.
+     * The maxAge retention applies to what the server serves - so that users
+     * joining later do not see the older conversation - and never to what this
+     * client already has: messages the user witnessed stay in the window until
+     * they are pushed out by its own size limit.
      */
     resync(room: Room): Promise<void>;
     private handleRoomUpdated;
     private handleNewTopic;
     private handleTopicDeleted;
     private createHistoryWindowForTopic;
-    private updateTraverseLock;
+    private updateHistoryMode;
 }
