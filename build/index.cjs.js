@@ -1008,6 +1008,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               return _context3.a(2);
             case 1:
               originalState = this.state;
+              firstItem = this.getAt(0);
               this.internalState.ongoing = WindowState.PAST;
               _context3.p = 2;
               _context3.n = 3;
@@ -1030,7 +1031,6 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
                 _context3.n = 8;
                 break;
               }
-              firstItem = this.getAt(0);
               this.internalState.oldestId = firstItem ? this.getId(firstItem) : null;
               _context3.n = 7;
               return this.refreshFetchedState();
@@ -1042,6 +1042,12 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               this.emitChangeWithDiff(false, originalState);
               return _context3.a(2);
             case 8:
+              if (firstItem) {
+                // The fetch asked for the items right before the one that was first,
+                // so whatever came back is its real predecessor: a gap marked in
+                // front of it (it used to be the top of the window) is closed now.
+                this.clearGapBefore(this.getId(firstItem));
+              }
               this.addItems(result, 'head');
               _context3.n = 9;
               return this.refreshFetchedState();
@@ -1245,6 +1251,20 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     value: function markGapBefore(id) {
       if (!this.internalState.gaps.includes(id)) {
         this.internalState.gaps = [].concat(TopicHistoryWindow_toConsumableArray(this.internalState.gaps), [id]);
+      }
+    }
+
+    /**
+     * Forget the gap in front of the given item - the items before it are known
+     * to be its real predecessors now.
+     */
+  }, {
+    key: "clearGapBefore",
+    value: function clearGapBefore(id) {
+      if (this.internalState.gaps.includes(id)) {
+        this.internalState.gaps = this.internalState.gaps.filter(function (gapId) {
+          return gapId !== id;
+        });
       }
     }
 

@@ -214,6 +214,7 @@ export abstract class TraversableRemoteCollection<
 
         let result;
         const originalState = this.state;
+        const firstItem = this.getAt(0);
         this.internalState.ongoing = WindowState.PAST;
 
         try {
@@ -228,7 +229,6 @@ export abstract class TraversableRemoteCollection<
         }
 
         if (! result.length) {
-            const firstItem = this.getAt(0);
             this.internalState.oldestId = firstItem ? this.getId(firstItem) : null;
 
             await this.refreshFetchedState();
@@ -240,6 +240,13 @@ export abstract class TraversableRemoteCollection<
 
             this.emitChangeWithDiff(false, originalState);
             return;
+        }
+
+        if (firstItem) {
+            // The fetch asked for the items right before the one that was first,
+            // so whatever came back is its real predecessor: a gap marked in
+            // front of it (it used to be the top of the window) is closed now.
+            this.clearGapBefore(this.getId(firstItem));
         }
 
         this.addItems(result, 'head');
@@ -356,6 +363,16 @@ export abstract class TraversableRemoteCollection<
     protected markGapBefore(id: string): void {
         if (! this.internalState.gaps.includes(id)) {
             this.internalState.gaps = [...this.internalState.gaps, id];
+        }
+    }
+
+    /**
+     * Forget the gap in front of the given item - the items before it are known
+     * to be its real predecessors now.
+     */
+    protected clearGapBefore(id: string): void {
+        if (this.internalState.gaps.includes(id)) {
+            this.internalState.gaps = this.internalState.gaps.filter(gapId => gapId !== id);
         }
     }
 

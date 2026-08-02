@@ -271,6 +271,25 @@ test('history window - gap marker disappears with the item it points at', async 
     expect(window.gaps).toEqual([]);
 });
 
+test('history window - gap marker is closed by fetching what is before it', async () => {
+    const window = new TestableHistoryWindow();
+    window.limit = 10;
+    window.fetchLimit = 3;
+
+    await window.jumpTo('1'); // [0,1,2]
+    await window.resyncToLatest(); // [0,1,2] | [7,8,9]
+    window.delete(0, 1, 2); // the items above the gap are gone, 7 is the top one
+
+    expect(window.gaps).toEqual([7]);
+
+    // Whatever comes back was fetched as the direct predecessor of 7, so the
+    // history is continuous again.
+    await window.fetchPrevious(); // [4,5,6,7,8,9]
+
+    expect(window.items.map(item => item.id)).toEqual([4, 5, 6, 7, 8, 9]);
+    expect(window.gaps).toEqual([]);
+});
+
 test('history window - gap markers are cleared when the whole window is replaced', async () => {
     const window = new TestableHistoryWindow();
     window.limit = 10;

@@ -114,6 +114,11 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
      */
     protected markGapBefore(id: string): void;
     /**
+     * Forget the gap in front of the given item - the items before it are known
+     * to be its real predecessors now.
+     */
+    protected clearGapBefore(id: string): void;
+    /**
      * Forget the gap markers pointing at items that are no longer in the window
      * (trimmed, deleted or replaced), so `gaps` never refers to nothing.
      */
