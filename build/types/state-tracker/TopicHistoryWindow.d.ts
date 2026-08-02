@@ -65,6 +65,22 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
     get hasOldest(): boolean;
     abstract createMirror(): TraversableRemoteCollection<ItemT, EventMapT>;
     resetToLatest(force?: boolean): Promise<void>;
+    /**
+     * Refresh the window with the latest page, but keep the already loaded items
+     * accepted by the `retain` predicate instead of replacing everything.
+     *
+     * This is the reconnect-friendly variant of resetToLatest: the items missed
+     * while the connection was down are pulled with a single request and merged
+     * on top of the retained ones, so the context the application already had
+     * does not disappear.
+     *
+     * The retained items are kept only when the fetched page proves both parts
+     * are contiguous, i.e. the newest loaded item came back within that page.
+     * When it did not, more items than a single page appeared in the meantime
+     * and keeping the loaded ones would leave a silent hole in the window - in
+     * that case the window falls back to the plain resetToLatest result.
+     */
+    resyncToLatest(retain?: (item: ItemT) => boolean): Promise<void>;
     fetchPrevious(): Promise<void>;
     fetchNext(): Promise<void>;
     jumpTo(id: string): Promise<void>;
@@ -76,6 +92,11 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
     protected refreshFetchedState(): Promise<void>;
     protected addItems(newItems: ItemT[], to: 'head' | 'tail'): void;
     protected emitChangeWithDiff(itemChanged: boolean, originalState: WindowState): void;
+    /**
+     * Return the freshly fetched latest page preceded by the currently loaded
+     * items that are still worth keeping (see resyncToLatest).
+     */
+    private mergeWithLoadedItems;
     /**
      * Return array with messages trimmed using High/Low Watermark strategy.
      */
@@ -100,6 +121,7 @@ export declare class TopicHistoryWindow extends TraversableRemoteCollection<Mess
     get isTraverseLocked(): boolean;
     setTraverseLock(lock: boolean): Promise<void>;
     resetToLatest(force?: boolean): Promise<void>;
+    resyncToLatest(retain?: (item: Message) => boolean): Promise<void>;
     fetchNext(): Promise<void>;
     fetchPrevious(): Promise<void>;
     jumpTo(id: string): Promise<void>;

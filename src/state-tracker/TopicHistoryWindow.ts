@@ -133,6 +133,45 @@ export abstract class TraversableRemoteCollection<
         this.emitChangeWithDiff(true, originalState);
     }
 
+    /**
+     * Refresh the window with the latest page, but keep the already loaded items
+     * accepted by the `retain` predicate instead of replacing everything.
+     *
+     * This is the reconnect-friendly variant of resetToLatest: the items missed
+     * while the connection was down are pulled with a single request and merged
+     * on top of the retained ones, so the context the application already had
+     * does not disappear.
+     *
+     * The retained items are kept only when the fetched page proves both parts
+     * are contiguous, i.e. the newest loaded item came back within that page.
+     * When it did not, more items than a single page appeared in the meantime
+     * and keeping the loaded ones would leave a silent hole in the window - in
+     * that case the window falls back to the plain resetToLatest result.
+     */
+    public async resyncToLatest(retain: (item: ItemT) => boolean = () => true): Promise<void> {
+        if (this.internalState.ongoing) {
+            return;
+        }
+
+        let result;
+        const originalState = this.state;
+        this.internalState.ongoing = WindowState.LATEST;
+
+        try {
+            result = await this.fetchLatestItems();
+            this.internalState.lastFetchCount = result.length;
+        } finally {
+            this.internalState.ongoing = undefined;
+        }
+
+        const items = this.mergeWithLoadedItems(result, retain);
+
+        this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+        this.addItems(items, 'tail');
+        this.internalState.current = WindowState.LATEST;
+        this.emitChangeWithDiff(true, originalState);
+    }
+
     public async fetchPrevious(): Promise<void> {
         if (this.internalState.ongoing || this.hasOldest) {
             return;
@@ -264,6 +303,32 @@ export abstract class TraversableRemoteCollection<
     }
 
     /**
+     * Return the freshly fetched latest page preceded by the currently loaded
+     * items that are still worth keeping (see resyncToLatest).
+     */
+    private mergeWithLoadedItems(fetched: ItemT[], retain: (item: ItemT) => boolean): ItemT[] {
+        const loaded = this.items;
+
+        if (! loaded.length || ! fetched.length) {
+            return fetched;
+        }
+
+        const fetchedIds = new Set(fetched.map(item => this.getId(item)));
+
+        // Without the newest known item in the fetched page there is no way to
+        // tell how many items are missing in between, so nothing can be kept.
+        if (! fetchedIds.has(this.getId(loaded[loaded.length - 1]))) {
+            return fetched;
+        }
+
+        // Items present in the page are taken from it - the server copy is the
+        // up-to-date one.
+        const retained = loaded.filter(item => ! fetchedIds.has(this.getId(item)) && retain(item));
+
+        return [...retained, ...fetched];
+    }
+
+    /**
      * Return array with messages trimmed using High/Low Watermark strategy.
      */
     private trimItemsArrayToLimit(items: ItemT[], from: 'head' | 'tail'): ItemT[] {
@@ -345,6 +410,13 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<
             return;
         }
         return super.resetToLatest(force);
+    }
+
+    public async resyncToLatest(retain?: (item: Message) => boolean): Promise<void> {
+        if (this.internalState.traverseLock) {
+            return;
+        }
+        return super.resyncToLatest(retain);
     }
 
     public async fetchNext(): Promise<void> {

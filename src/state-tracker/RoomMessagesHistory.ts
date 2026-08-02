@@ -1,11 +1,12 @@
 import {ChatStateTracker} from "./ChatStateTracker";
-import {NewTopic, Room, RoomUpdated, Topic, TopicDeleted} from "../types/src";
+import {Message, NewTopic, Room, RoomUpdated, Topic, TopicDeleted} from "../types/src";
 import {IndexedCollection,} from "../IndexedObjectCollection";
 import {TopicHistoryWindow, WindowState} from "./TopicHistoryWindow";
 
 export class RoomMessagesHistory {
     private historyWindows = new IndexedCollection<string, TopicHistoryWindow>();
     private traverseLock: boolean = false;
+    private timeLimitedHistory: boolean = false;
 
     public constructor(
         private room: Room,
@@ -15,7 +16,7 @@ export class RoomMessagesHistory {
         this.tracker.client.on('NewTopic', ev => this.handleNewTopic(ev));
         this.tracker.client.on('TopicDeleted', ev => this.handleTopicDeleted(ev));
 
-        this.updateTraverseLock(this.room);
+        this.updateHistoryMode(this.room);
 
         if (this.room.defaultTopic) {
             this.createHistoryWindowForTopic(this.room.defaultTopic);
@@ -46,17 +47,28 @@ export class RoomMessagesHistory {
      *
      * The window bindings are preserved; only windows that the application had
      * actually pulled to the latest page (state === LATEST) are refreshed, with
-     * a single resetToLatest instead of a chain of catch-up requests. Windows
-     * that were never pulled (LIVE) or belong to an ephemeral room are left
-     * untouched so their in-memory context survives the reconnect.
+     * a single request instead of a chain of catch-up requests. Windows that
+     * were never pulled (LIVE) or belong to an ephemeral room are left untouched
+     * so their in-memory context survives the reconnect.
+     *
+     * How a refreshed window is rebuilt depends on the room history mode:
+     * rooms keeping the full history are simply reset to the latest page (it can
+     * always be traversed back), while rooms with a time-limited history
+     * (MaxAge) load the messages missed during the downtime on top of the
+     * already loaded ones that still fit in the room's time window - messages
+     * that aged out of it in the meantime are dropped.
      */
     public async resync(room: Room): Promise<void> {
         this.room = room;
-        this.updateTraverseLock(room);
+        this.updateHistoryMode(room);
 
         if (this.room.defaultTopic) {
             this.createHistoryWindowForTopic(this.room.defaultTopic);
         }
+
+        // Single point in time for every window of this room, so they all trim
+        // their history against the same boundary.
+        const fitsInTimeWindow = this.timeLimitedHistory ? this.createTimeWindowFilter() : null;
 
         for (const [, window] of Array.from(this.historyWindows.items)) {
             try {
@@ -68,7 +80,13 @@ export class RoomMessagesHistory {
                     continue;
                 }
 
-                if (window.state === WindowState.LATEST) {
+                if (window.state !== WindowState.LATEST) {
+                    continue;
+                }
+
+                if (fitsInTimeWindow) {
+                    await window.resyncToLatest(fitsInTimeWindow);
+                } else {
                     await window.resetToLatest(true);
                 }
             } catch (_e) {
@@ -83,7 +101,7 @@ export class RoomMessagesHistory {
         if (this.room.id === ev.room.id) {
             this.room = ev.room;
 
-            this.updateTraverseLock(ev.room);
+            this.updateHistoryMode(ev.room);
 
             if (ev.room.defaultTopic) {
                 this.createHistoryWindowForTopic(ev.room.defaultTopic);
@@ -134,7 +152,32 @@ export class RoomMessagesHistory {
         }
     }
 
-    private updateTraverseLock(room: Room): void {
-        this.traverseLock = room.history.mode === 'Ephemeral';
+    private updateHistoryMode(room: Room): void {
+        this.traverseLock = room.history?.mode === 'Ephemeral';
+        this.timeLimitedHistory = room.history?.mode === 'MaxAge';
+    }
+
+    /**
+     * Build a predicate telling whether an already loaded message still fits in
+     * the room's time-limited history window, so that messages the server has
+     * dropped in the meantime are not kept locally forever.
+     */
+    private createTimeWindowFilter(): (message: Message) => boolean {
+        const maxAge = this.room.history?.maxAge;
+
+        if (! maxAge || maxAge <= 0) {
+            // Length of the window is unknown - keep what is loaded and let the
+            // server decide what it still returns.
+            return () => true;
+        }
+
+        const oldestAllowedAt = Date.now() - maxAge * 1000; // maxAge is in seconds.
+
+        return (message: Message) => {
+            const createdAt = Date.parse(message.createdAt);
+            // Messages without a usable timestamp are kept - dropping them would
+            // lose history that the server may still have.
+            return isNaN(createdAt) || createdAt >= oldestAllowedAt;
+        };
     }
 }

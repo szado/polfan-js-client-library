@@ -901,79 +901,79 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       }
       return resetToLatest;
     }()
+    /**
+     * Refresh the window with the latest page, but keep the already loaded items
+     * accepted by the `retain` predicate instead of replacing everything.
+     *
+     * This is the reconnect-friendly variant of resetToLatest: the items missed
+     * while the connection was down are pulled with a single request and merged
+     * on top of the retained ones, so the context the application already had
+     * does not disappear.
+     *
+     * The retained items are kept only when the fetched page proves both parts
+     * are contiguous, i.e. the newest loaded item came back within that page.
+     * When it did not, more items than a single page appeared in the meantime
+     * and keeping the loaded ones would leave a silent hole in the window - in
+     * that case the window falls back to the plain resetToLatest result.
+     */
   }, {
-    key: "fetchPrevious",
-    value: function () {
-      var _fetchPrevious = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
-        var result, originalState, firstItem;
+    key: "resyncToLatest",
+    value: (function () {
+      var _resyncToLatest = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+        var retain,
+          result,
+          originalState,
+          items,
+          _args2 = arguments;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.p = _context2.n) {
             case 0:
-              if (!(this.internalState.ongoing || this.hasOldest)) {
+              retain = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : function () {
+                return true;
+              };
+              if (!this.internalState.ongoing) {
                 _context2.n = 1;
                 break;
               }
               return _context2.a(2);
             case 1:
               originalState = this.state;
-              this.internalState.ongoing = WindowState.PAST;
+              this.internalState.ongoing = WindowState.LATEST;
               _context2.p = 2;
               _context2.n = 3;
-              return this.fetchItemsBefore();
+              return this.fetchLatestItems();
             case 3:
               result = _context2.v;
-              this.internalState.lastFetchCount = result ? result.length : 0;
+              this.internalState.lastFetchCount = result.length;
             case 4:
               _context2.p = 4;
               this.internalState.ongoing = undefined;
               return _context2.f(4);
             case 5:
-              if (result) {
-                _context2.n = 6;
-                break;
-              }
-              return _context2.a(2, this.resetToLatest());
-            case 6:
-              if (result.length) {
-                _context2.n = 8;
-                break;
-              }
-              firstItem = this.getAt(0);
-              this.internalState.oldestId = firstItem ? this.getId(firstItem) : null;
-              _context2.n = 7;
-              return this.refreshFetchedState();
-            case 7:
-              // LATEST state has priority over OLDEST
-              if (this.internalState.current === WindowState.PAST) {
-                this.internalState.current = WindowState.OLDEST;
-              }
-              this.emitChangeWithDiff(false, originalState);
-              return _context2.a(2);
-            case 8:
-              this.addItems(result, 'head');
-              _context2.n = 9;
-              return this.refreshFetchedState();
-            case 9:
+              items = this.mergeWithLoadedItems(result, retain);
+              this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+              this.addItems(items, 'tail');
+              this.internalState.current = WindowState.LATEST;
               this.emitChangeWithDiff(true, originalState);
-            case 10:
+            case 6:
               return _context2.a(2);
           }
         }, _callee2, this, [[2,, 4, 5]]);
       }));
-      function fetchPrevious() {
-        return _fetchPrevious.apply(this, arguments);
+      function resyncToLatest() {
+        return _resyncToLatest.apply(this, arguments);
       }
-      return fetchPrevious;
-    }()
+      return resyncToLatest;
+    }())
   }, {
-    key: "fetchNext",
+    key: "fetchPrevious",
     value: function () {
-      var _fetchNext = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
-        var result, originalState;
+      var _fetchPrevious = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+        var result, originalState, firstItem;
         return _regenerator().w(function (_context3) {
           while (1) switch (_context3.p = _context3.n) {
             case 0:
-              if (!(this.internalState.ongoing || this.hasLatest)) {
+              if (!(this.internalState.ongoing || this.hasOldest)) {
                 _context3.n = 1;
                 break;
               }
@@ -983,7 +983,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               this.internalState.ongoing = WindowState.PAST;
               _context3.p = 2;
               _context3.n = 3;
-              return this.fetchItemsAfter();
+              return this.fetchItemsBefore();
             case 3:
               result = _context3.v;
               this.internalState.lastFetchCount = result ? result.length : 0;
@@ -993,43 +993,51 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               return _context3.f(4);
             case 5:
               if (result) {
-                _context3.n = 7;
+                _context3.n = 6;
                 break;
               }
-              _context3.n = 6;
-              return this.resetToLatest();
+              return _context3.a(2, this.resetToLatest());
             case 6:
-              return _context3.a(2);
-            case 7:
-              if (!result.length) {
-                _context3.n = 9;
+              if (result.length) {
+                _context3.n = 8;
                 break;
               }
-              this.addItems(result, 'tail');
-              _context3.n = 8;
+              firstItem = this.getAt(0);
+              this.internalState.oldestId = firstItem ? this.getId(firstItem) : null;
+              _context3.n = 7;
               return this.refreshFetchedState();
-            case 8:
-              this.emitChangeWithDiff(true, originalState);
+            case 7:
+              // LATEST state has priority over OLDEST
+              if (this.internalState.current === WindowState.PAST) {
+                this.internalState.current = WindowState.OLDEST;
+              }
+              this.emitChangeWithDiff(false, originalState);
               return _context3.a(2);
+            case 8:
+              this.addItems(result, 'head');
+              _context3.n = 9;
+              return this.refreshFetchedState();
             case 9:
+              this.emitChangeWithDiff(true, originalState);
+            case 10:
               return _context3.a(2);
           }
         }, _callee3, this, [[2,, 4, 5]]);
       }));
-      function fetchNext() {
-        return _fetchNext.apply(this, arguments);
+      function fetchPrevious() {
+        return _fetchPrevious.apply(this, arguments);
       }
-      return fetchNext;
+      return fetchPrevious;
     }()
   }, {
-    key: "jumpTo",
+    key: "fetchNext",
     value: function () {
-      var _jumpTo = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(id) {
+      var _fetchNext = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4() {
         var result, originalState;
         return _regenerator().w(function (_context4) {
           while (1) switch (_context4.p = _context4.n) {
             case 0:
-              if (!(this.internalState.ongoing || this.state !== WindowState.LIVE && this._items.has(id))) {
+              if (!(this.internalState.ongoing || this.hasLatest)) {
                 _context4.n = 1;
                 break;
               }
@@ -1039,28 +1047,84 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               this.internalState.ongoing = WindowState.PAST;
               _context4.p = 2;
               _context4.n = 3;
-              return this.fetchItemsAround(id);
+              return this.fetchItemsAfter();
             case 3:
               result = _context4.v;
               this.internalState.lastFetchCount = result ? result.length : 0;
-              if (!result) {
-                _context4.n = 4;
-                break;
-              }
-              this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
-              this.addItems(result, 'tail');
-              _context4.n = 4;
-              return this.refreshFetchedState();
             case 4:
               _context4.p = 4;
               this.internalState.ongoing = undefined;
               return _context4.f(4);
             case 5:
-              this.emitChangeWithDiff(!!result, originalState);
+              if (result) {
+                _context4.n = 7;
+                break;
+              }
+              _context4.n = 6;
+              return this.resetToLatest();
             case 6:
+              return _context4.a(2);
+            case 7:
+              if (!result.length) {
+                _context4.n = 9;
+                break;
+              }
+              this.addItems(result, 'tail');
+              _context4.n = 8;
+              return this.refreshFetchedState();
+            case 8:
+              this.emitChangeWithDiff(true, originalState);
+              return _context4.a(2);
+            case 9:
               return _context4.a(2);
           }
         }, _callee4, this, [[2,, 4, 5]]);
+      }));
+      function fetchNext() {
+        return _fetchNext.apply(this, arguments);
+      }
+      return fetchNext;
+    }()
+  }, {
+    key: "jumpTo",
+    value: function () {
+      var _jumpTo = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(id) {
+        var result, originalState;
+        return _regenerator().w(function (_context5) {
+          while (1) switch (_context5.p = _context5.n) {
+            case 0:
+              if (!(this.internalState.ongoing || this.state !== WindowState.LIVE && this._items.has(id))) {
+                _context5.n = 1;
+                break;
+              }
+              return _context5.a(2);
+            case 1:
+              originalState = this.state;
+              this.internalState.ongoing = WindowState.PAST;
+              _context5.p = 2;
+              _context5.n = 3;
+              return this.fetchItemsAround(id);
+            case 3:
+              result = _context5.v;
+              this.internalState.lastFetchCount = result ? result.length : 0;
+              if (!result) {
+                _context5.n = 4;
+                break;
+              }
+              this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+              this.addItems(result, 'tail');
+              _context5.n = 4;
+              return this.refreshFetchedState();
+            case 4:
+              _context5.p = 4;
+              this.internalState.ongoing = undefined;
+              return _context5.f(4);
+            case 5:
+              this.emitChangeWithDiff(!!result, originalState);
+            case 6:
+              return _context5.a(2);
+          }
+        }, _callee5, this, [[2,, 4, 5]]);
       }));
       function jumpTo(_x) {
         return _jumpTo.apply(this, arguments);
@@ -1070,29 +1134,29 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
   }, {
     key: "refreshFetchedState",
     value: function () {
-      var _refreshFetchedState = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5() {
+      var _refreshFetchedState = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
         var _t;
-        return _regenerator().w(function (_context5) {
-          while (1) switch (_context5.n) {
+        return _regenerator().w(function (_context6) {
+          while (1) switch (_context6.n) {
             case 0:
-              _context5.n = 1;
+              _context6.n = 1;
               return this.isLatestItemLoaded();
             case 1:
-              if (!_context5.v) {
-                _context5.n = 2;
+              if (!_context6.v) {
+                _context6.n = 2;
                 break;
               }
               _t = WindowState.LATEST;
-              _context5.n = 3;
+              _context6.n = 3;
               break;
             case 2:
               _t = WindowState.PAST;
             case 3:
               this.internalState.current = _t;
             case 4:
-              return _context5.a(2);
+              return _context6.a(2);
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
       function refreshFetchedState() {
         return _refreshFetchedState.apply(this, arguments);
@@ -1129,6 +1193,36 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     }
 
     /**
+     * Return the freshly fetched latest page preceded by the currently loaded
+     * items that are still worth keeping (see resyncToLatest).
+     */
+  }, {
+    key: "mergeWithLoadedItems",
+    value: function mergeWithLoadedItems(fetched, retain) {
+      var _this3 = this;
+      var loaded = this.items;
+      if (!loaded.length || !fetched.length) {
+        return fetched;
+      }
+      var fetchedIds = new Set(fetched.map(function (item) {
+        return _this3.getId(item);
+      }));
+
+      // Without the newest known item in the fetched page there is no way to
+      // tell how many items are missing in between, so nothing can be kept.
+      if (!fetchedIds.has(this.getId(loaded[loaded.length - 1]))) {
+        return fetched;
+      }
+
+      // Items present in the page are taken from it - the server copy is the
+      // up-to-date one.
+      var retained = loaded.filter(function (item) {
+        return !fetchedIds.has(_this3.getId(item)) && retain(item);
+      });
+      return [].concat(TopicHistoryWindow_toConsumableArray(retained), TopicHistoryWindow_toConsumableArray(fetched));
+    }
+
+    /**
      * Return array with messages trimmed using High/Low Watermark strategy.
      */
   }, {
@@ -1151,27 +1245,27 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
 }(ObservableIndexedObjectCollection);
 var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   function TopicHistoryWindow(roomId, topicId, tracker) {
-    var _this3;
+    var _this4;
     var bindEvents = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
     TopicHistoryWindow_classCallCheck(this, TopicHistoryWindow);
-    _this3 = TopicHistoryWindow_callSuper(this, TopicHistoryWindow, ['id']);
+    _this4 = TopicHistoryWindow_callSuper(this, TopicHistoryWindow, ['id']);
     /**
      * Reexported available window modes enum.
      */
-    TopicHistoryWindow_defineProperty(_this3, "WindowState", WindowState);
-    _this3.roomId = roomId;
-    _this3.topicId = topicId;
-    _this3.tracker = tracker;
-    _this3.internalState.traverseLock = false;
+    TopicHistoryWindow_defineProperty(_this4, "WindowState", WindowState);
+    _this4.roomId = roomId;
+    _this4.topicId = topicId;
+    _this4.tracker = tracker;
+    _this4.internalState.traverseLock = false;
     if (bindEvents) {
-      _this3.tracker.client.on('NewMessage', function (ev) {
-        return _this3.handleNewMessage(ev);
+      _this4.tracker.client.on('NewMessage', function (ev) {
+        return _this4.handleNewMessage(ev);
       });
-      _this3.tracker.client.on('MessagesRedacted', function (ev) {
-        return _this3.handleMessagesRedacted(ev);
+      _this4.tracker.client.on('MessagesRedacted', function (ev) {
+        return _this4.handleMessagesRedacted(ev);
       });
     }
-    return _this3;
+    return _this4;
   }
   TopicHistoryWindow_inherits(TopicHistoryWindow, _TraversableRemoteCol);
   return TopicHistoryWindow_createClass(TopicHistoryWindow, [{
@@ -1191,21 +1285,21 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "setTraverseLock",
     value: function () {
-      var _setTraverseLock = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(lock) {
-        return _regenerator().w(function (_context6) {
-          while (1) switch (_context6.n) {
+      var _setTraverseLock = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(lock) {
+        return _regenerator().w(function (_context7) {
+          while (1) switch (_context7.n) {
             case 0:
               this.internalState.traverseLock = lock;
               if (!(lock && this.state !== WindowState.LIVE && this.state !== WindowState.LATEST)) {
-                _context6.n = 1;
+                _context7.n = 1;
                 break;
               }
-              _context6.n = 1;
+              _context7.n = 1;
               return TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resetToLatest", this, 3)([]);
             case 1:
-              return _context6.a(2);
+              return _context7.a(2);
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
       function setTraverseLock(_x2) {
         return _setTraverseLock.apply(this, arguments);
@@ -1215,22 +1309,22 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "resetToLatest",
     value: function () {
-      var _resetToLatest2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
+      var _resetToLatest2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
         var force,
-          _args7 = arguments;
-        return _regenerator().w(function (_context7) {
-          while (1) switch (_context7.n) {
+          _args8 = arguments;
+        return _regenerator().w(function (_context8) {
+          while (1) switch (_context8.n) {
             case 0:
-              force = _args7.length > 0 && _args7[0] !== undefined ? _args7[0] : false;
+              force = _args8.length > 0 && _args8[0] !== undefined ? _args8[0] : false;
               if (!this.internalState.traverseLock) {
-                _context7.n = 1;
+                _context8.n = 1;
                 break;
               }
-              return _context7.a(2);
+              return _context8.a(2);
             case 1:
-              return _context7.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resetToLatest", this, 3)([force]));
+              return _context8.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resetToLatest", this, 3)([force]));
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
       function resetToLatest() {
         return _resetToLatest2.apply(this, arguments);
@@ -1238,31 +1332,9 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
       return resetToLatest;
     }()
   }, {
-    key: "fetchNext",
+    key: "resyncToLatest",
     value: function () {
-      var _fetchNext2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
-        return _regenerator().w(function (_context8) {
-          while (1) switch (_context8.n) {
-            case 0:
-              if (!this.internalState.traverseLock) {
-                _context8.n = 1;
-                break;
-              }
-              return _context8.a(2);
-            case 1:
-              return _context8.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "fetchNext", this, 3)([]));
-          }
-        }, _callee8, this);
-      }));
-      function fetchNext() {
-        return _fetchNext2.apply(this, arguments);
-      }
-      return fetchNext;
-    }()
-  }, {
-    key: "fetchPrevious",
-    value: function () {
-      var _fetchPrevious2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9() {
+      var _resyncToLatest2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(retain) {
         return _regenerator().w(function (_context9) {
           while (1) switch (_context9.n) {
             case 0:
@@ -1272,19 +1344,19 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
               }
               return _context9.a(2);
             case 1:
-              return _context9.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "fetchPrevious", this, 3)([]));
+              return _context9.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resyncToLatest", this, 3)([retain]));
           }
         }, _callee9, this);
       }));
-      function fetchPrevious() {
-        return _fetchPrevious2.apply(this, arguments);
+      function resyncToLatest(_x3) {
+        return _resyncToLatest2.apply(this, arguments);
       }
-      return fetchPrevious;
+      return resyncToLatest;
     }()
   }, {
-    key: "jumpTo",
+    key: "fetchNext",
     value: function () {
-      var _jumpTo2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0(id) {
+      var _fetchNext2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0() {
         return _regenerator().w(function (_context0) {
           while (1) switch (_context0.n) {
             case 0:
@@ -1294,11 +1366,55 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
               }
               return _context0.a(2);
             case 1:
-              return _context0.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "jumpTo", this, 3)([id]));
+              return _context0.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "fetchNext", this, 3)([]));
           }
         }, _callee0, this);
       }));
-      function jumpTo(_x3) {
+      function fetchNext() {
+        return _fetchNext2.apply(this, arguments);
+      }
+      return fetchNext;
+    }()
+  }, {
+    key: "fetchPrevious",
+    value: function () {
+      var _fetchPrevious2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1() {
+        return _regenerator().w(function (_context1) {
+          while (1) switch (_context1.n) {
+            case 0:
+              if (!this.internalState.traverseLock) {
+                _context1.n = 1;
+                break;
+              }
+              return _context1.a(2);
+            case 1:
+              return _context1.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "fetchPrevious", this, 3)([]));
+          }
+        }, _callee1, this);
+      }));
+      function fetchPrevious() {
+        return _fetchPrevious2.apply(this, arguments);
+      }
+      return fetchPrevious;
+    }()
+  }, {
+    key: "jumpTo",
+    value: function () {
+      var _jumpTo2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10(id) {
+        return _regenerator().w(function (_context10) {
+          while (1) switch (_context10.n) {
+            case 0:
+              if (!this.internalState.traverseLock) {
+                _context10.n = 1;
+                break;
+              }
+              return _context10.a(2);
+            case 1:
+              return _context10.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "jumpTo", this, 3)([id]));
+          }
+        }, _callee10, this);
+      }));
+      function jumpTo(_x4) {
         return _jumpTo2.apply(this, arguments);
       }
       return jumpTo;
@@ -1321,90 +1437,14 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "fetchItemsAfter",
     value: function () {
-      var _fetchItemsAfter = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1() {
+      var _fetchItemsAfter = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11() {
         var _this$getAt;
         var afterId, result;
-        return _regenerator().w(function (_context1) {
-          while (1) switch (_context1.n) {
-            case 0:
-              afterId = (_this$getAt = this.getAt(this.length - 1)) === null || _this$getAt === void 0 ? void 0 : _this$getAt.id;
-              if (afterId) {
-                _context1.n = 1;
-                break;
-              }
-              return _context1.a(2, null);
-            case 1:
-              _context1.n = 2;
-              return this.tracker.client.send('GetMessages', {
-                location: {
-                  roomId: this.roomId,
-                  topicId: this.topicId
-                },
-                after: afterId,
-                limit: this.internalState.fetchLimit
-              });
-            case 2:
-              result = _context1.v;
-              if (!result.error) {
-                _context1.n = 3;
-                break;
-              }
-              throw new Error("Cannot fetch messages: ".concat(result.error.message));
-            case 3:
-              return _context1.a(2, result.data.messages);
-          }
-        }, _callee1, this);
-      }));
-      function fetchItemsAfter() {
-        return _fetchItemsAfter.apply(this, arguments);
-      }
-      return fetchItemsAfter;
-    }()
-  }, {
-    key: "fetchItemsAround",
-    value: function () {
-      var _fetchItemsAround = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10(id) {
-        var result;
-        return _regenerator().w(function (_context10) {
-          while (1) switch (_context10.n) {
-            case 0:
-              _context10.n = 1;
-              return this.tracker.client.send('GetMessages', {
-                location: {
-                  roomId: this.roomId,
-                  topicId: this.topicId
-                },
-                around: id,
-                limit: this.internalState.fetchLimit
-              });
-            case 1:
-              result = _context10.v;
-              if (!result.error) {
-                _context10.n = 2;
-                break;
-              }
-              throw new Error("Cannot fetch messages: ".concat(result.error.message));
-            case 2:
-              return _context10.a(2, result.data.messages);
-          }
-        }, _callee10, this);
-      }));
-      function fetchItemsAround(_x4) {
-        return _fetchItemsAround.apply(this, arguments);
-      }
-      return fetchItemsAround;
-    }()
-  }, {
-    key: "fetchItemsBefore",
-    value: function () {
-      var _fetchItemsBefore = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11() {
-        var _this$getAt2;
-        var beforeId, result;
         return _regenerator().w(function (_context11) {
           while (1) switch (_context11.n) {
             case 0:
-              beforeId = (_this$getAt2 = this.getAt(0)) === null || _this$getAt2 === void 0 ? void 0 : _this$getAt2.id;
-              if (beforeId) {
+              afterId = (_this$getAt = this.getAt(this.length - 1)) === null || _this$getAt === void 0 ? void 0 : _this$getAt.id;
+              if (afterId) {
                 _context11.n = 1;
                 break;
               }
@@ -1416,7 +1456,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
                   roomId: this.roomId,
                   topicId: this.topicId
                 },
-                before: beforeId,
+                after: afterId,
                 limit: this.internalState.fetchLimit
               });
             case 2:
@@ -1431,15 +1471,15 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           }
         }, _callee11, this);
       }));
-      function fetchItemsBefore() {
-        return _fetchItemsBefore.apply(this, arguments);
+      function fetchItemsAfter() {
+        return _fetchItemsAfter.apply(this, arguments);
       }
-      return fetchItemsBefore;
+      return fetchItemsAfter;
     }()
   }, {
-    key: "fetchLatestItems",
+    key: "fetchItemsAround",
     value: function () {
-      var _fetchLatestItems = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12() {
+      var _fetchItemsAround = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12(id) {
         var result;
         return _regenerator().w(function (_context12) {
           while (1) switch (_context12.n) {
@@ -1450,6 +1490,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
                   roomId: this.roomId,
                   topicId: this.topicId
                 },
+                around: id,
                 limit: this.internalState.fetchLimit
               });
             case 1:
@@ -1464,6 +1505,81 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           }
         }, _callee12, this);
       }));
+      function fetchItemsAround(_x5) {
+        return _fetchItemsAround.apply(this, arguments);
+      }
+      return fetchItemsAround;
+    }()
+  }, {
+    key: "fetchItemsBefore",
+    value: function () {
+      var _fetchItemsBefore = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13() {
+        var _this$getAt2;
+        var beforeId, result;
+        return _regenerator().w(function (_context13) {
+          while (1) switch (_context13.n) {
+            case 0:
+              beforeId = (_this$getAt2 = this.getAt(0)) === null || _this$getAt2 === void 0 ? void 0 : _this$getAt2.id;
+              if (beforeId) {
+                _context13.n = 1;
+                break;
+              }
+              return _context13.a(2, null);
+            case 1:
+              _context13.n = 2;
+              return this.tracker.client.send('GetMessages', {
+                location: {
+                  roomId: this.roomId,
+                  topicId: this.topicId
+                },
+                before: beforeId,
+                limit: this.internalState.fetchLimit
+              });
+            case 2:
+              result = _context13.v;
+              if (!result.error) {
+                _context13.n = 3;
+                break;
+              }
+              throw new Error("Cannot fetch messages: ".concat(result.error.message));
+            case 3:
+              return _context13.a(2, result.data.messages);
+          }
+        }, _callee13, this);
+      }));
+      function fetchItemsBefore() {
+        return _fetchItemsBefore.apply(this, arguments);
+      }
+      return fetchItemsBefore;
+    }()
+  }, {
+    key: "fetchLatestItems",
+    value: function () {
+      var _fetchLatestItems = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14() {
+        var result;
+        return _regenerator().w(function (_context14) {
+          while (1) switch (_context14.n) {
+            case 0:
+              _context14.n = 1;
+              return this.tracker.client.send('GetMessages', {
+                location: {
+                  roomId: this.roomId,
+                  topicId: this.topicId
+                },
+                limit: this.internalState.fetchLimit
+              });
+            case 1:
+              result = _context14.v;
+              if (!result.error) {
+                _context14.n = 2;
+                break;
+              }
+              throw new Error("Cannot fetch messages: ".concat(result.error.message));
+            case 2:
+              return _context14.a(2, result.data.messages);
+          }
+        }, _callee14, this);
+      }));
       function fetchLatestItems() {
         return _fetchLatestItems.apply(this, arguments);
       }
@@ -1472,16 +1588,16 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "getTopic",
     value: function () {
-      var _getTopic = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13() {
-        return _regenerator().w(function (_context13) {
-          while (1) switch (_context13.n) {
+      var _getTopic = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee15() {
+        return _regenerator().w(function (_context15) {
+          while (1) switch (_context15.n) {
             case 0:
-              _context13.n = 1;
+              _context15.n = 1;
               return this.tracker.rooms.getTopics(this.roomId, [this.topicId]);
             case 1:
-              return _context13.a(2, _context13.v.get(this.topicId));
+              return _context15.a(2, _context15.v.get(this.topicId));
           }
-        }, _callee13, this);
+        }, _callee15, this);
       }));
       function getTopic() {
         return _getTopic.apply(this, arguments);
@@ -1491,43 +1607,43 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "getLatestMessageId",
     value: function () {
-      var _getLatestMessageId = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14() {
+      var _getLatestMessageId = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee16() {
         var _yield$this$getTopic;
         var _t2, _t3, _t4, _t5;
-        return _regenerator().w(function (_context14) {
-          while (1) switch (_context14.n) {
+        return _regenerator().w(function (_context16) {
+          while (1) switch (_context16.n) {
             case 0:
-              _context14.n = 1;
+              _context16.n = 1;
               return this.getTopic();
             case 1:
-              _t4 = _yield$this$getTopic = _context14.v;
+              _t4 = _yield$this$getTopic = _context16.v;
               _t3 = _t4 === null;
               if (_t3) {
-                _context14.n = 2;
+                _context16.n = 2;
                 break;
               }
               _t3 = _yield$this$getTopic === void 0;
             case 2:
               _t2 = _t3;
               if (_t2) {
-                _context14.n = 3;
+                _context16.n = 3;
                 break;
               }
               _t2 = (_yield$this$getTopic = _yield$this$getTopic.lastMessage) === null || _yield$this$getTopic === void 0;
             case 3:
               if (!_t2) {
-                _context14.n = 4;
+                _context16.n = 4;
                 break;
               }
               _t5 = void 0;
-              _context14.n = 5;
+              _context16.n = 5;
               break;
             case 4:
               _t5 = _yield$this$getTopic.id;
             case 5:
-              return _context14.a(2, _t5);
+              return _context16.a(2, _t5);
           }
-        }, _callee14, this);
+        }, _callee16, this);
       }));
       function getLatestMessageId() {
         return _getLatestMessageId.apply(this, arguments);
@@ -1537,18 +1653,18 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "isLatestItemLoaded",
     value: function () {
-      var _isLatestItemLoaded = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee15() {
+      var _isLatestItemLoaded = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee17() {
         var lastMessageId;
-        return _regenerator().w(function (_context15) {
-          while (1) switch (_context15.n) {
+        return _regenerator().w(function (_context17) {
+          while (1) switch (_context17.n) {
             case 0:
-              _context15.n = 1;
+              _context17.n = 1;
               return this.getLatestMessageId();
             case 1:
-              lastMessageId = _context15.v;
-              return _context15.a(2, lastMessageId ? this.has(lastMessageId) : true);
+              lastMessageId = _context17.v;
+              return _context17.a(2, lastMessageId ? this.has(lastMessageId) : true);
           }
-        }, _callee15, this);
+        }, _callee17, this);
       }));
       function isLatestItemLoaded() {
         return _isLatestItemLoaded.apply(this, arguments);
@@ -1558,10 +1674,10 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "handleNewMessage",
     value: function () {
-      var _handleNewMessage = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee16(ev) {
+      var _handleNewMessage = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee18(ev) {
         var originalState;
-        return _regenerator().w(function (_context16) {
-          while (1) switch (_context16.n) {
+        return _regenerator().w(function (_context18) {
+          while (1) switch (_context18.n) {
             case 0:
               if ([WindowState.LATEST, WindowState.LIVE].includes(this.state) && ev.message.location.roomId === this.roomId && ev.message.location.topicId === this.topicId) {
                 originalState = this.state;
@@ -1569,11 +1685,11 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
                 this.emitChangeWithDiff(true, originalState);
               }
             case 1:
-              return _context16.a(2);
+              return _context18.a(2);
           }
-        }, _callee16, this);
+        }, _callee18, this);
       }));
-      function handleNewMessage(_x5) {
+      function handleNewMessage(_x6) {
         return _handleNewMessage.apply(this, arguments);
       }
       return handleNewMessage;
@@ -1581,16 +1697,16 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "handleMessagesRedacted",
     value: function () {
-      var _handleMessagesRedacted = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee17(ev) {
+      var _handleMessagesRedacted = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee19(ev) {
         var refTopicIds;
-        return _regenerator().w(function (_context17) {
-          while (1) switch (_context17.n) {
+        return _regenerator().w(function (_context19) {
+          while (1) switch (_context19.n) {
             case 0:
               if (!(ev.location.topicId !== this.topicId || ev.location.roomId !== this.roomId)) {
-                _context17.n = 1;
+                _context19.n = 1;
                 break;
               }
-              return _context17.a(2);
+              return _context19.a(2);
             case 1:
               refTopicIds = this.items.filter(function (msg) {
                 return msg.topicRef && ev.ids.includes(msg.id);
@@ -1599,21 +1715,21 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
               });
               this["delete"].apply(this, TopicHistoryWindow_toConsumableArray(ev.ids));
               if (!(this.length === 0)) {
-                _context17.n = 2;
+                _context19.n = 2;
                 break;
               }
-              _context17.n = 2;
+              _context19.n = 2;
               return this.resetToLatest();
             case 2:
               if (refTopicIds.length > 0) {
                 this.eventTarget.emit('reftopicsdeleted', refTopicIds);
               }
             case 3:
-              return _context17.a(2);
+              return _context19.a(2);
           }
-        }, _callee17, this);
+        }, _callee19, this);
       }));
-      function handleMessagesRedacted(_x6) {
+      function handleMessagesRedacted(_x7) {
         return _handleMessagesRedacted.apply(this, arguments);
       }
       return handleMessagesRedacted;
@@ -1651,6 +1767,7 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
     RoomMessagesHistory_classCallCheck(this, RoomMessagesHistory);
     RoomMessagesHistory_defineProperty(this, "historyWindows", new IndexedCollection());
     RoomMessagesHistory_defineProperty(this, "traverseLock", false);
+    RoomMessagesHistory_defineProperty(this, "timeLimitedHistory", false);
     this.room = room;
     this.tracker = tracker;
     this.tracker.client.on('RoomUpdated', function (ev) {
@@ -1662,7 +1779,7 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
     this.tracker.client.on('TopicDeleted', function (ev) {
       return _this.handleTopicDeleted(ev);
     });
-    this.updateTraverseLock(this.room);
+    this.updateHistoryMode(this.room);
     if (this.room.defaultTopic) {
       this.createHistoryWindowForTopic(this.room.defaultTopic);
     }
@@ -1712,28 +1829,39 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
      *
      * The window bindings are preserved; only windows that the application had
      * actually pulled to the latest page (state === LATEST) are refreshed, with
-     * a single resetToLatest instead of a chain of catch-up requests. Windows
-     * that were never pulled (LIVE) or belong to an ephemeral room are left
-     * untouched so their in-memory context survives the reconnect.
+     * a single request instead of a chain of catch-up requests. Windows that
+     * were never pulled (LIVE) or belong to an ephemeral room are left untouched
+     * so their in-memory context survives the reconnect.
+     *
+     * How a refreshed window is rebuilt depends on the room history mode:
+     * rooms keeping the full history are simply reset to the latest page (it can
+     * always be traversed back), while rooms with a time-limited history
+     * (MaxAge) load the messages missed during the downtime on top of the
+     * already loaded ones that still fit in the room's time window - messages
+     * that aged out of it in the meantime are dropped.
      */
     )
   }, {
     key: "resync",
     value: (function () {
       var _resync = RoomMessagesHistory_asyncToGenerator(/*#__PURE__*/RoomMessagesHistory_regenerator().m(function _callee2(room) {
-        var _i, _Array$from, _Array$from$_i, window, _t;
+        var fitsInTimeWindow, _i, _Array$from, _Array$from$_i, window, _t;
         return RoomMessagesHistory_regenerator().w(function (_context2) {
           while (1) switch (_context2.p = _context2.n) {
             case 0:
               this.room = room;
-              this.updateTraverseLock(room);
+              this.updateHistoryMode(room);
               if (this.room.defaultTopic) {
                 this.createHistoryWindowForTopic(this.room.defaultTopic);
               }
+
+              // Single point in time for every window of this room, so they all trim
+              // their history against the same boundary.
+              fitsInTimeWindow = this.timeLimitedHistory ? this.createTimeWindowFilter() : null;
               _i = 0, _Array$from = Array.from(this.historyWindows.items);
             case 1:
               if (!(_i < _Array$from.length)) {
-                _context2.n = 8;
+                _context2.n = 11;
                 break;
               }
               _Array$from$_i = RoomMessagesHistory_slicedToArray(_Array$from[_i], 2), window = _Array$from$_i[1];
@@ -1745,28 +1873,40 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
                 _context2.n = 4;
                 break;
               }
-              return _context2.a(3, 7);
+              return _context2.a(3, 10);
             case 4:
-              if (!(window.state === WindowState.LATEST)) {
+              if (!(window.state !== WindowState.LATEST)) {
                 _context2.n = 5;
                 break;
               }
-              _context2.n = 5;
-              return window.resetToLatest(true);
+              return _context2.a(3, 10);
             case 5:
-              _context2.n = 7;
-              break;
+              if (!fitsInTimeWindow) {
+                _context2.n = 7;
+                break;
+              }
+              _context2.n = 6;
+              return window.resyncToLatest(fitsInTimeWindow);
             case 6:
-              _context2.p = 6;
-              _t = _context2.v;
+              _context2.n = 8;
+              break;
             case 7:
+              _context2.n = 8;
+              return window.resetToLatest(true);
+            case 8:
+              _context2.n = 10;
+              break;
+            case 9:
+              _context2.p = 9;
+              _t = _context2.v;
+            case 10:
               _i++;
               _context2.n = 1;
               break;
-            case 8:
+            case 11:
               return _context2.a(2);
           }
-        }, _callee2, this, [[2, 6]]);
+        }, _callee2, this, [[2, 9]]);
       }));
       function resync(_x2) {
         return _resync.apply(this, arguments);
@@ -1786,7 +1926,7 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
                 break;
               }
               this.room = ev.room;
-              this.updateTraverseLock(ev.room);
+              this.updateHistoryMode(ev.room);
               if (ev.room.defaultTopic) {
                 this.createHistoryWindowForTopic(ev.room.defaultTopic);
               }
@@ -1864,9 +2004,38 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
       }
     }
   }, {
-    key: "updateTraverseLock",
-    value: function updateTraverseLock(room) {
-      this.traverseLock = room.history.mode === 'Ephemeral';
+    key: "updateHistoryMode",
+    value: function updateHistoryMode(room) {
+      var _room$history, _room$history2;
+      this.traverseLock = ((_room$history = room.history) === null || _room$history === void 0 ? void 0 : _room$history.mode) === 'Ephemeral';
+      this.timeLimitedHistory = ((_room$history2 = room.history) === null || _room$history2 === void 0 ? void 0 : _room$history2.mode) === 'MaxAge';
+    }
+
+    /**
+     * Build a predicate telling whether an already loaded message still fits in
+     * the room's time-limited history window, so that messages the server has
+     * dropped in the meantime are not kept locally forever.
+     */
+  }, {
+    key: "createTimeWindowFilter",
+    value: function createTimeWindowFilter() {
+      var _this$room$history;
+      var maxAge = (_this$room$history = this.room.history) === null || _this$room$history === void 0 ? void 0 : _this$room$history.maxAge;
+      if (!maxAge || maxAge <= 0) {
+        // Length of the window is unknown - keep what is loaded and let the
+        // server decide what it still returns.
+        return function () {
+          return true;
+        };
+      }
+      var oldestAllowedAt = Date.now() - maxAge * 1000; // maxAge is in seconds.
+
+      return function (message) {
+        var createdAt = Date.parse(message.createdAt);
+        // Messages without a usable timestamp are kept - dropping them would
+        // lose history that the server may still have.
+        return isNaN(createdAt) || createdAt >= oldestAllowedAt;
+      };
     }
   }]);
 }();

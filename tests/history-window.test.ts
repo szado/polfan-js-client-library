@@ -209,6 +209,49 @@ test('history window - reset to latest', async () => {
     [7,8,9].forEach(id => expect(window.items.map(item => item.id)).toContain(id));
 });
 
+test('history window - resync to latest merges the new page into loaded items', async () => {
+    const window = new TestableHistoryWindow();
+    window.limit = 10;
+    window.fetchLimit = 3;
+
+    await window.resetToLatest(); // [7,8,9]
+    await window.fetchPrevious(); // [4,5,6,7,8,9]
+
+    await window.resyncToLatest(); // fetched [7,8,9] overlaps -> nothing is lost
+
+    expect(window.state).toEqual(WindowState.LATEST);
+    expect(window.items.map(item => item.id)).toEqual([4, 5, 6, 7, 8, 9]);
+});
+
+test('history window - resync to latest drops items rejected by the predicate', async () => {
+    const window = new TestableHistoryWindow();
+    window.limit = 10;
+    window.fetchLimit = 3;
+
+    await window.resetToLatest(); // [7,8,9]
+    await window.fetchPrevious(); // [4,5,6,7,8,9]
+
+    await window.resyncToLatest(item => item.id >= 5);
+
+    expect(window.state).toEqual(WindowState.LATEST);
+    expect(window.items.map(item => item.id)).toEqual([5, 6, 7, 8, 9]);
+});
+
+test('history window - resync to latest discards loaded items when a gap is possible', async () => {
+    const window = new TestableHistoryWindow();
+    window.limit = 10;
+    window.fetchLimit = 3;
+
+    await window.jumpTo('1'); // [0,1,2]
+
+    // The newest loaded item (2) is not in the fetched page ([7,8,9]), so items
+    // in between are missing and the window falls back to the latest page only.
+    await window.resyncToLatest();
+
+    expect(window.state).toEqual(WindowState.LATEST);
+    expect(window.items.map(item => item.id)).toEqual([7, 8, 9]);
+});
+
 test('history window - jump to message', async () => {
     const window = new TestableHistoryWindow();
     window.limit = 5;
