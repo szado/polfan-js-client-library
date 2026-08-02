@@ -34,6 +34,7 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
         fetchLimit: number;
         lastFetchCount: number;
         oldestId: string | null;
+        gaps: string[];
     };
     /**
      * Number of items to fetch per request.
@@ -62,6 +63,18 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
      */
     set retainRatio(value: number);
     get hasLatest(): boolean;
+    /**
+     * IDs of the items the window could not stitch to the ones loaded before
+     * them: there is a gap in front of each of them, i.e. the item right above
+     * it in the window is not its real predecessor and an unknown number of
+     * items in between was never fetched.
+     *
+     * Such a gap appears when the collection is resynchronised after a
+     * reconnect (see resyncToLatest) and more items than a single page arrived
+     * while the connection was down. The markers are kept in the window order
+     * and disappear together with the items they point at.
+     */
+    get gaps(): readonly string[];
     get hasOldest(): boolean;
     abstract createMirror(): TraversableRemoteCollection<ItemT, EventMapT>;
     resetToLatest(force?: boolean): Promise<void>;
@@ -77,16 +90,17 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
      *
      * An empty or partial page is not a reason to drop anything: it only means
      * the collection has little (or nothing) left on the remote side, while the
-     * items loaded earlier are still valid. They are dropped only when the
-     * fetched page is full and does not reach them, because then items in
-     * between are missing and keeping the loaded ones would leave a silent hole
-     * in the window - in that case the window falls back to the plain
-     * resetToLatest result.
+     * items loaded earlier are still valid. When the page is full and does not
+     * reach the loaded items, an unknown number of items in between was never
+     * fetched - both parts are still kept, and the seam between them is recorded
+     * in `gaps` so the application can show where the history is not continuous.
      */
     resyncToLatest(): Promise<void>;
     fetchPrevious(): Promise<void>;
     fetchNext(): Promise<void>;
     jumpTo(id: string): Promise<void>;
+    delete(...ids: string[]): void;
+    deleteAll(): void;
     protected abstract fetchLatestItems(): Promise<ItemT[]>;
     protected abstract fetchItemsBefore(): Promise<ItemT[] | null>;
     protected abstract fetchItemsAfter(): Promise<ItemT[] | null>;
@@ -96,10 +110,14 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
     protected addItems(newItems: ItemT[], to: 'head' | 'tail'): void;
     protected emitChangeWithDiff(itemChanged: boolean, originalState: WindowState): void;
     /**
-     * Return the freshly fetched latest page preceded by the currently loaded
-     * items that are still worth keeping (see resyncToLatest).
+     * Record that the history is not continuous in front of the given item.
      */
-    private mergeWithLoadedItems;
+    protected markGapBefore(id: string): void;
+    /**
+     * Forget the gap markers pointing at items that are no longer in the window
+     * (trimmed, deleted or replaced), so `gaps` never refers to nothing.
+     */
+    protected dropDanglingGaps(): void;
     /**
      * Return array with messages trimmed using High/Low Watermark strategy.
      */

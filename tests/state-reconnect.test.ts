@@ -388,7 +388,7 @@ describe('reconnect - time limited (MaxAge) room history', () => {
         expect(window.items.map((m: any) => m.id)).toEqual(['m1', 'm2', 'm3', 'm4', 'm5']);
     });
 
-    test('falls back to the latest page when the missed messages leave a gap', async () => {
+    test('marks the gap when the missed messages do not fit in a single page', async () => {
         const store = [
             message('m1', 5), message('m2', 4), message('m3', 3),
             message('m4', 2), message('m5', 1),
@@ -396,14 +396,31 @@ describe('reconnect - time limited (MaxAge) room history', () => {
         const { client, window } = await openWindowWithHistory(store);
 
         // More messages than a single page arrived, so the loaded ones cannot be
-        // stitched to the fetched page without a hole.
+        // stitched to the fetched page: m6 was never fetched.
         store.push(message('m6', 0), message('m7', 0), message('m8', 0), message('m9', 0));
 
         emitSession(client, [maxAgeRoom(store)]);
         await flush();
 
         expect(window.state).toBe(WindowState.LATEST);
-        expect(window.items.map((m: any) => m.id)).toEqual(['m7', 'm8', 'm9']);
+        expect(window.items.map((m: any) => m.id))
+            .toEqual(['m1', 'm2', 'm3', 'm4', 'm5', 'm7', 'm8', 'm9']);
+        expect(window.gaps).toEqual(['m7']);
+    });
+
+    test('does not mark a gap when the loaded history is continuous', async () => {
+        const store = [
+            message('m1', 5), message('m2', 4), message('m3', 3),
+            message('m4', 2), message('m5', 1),
+        ];
+        const { client, window } = await openWindowWithHistory(store);
+
+        store.push(message('m6', 0));
+
+        emitSession(client, [maxAgeRoom(store)]);
+        await flush();
+
+        expect(window.gaps).toEqual([]);
     });
 
     test('a full history room still resets to the latest page', async () => {

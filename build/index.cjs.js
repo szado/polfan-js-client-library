@@ -719,19 +719,16 @@ var PromiseRegistry = /*#__PURE__*/function () {
 function TopicHistoryWindow_typeof(o) { "@babel/helpers - typeof"; return TopicHistoryWindow_typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, TopicHistoryWindow_typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { TopicHistoryWindow_defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function TopicHistoryWindow_superPropGet(t, o, e, r) { var p = TopicHistoryWindow_get(TopicHistoryWindow_getPrototypeOf(1 & r ? t.prototype : t), o, e); return 2 & r && "function" == typeof p ? function (t) { return p.apply(e, t); } : p; }
-function TopicHistoryWindow_get() { return TopicHistoryWindow_get = "undefined" != typeof Reflect && Reflect.get ? Reflect.get.bind() : function (e, t, r) { var p = TopicHistoryWindow_superPropBase(e, t); if (p) { var n = Object.getOwnPropertyDescriptor(p, t); return n.get ? n.get.call(arguments.length < 3 ? e : r) : n.value; } }, TopicHistoryWindow_get.apply(null, arguments); }
-function TopicHistoryWindow_superPropBase(t, o) { for (; !{}.hasOwnProperty.call(t, o) && null !== (t = TopicHistoryWindow_getPrototypeOf(t));); return t; }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function TopicHistoryWindow_toConsumableArray(r) { return TopicHistoryWindow_arrayWithoutHoles(r) || TopicHistoryWindow_iterableToArray(r) || TopicHistoryWindow_unsupportedIterableToArray(r) || TopicHistoryWindow_nonIterableSpread(); }
 function TopicHistoryWindow_nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function TopicHistoryWindow_unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return TopicHistoryWindow_arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? TopicHistoryWindow_arrayLikeToArray(r, a) : void 0; } }
 function TopicHistoryWindow_iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
 function TopicHistoryWindow_arrayWithoutHoles(r) { if (Array.isArray(r)) return TopicHistoryWindow_arrayLikeToArray(r); }
 function TopicHistoryWindow_arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function TopicHistoryWindow_classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
 function TopicHistoryWindow_defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, TopicHistoryWindow_toPropertyKey(o.key), o); } }
 function TopicHistoryWindow_createClass(e, r, t) { return r && TopicHistoryWindow_defineProperties(e.prototype, r), t && TopicHistoryWindow_defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
@@ -739,6 +736,9 @@ function TopicHistoryWindow_callSuper(t, o, e) { return o = TopicHistoryWindow_g
 function TopicHistoryWindow_possibleConstructorReturn(t, e) { if (e && ("object" == TopicHistoryWindow_typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return TopicHistoryWindow_assertThisInitialized(t); }
 function TopicHistoryWindow_assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
 function TopicHistoryWindow_isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (TopicHistoryWindow_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function TopicHistoryWindow_superPropGet(t, o, e, r) { var p = TopicHistoryWindow_get(TopicHistoryWindow_getPrototypeOf(1 & r ? t.prototype : t), o, e); return 2 & r && "function" == typeof p ? function (t) { return p.apply(e, t); } : p; }
+function TopicHistoryWindow_get() { return TopicHistoryWindow_get = "undefined" != typeof Reflect && Reflect.get ? Reflect.get.bind() : function (e, t, r) { var p = TopicHistoryWindow_superPropBase(e, t); if (p) { var n = Object.getOwnPropertyDescriptor(p, t); return n.get ? n.get.call(arguments.length < 3 ? e : r) : n.value; } }, TopicHistoryWindow_get.apply(null, arguments); }
+function TopicHistoryWindow_superPropBase(t, o) { for (; !{}.hasOwnProperty.call(t, o) && null !== (t = TopicHistoryWindow_getPrototypeOf(t));); return t; }
 function TopicHistoryWindow_getPrototypeOf(t) { return TopicHistoryWindow_getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, TopicHistoryWindow_getPrototypeOf(t); }
 function TopicHistoryWindow_inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && TopicHistoryWindow_setPrototypeOf(t, e); }
 function TopicHistoryWindow_setPrototypeOf(t, e) { return TopicHistoryWindow_setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, TopicHistoryWindow_setPrototypeOf(t, e); }
@@ -782,7 +782,8 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       retainRatio: 1,
       fetchLimit: 50,
       lastFetchCount: 0,
-      oldestId: null
+      oldestId: null,
+      gaps: []
     });
     return _this;
   }
@@ -851,6 +852,23 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     get: function get() {
       return [WindowState.LATEST, WindowState.LIVE].includes(this.state);
     }
+
+    /**
+     * IDs of the items the window could not stitch to the ones loaded before
+     * them: there is a gap in front of each of them, i.e. the item right above
+     * it in the window is not its real predecessor and an unknown number of
+     * items in between was never fetched.
+     *
+     * Such a gap appears when the collection is resynchronised after a
+     * reconnect (see resyncToLatest) and more items than a single page arrived
+     * while the connection was down. The markers are kept in the window order
+     * and disappear together with the items they point at.
+     */
+  }, {
+    key: "gaps",
+    get: function get() {
+      return TopicHistoryWindow_toConsumableArray(this.internalState.gaps);
+    }
   }, {
     key: "hasOldest",
     get: function get() {
@@ -888,6 +906,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               return _context.f(4);
             case 5:
               this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+              this.internalState.gaps = []; // Whole content is replaced, old markers mean nothing.
               this.addItems(result, 'tail');
               this.internalState.current = WindowState.LATEST;
               this.emitChangeWithDiff(true, originalState);
@@ -913,17 +932,17 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
      *
      * An empty or partial page is not a reason to drop anything: it only means
      * the collection has little (or nothing) left on the remote side, while the
-     * items loaded earlier are still valid. They are dropped only when the
-     * fetched page is full and does not reach them, because then items in
-     * between are missing and keeping the loaded ones would leave a silent hole
-     * in the window - in that case the window falls back to the plain
-     * resetToLatest result.
+     * items loaded earlier are still valid. When the page is full and does not
+     * reach the loaded items, an unknown number of items in between was never
+     * fetched - both parts are still kept, and the seam between them is recorded
+     * in `gaps` so the application can show where the history is not continuous.
      */
   }, {
     key: "resyncToLatest",
     value: (function () {
       var _resyncToLatest = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
-        var result, originalState, items;
+        var _this2 = this;
+        var result, originalState, loaded, fetchedIds, retained, isContinuous;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.p = _context2.n) {
             case 0:
@@ -946,9 +965,22 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               this.internalState.ongoing = undefined;
               return _context2.f(4);
             case 5:
-              items = this.mergeWithLoadedItems(result);
+              loaded = this.items;
+              fetchedIds = new Set(result.map(function (item) {
+                return _this2.getId(item);
+              })); // Items present in the page are taken from it - the server copy is the
+              // up-to-date one.
+              retained = loaded.filter(function (item) {
+                return !fetchedIds.has(_this2.getId(item));
+              }); // Nothing can be missing in between when there is nothing to stitch,
+              // when the page is everything the remote side has (it is shorter than
+              // the requested limit), or when the page reaches the newest loaded item.
+              isContinuous = !retained.length || result.length < this.internalState.fetchLimit || fetchedIds.has(this.getId(loaded[loaded.length - 1]));
+              if (!isContinuous) {
+                this.markGapBefore(this.getId(result[0]));
+              }
               this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
-              this.addItems(items, 'tail');
+              this.addItems([].concat(TopicHistoryWindow_toConsumableArray(retained), TopicHistoryWindow_toConsumableArray(result)), 'tail');
               this.internalState.current = WindowState.LATEST;
               this.emitChangeWithDiff(true, originalState);
             case 6:
@@ -1108,6 +1140,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
                 break;
               }
               this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+              this.internalState.gaps = []; // Whole content is replaced, old markers mean nothing.
               this.addItems(result, 'tail');
               _context5.n = 4;
               return this.refreshFetchedState();
@@ -1127,6 +1160,21 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       }
       return jumpTo;
     }()
+  }, {
+    key: "delete",
+    value: function _delete() {
+      for (var _len2 = arguments.length, ids = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        ids[_key2] = arguments[_key2];
+      }
+      TopicHistoryWindow_superPropGet(TraversableRemoteCollection, "delete", this, 3)(ids);
+      this.dropDanglingGaps();
+    }
+  }, {
+    key: "deleteAll",
+    value: function deleteAll() {
+      TopicHistoryWindow_superPropGet(TraversableRemoteCollection, "deleteAll", this, 3)([]);
+      this.internalState.gaps = [];
+    }
   }, {
     key: "refreshFetchedState",
     value: function () {
@@ -1163,7 +1211,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     key: "addItems",
     value: function addItems(newItems, to) {
       var _this$_items,
-        _this2 = this;
+        _this3 = this;
       var result;
       if (to === 'head') {
         result = this.trimItemsArrayToLimit([].concat(TopicHistoryWindow_toConsumableArray(newItems), TopicHistoryWindow_toConsumableArray(this.items)), 'tail');
@@ -1175,8 +1223,9 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       // Directly calls to prevent event emit.
       this._items.deleteAll();
       (_this$_items = this._items).set.apply(_this$_items, TopicHistoryWindow_toConsumableArray(result.map(function (item) {
-        return [_this2.getId(item), item];
+        return [_this3.getId(item), item];
       })));
+      this.dropDanglingGaps();
     }
   }, {
     key: "emitChangeWithDiff",
@@ -1189,38 +1238,30 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     }
 
     /**
-     * Return the freshly fetched latest page preceded by the currently loaded
-     * items that are still worth keeping (see resyncToLatest).
+     * Record that the history is not continuous in front of the given item.
      */
   }, {
-    key: "mergeWithLoadedItems",
-    value: function mergeWithLoadedItems(fetched) {
-      var _this3 = this;
-      var loaded = this.items;
-      if (!loaded.length) {
-        return fetched;
+    key: "markGapBefore",
+    value: function markGapBefore(id) {
+      if (!this.internalState.gaps.includes(id)) {
+        this.internalState.gaps = [].concat(TopicHistoryWindow_toConsumableArray(this.internalState.gaps), [id]);
       }
-      var fetchedIds = new Set(fetched.map(function (item) {
-        return _this3.getId(item);
-      }));
+    }
 
-      // Nothing can be missing between the loaded items and the page when the
-      // page is everything the remote side has (it is shorter than the
-      // requested limit), or when it reaches the newest loaded item. Only a
-      // full page not reaching it means there are items in between that have
-      // not been fetched - the loaded ones are then dropped rather than shown
-      // with a hole in front of them.
-      var isContinuous = fetched.length < this.internalState.fetchLimit || fetchedIds.has(this.getId(loaded[loaded.length - 1]));
-      if (!isContinuous) {
-        return fetched;
+    /**
+     * Forget the gap markers pointing at items that are no longer in the window
+     * (trimmed, deleted or replaced), so `gaps` never refers to nothing.
+     */
+  }, {
+    key: "dropDanglingGaps",
+    value: function dropDanglingGaps() {
+      var _this4 = this;
+      if (!this.internalState.gaps.length) {
+        return;
       }
-
-      // Items present in the page are taken from it - the server copy is the
-      // up-to-date one.
-      var retained = loaded.filter(function (item) {
-        return !fetchedIds.has(_this3.getId(item));
+      this.internalState.gaps = this.internalState.gaps.filter(function (id) {
+        return _this4.has(id);
       });
-      return [].concat(TopicHistoryWindow_toConsumableArray(retained), TopicHistoryWindow_toConsumableArray(fetched));
     }
 
     /**
@@ -1246,27 +1287,27 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
 }(ObservableIndexedObjectCollection);
 var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   function TopicHistoryWindow(roomId, topicId, tracker) {
-    var _this4;
+    var _this5;
     var bindEvents = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
     TopicHistoryWindow_classCallCheck(this, TopicHistoryWindow);
-    _this4 = TopicHistoryWindow_callSuper(this, TopicHistoryWindow, ['id']);
+    _this5 = TopicHistoryWindow_callSuper(this, TopicHistoryWindow, ['id']);
     /**
      * Reexported available window modes enum.
      */
-    TopicHistoryWindow_defineProperty(_this4, "WindowState", WindowState);
-    _this4.roomId = roomId;
-    _this4.topicId = topicId;
-    _this4.tracker = tracker;
-    _this4.internalState.traverseLock = false;
+    TopicHistoryWindow_defineProperty(_this5, "WindowState", WindowState);
+    _this5.roomId = roomId;
+    _this5.topicId = topicId;
+    _this5.tracker = tracker;
+    _this5.internalState.traverseLock = false;
     if (bindEvents) {
-      _this4.tracker.client.on('NewMessage', function (ev) {
-        return _this4.handleNewMessage(ev);
+      _this5.tracker.client.on('NewMessage', function (ev) {
+        return _this5.handleNewMessage(ev);
       });
-      _this4.tracker.client.on('MessagesRedacted', function (ev) {
-        return _this4.handleMessagesRedacted(ev);
+      _this5.tracker.client.on('MessagesRedacted', function (ev) {
+        return _this5.handleMessagesRedacted(ev);
       });
     }
-    return _this4;
+    return _this5;
   }
   TopicHistoryWindow_inherits(TopicHistoryWindow, _TraversableRemoteCol);
   return TopicHistoryWindow_createClass(TopicHistoryWindow, [{

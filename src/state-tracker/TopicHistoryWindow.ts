@@ -45,6 +45,7 @@ export abstract class TraversableRemoteCollection<
         fetchLimit: number,
         lastFetchCount: number,
         oldestId: string | null,
+        gaps: string[],
     } = {
         current: WindowState.LIVE,
         ongoing: undefined,
@@ -53,6 +54,7 @@ export abstract class TraversableRemoteCollection<
         fetchLimit: 50,
         lastFetchCount: 0,
         oldestId: null,
+        gaps: [],
     };
 
     /**
@@ -103,6 +105,21 @@ export abstract class TraversableRemoteCollection<
         return [WindowState.LATEST, WindowState.LIVE].includes(this.state);
     }
 
+    /**
+     * IDs of the items the window could not stitch to the ones loaded before
+     * them: there is a gap in front of each of them, i.e. the item right above
+     * it in the window is not its real predecessor and an unknown number of
+     * items in between was never fetched.
+     *
+     * Such a gap appears when the collection is resynchronised after a
+     * reconnect (see resyncToLatest) and more items than a single page arrived
+     * while the connection was down. The markers are kept in the window order
+     * and disappear together with the items they point at.
+     */
+    public get gaps(): readonly string[] {
+        return [...this.internalState.gaps];
+    }
+
     public get hasOldest(): boolean {
         return this.state === WindowState.OLDEST
             || this.state === WindowState.LATEST && this.length < this.fetchLimit
@@ -128,6 +145,7 @@ export abstract class TraversableRemoteCollection<
         }
 
         this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+        this.internalState.gaps = []; // Whole content is replaced, old markers mean nothing.
         this.addItems(result, 'tail');
         this.internalState.current = WindowState.LATEST;
         this.emitChangeWithDiff(true, originalState);
@@ -145,11 +163,10 @@ export abstract class TraversableRemoteCollection<
      *
      * An empty or partial page is not a reason to drop anything: it only means
      * the collection has little (or nothing) left on the remote side, while the
-     * items loaded earlier are still valid. They are dropped only when the
-     * fetched page is full and does not reach them, because then items in
-     * between are missing and keeping the loaded ones would leave a silent hole
-     * in the window - in that case the window falls back to the plain
-     * resetToLatest result.
+     * items loaded earlier are still valid. When the page is full and does not
+     * reach the loaded items, an unknown number of items in between was never
+     * fetched - both parts are still kept, and the seam between them is recorded
+     * in `gaps` so the application can show where the history is not continuous.
      */
     public async resyncToLatest(): Promise<void> {
         if (this.internalState.ongoing) {
@@ -167,10 +184,25 @@ export abstract class TraversableRemoteCollection<
             this.internalState.ongoing = undefined;
         }
 
-        const items = this.mergeWithLoadedItems(result);
+        const loaded = this.items;
+        const fetchedIds = new Set(result.map(item => this.getId(item)));
+        // Items present in the page are taken from it - the server copy is the
+        // up-to-date one.
+        const retained = loaded.filter(item => ! fetchedIds.has(this.getId(item)));
+
+        // Nothing can be missing in between when there is nothing to stitch,
+        // when the page is everything the remote side has (it is shorter than
+        // the requested limit), or when the page reaches the newest loaded item.
+        const isContinuous = ! retained.length
+            || result.length < this.internalState.fetchLimit
+            || fetchedIds.has(this.getId(loaded[loaded.length - 1]));
+
+        if (! isContinuous) {
+            this.markGapBefore(this.getId(result[0]));
+        }
 
         this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
-        this.addItems(items, 'tail');
+        this.addItems([...retained, ...result], 'tail');
         this.internalState.current = WindowState.LATEST;
         this.emitChangeWithDiff(true, originalState);
     }
@@ -259,6 +291,7 @@ export abstract class TraversableRemoteCollection<
 
             if (result) {
                 this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
+                this.internalState.gaps = []; // Whole content is replaced, old markers mean nothing.
                 this.addItems(result, 'tail');
                 await this.refreshFetchedState();
             }
@@ -267,6 +300,16 @@ export abstract class TraversableRemoteCollection<
         }
 
         this.emitChangeWithDiff(!!result, originalState);
+    }
+
+    public delete(...ids: string[]): void {
+        super.delete(...ids);
+        this.dropDanglingGaps();
+    }
+
+    public deleteAll(): void {
+        super.deleteAll();
+        this.internalState.gaps = [];
     }
 
     protected abstract fetchLatestItems(): Promise<ItemT[]>;
@@ -297,6 +340,8 @@ export abstract class TraversableRemoteCollection<
         // Directly calls to prevent event emit.
         this._items.deleteAll();
         this._items.set(...(result.map(item => [this.getId(item), item] as [string, ItemT])));
+
+        this.dropDanglingGaps();
     }
 
     protected emitChangeWithDiff(itemChanged: boolean, originalState: WindowState): void {
@@ -306,36 +351,24 @@ export abstract class TraversableRemoteCollection<
     }
 
     /**
-     * Return the freshly fetched latest page preceded by the currently loaded
-     * items that are still worth keeping (see resyncToLatest).
+     * Record that the history is not continuous in front of the given item.
      */
-    private mergeWithLoadedItems(fetched: ItemT[]): ItemT[] {
-        const loaded = this.items;
+    protected markGapBefore(id: string): void {
+        if (! this.internalState.gaps.includes(id)) {
+            this.internalState.gaps = [...this.internalState.gaps, id];
+        }
+    }
 
-        if (! loaded.length) {
-            return fetched;
+    /**
+     * Forget the gap markers pointing at items that are no longer in the window
+     * (trimmed, deleted or replaced), so `gaps` never refers to nothing.
+     */
+    protected dropDanglingGaps(): void {
+        if (! this.internalState.gaps.length) {
+            return;
         }
 
-        const fetchedIds = new Set(fetched.map(item => this.getId(item)));
-
-        // Nothing can be missing between the loaded items and the page when the
-        // page is everything the remote side has (it is shorter than the
-        // requested limit), or when it reaches the newest loaded item. Only a
-        // full page not reaching it means there are items in between that have
-        // not been fetched - the loaded ones are then dropped rather than shown
-        // with a hole in front of them.
-        const isContinuous = fetched.length < this.internalState.fetchLimit
-            || fetchedIds.has(this.getId(loaded[loaded.length - 1]));
-
-        if (! isContinuous) {
-            return fetched;
-        }
-
-        // Items present in the page are taken from it - the server copy is the
-        // up-to-date one.
-        const retained = loaded.filter(item => ! fetchedIds.has(this.getId(item)));
-
-        return [...retained, ...fetched];
+        this.internalState.gaps = this.internalState.gaps.filter(id => this.has(id));
     }
 
     /**
