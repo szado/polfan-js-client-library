@@ -134,13 +134,14 @@ export abstract class TraversableRemoteCollection<
     }
 
     /**
-     * Refresh the window with the latest page, but keep the already loaded items
-     * accepted by the `retain` predicate instead of replacing everything.
+     * Refresh the window with the latest page, keeping the already loaded items
+     * instead of replacing them.
      *
      * This is the reconnect-friendly variant of resetToLatest: the items missed
      * while the connection was down are pulled with a single request and merged
-     * on top of the retained ones, so the context the application already had
-     * does not disappear.
+     * on top of the loaded ones (items returned in both are deduplicated), so
+     * the context the application already had does not disappear. The window
+     * size limit is the only thing that pushes the oldest items out.
      *
      * An empty or partial page is not a reason to drop anything: it only means
      * the collection has little (or nothing) left on the remote side, while the
@@ -150,7 +151,7 @@ export abstract class TraversableRemoteCollection<
      * in the window - in that case the window falls back to the plain
      * resetToLatest result.
      */
-    public async resyncToLatest(retain: (item: ItemT) => boolean = () => true): Promise<void> {
+    public async resyncToLatest(): Promise<void> {
         if (this.internalState.ongoing) {
             return;
         }
@@ -166,7 +167,7 @@ export abstract class TraversableRemoteCollection<
             this.internalState.ongoing = undefined;
         }
 
-        const items = this.mergeWithLoadedItems(result, retain);
+        const items = this.mergeWithLoadedItems(result);
 
         this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
         this.addItems(items, 'tail');
@@ -308,7 +309,7 @@ export abstract class TraversableRemoteCollection<
      * Return the freshly fetched latest page preceded by the currently loaded
      * items that are still worth keeping (see resyncToLatest).
      */
-    private mergeWithLoadedItems(fetched: ItemT[], retain: (item: ItemT) => boolean): ItemT[] {
+    private mergeWithLoadedItems(fetched: ItemT[]): ItemT[] {
         const loaded = this.items;
 
         if (! loaded.length) {
@@ -332,7 +333,7 @@ export abstract class TraversableRemoteCollection<
 
         // Items present in the page are taken from it - the server copy is the
         // up-to-date one.
-        const retained = loaded.filter(item => ! fetchedIds.has(this.getId(item)) && retain(item));
+        const retained = loaded.filter(item => ! fetchedIds.has(this.getId(item)));
 
         return [...retained, ...fetched];
     }
@@ -421,11 +422,11 @@ export class TopicHistoryWindow extends TraversableRemoteCollection<
         return super.resetToLatest(force);
     }
 
-    public async resyncToLatest(retain?: (item: Message) => boolean): Promise<void> {
+    public async resyncToLatest(): Promise<void> {
         if (this.internalState.traverseLock) {
             return;
         }
-        return super.resyncToLatest(retain);
+        return super.resyncToLatest();
     }
 
     public async fetchNext(): Promise<void> {

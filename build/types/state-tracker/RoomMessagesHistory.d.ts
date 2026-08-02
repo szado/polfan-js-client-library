@@ -25,15 +25,15 @@ export declare class RoomMessagesHistory {
      * were never pulled (LIVE) or belong to an ephemeral room are left untouched
      * so their in-memory context survives the reconnect.
      *
-     * How a refreshed window is rebuilt depends on the room history mode:
-     * rooms keeping the full history are simply reset to the latest page (it can
-     * always be traversed back), while rooms with a time-limited history
-     * (MaxAge) load the messages missed during the downtime on top of the
-     * already loaded ones that still fit in the room's time window - messages
-     * that aged out of it in the meantime are dropped. Messages returned in both
-     * are deduplicated, and a room where nothing (or almost nothing) was written
-     * during the downtime keeps its loaded history instead of being emptied by a
-     * short latest page.
+     * How a refreshed window is rebuilt depends on the room history mode: rooms
+     * keeping the full history are simply reset to the latest page (it can
+     * always be traversed back on demand), while rooms with a time-limited
+     * history (MaxAge) load the messages missed during the downtime on top of
+     * the already loaded ones, with the messages returned in both deduplicated.
+     * The maxAge retention applies to what the server serves - so that users
+     * joining later do not see the older conversation - and never to what this
+     * client already has: messages the user witnessed stay in the window until
+     * they are pushed out by its own size limit.
      */
     resync(room: Room): Promise<void>;
     private handleRoomUpdated;
@@ -41,10 +41,4 @@ export declare class RoomMessagesHistory {
     private handleTopicDeleted;
     private createHistoryWindowForTopic;
     private updateHistoryMode;
-    /**
-     * Build a predicate telling whether an already loaded message still fits in
-     * the room's time-limited history window, so that messages the server has
-     * dropped in the meantime are not kept locally forever.
-     */
-    private createTimeWindowFilter;
 }

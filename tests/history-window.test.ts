@@ -223,18 +223,19 @@ test('history window - resync to latest merges the new page into loaded items', 
     expect(window.items.map(item => item.id)).toEqual([4, 5, 6, 7, 8, 9]);
 });
 
-test('history window - resync to latest drops items rejected by the predicate', async () => {
+test('history window - resync to latest trims the merged items to the limit', async () => {
     const window = new TestableHistoryWindow();
-    window.limit = 10;
+    window.limit = 4;
     window.fetchLimit = 3;
 
     await window.resetToLatest(); // [7,8,9]
-    await window.fetchPrevious(); // [4,5,6,7,8,9]
+    await window.fetchPrevious(); // [4,5,6,7] (trimmed to the limit)
 
-    await window.resyncToLatest(item => item.id >= 5);
+    // [4,5,6,7] merged with the page [7,8,9] -> [4,5,6,7,8,9], trimmed again.
+    await window.resyncToLatest();
 
     expect(window.state).toEqual(WindowState.LATEST);
-    expect(window.items.map(item => item.id)).toEqual([5, 6, 7, 8, 9]);
+    expect(window.items.map(item => item.id)).toEqual([6, 7, 8, 9]);
 });
 
 test('history window - resync to latest discards loaded items when a gap is possible', async () => {

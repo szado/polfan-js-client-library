@@ -297,17 +297,36 @@ describe('reconnect - time limited (MaxAge) room history', () => {
             .toEqual(['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7']);
     });
 
-    test('drops the loaded messages that aged out of the time window', async () => {
+    test('keeps the loaded messages older than maxAge - retention is server side only', async () => {
         const store = [
             message('m1', 30), message('m2', 26), message('m3', 3),
             message('m4', 2), message('m5', 1),
         ];
         const { client, window } = await openWindowWithHistory(store);
 
+        // m1 and m2 are older than the room maxAge (24h), so the server stops
+        // serving them to keep them away from users who join later. The user who
+        // was there when they were written keeps them in their window.
+        store.splice(0, 2);
         store.push(message('m6', 0));
 
-        // maxAge is 24h: m1 and m2 are older than that and the server does not
-        // keep them anymore.
+        emitSession(client, [maxAgeRoom(store)]);
+        await flush();
+
+        expect(window.items.map((m: any) => m.id))
+            .toEqual(['m1', 'm2', 'm3', 'm4', 'm5', 'm6']);
+    });
+
+    test('drops the oldest loaded messages only when the window size limit is hit', async () => {
+        const store = [
+            message('m1', 5), message('m2', 4), message('m3', 3),
+            message('m4', 2), message('m5', 1),
+        ];
+        const { client, window } = await openWindowWithHistory(store);
+
+        window.limit = 4;
+        store.push(message('m6', 0));
+
         emitSession(client, [maxAgeRoom(store)]);
         await flush();
 

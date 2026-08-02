@@ -902,13 +902,14 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       return resetToLatest;
     }()
     /**
-     * Refresh the window with the latest page, but keep the already loaded items
-     * accepted by the `retain` predicate instead of replacing everything.
+     * Refresh the window with the latest page, keeping the already loaded items
+     * instead of replacing them.
      *
      * This is the reconnect-friendly variant of resetToLatest: the items missed
      * while the connection was down are pulled with a single request and merged
-     * on top of the retained ones, so the context the application already had
-     * does not disappear.
+     * on top of the loaded ones (items returned in both are deduplicated), so
+     * the context the application already had does not disappear. The window
+     * size limit is the only thing that pushes the oldest items out.
      *
      * An empty or partial page is not a reason to drop anything: it only means
      * the collection has little (or nothing) left on the remote side, while the
@@ -922,17 +923,10 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
     key: "resyncToLatest",
     value: (function () {
       var _resyncToLatest = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
-        var retain,
-          result,
-          originalState,
-          items,
-          _args2 = arguments;
+        var result, originalState, items;
         return _regenerator().w(function (_context2) {
           while (1) switch (_context2.p = _context2.n) {
             case 0:
-              retain = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : function () {
-                return true;
-              };
               if (!this.internalState.ongoing) {
                 _context2.n = 1;
                 break;
@@ -952,7 +946,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
               this.internalState.ongoing = undefined;
               return _context2.f(4);
             case 5:
-              items = this.mergeWithLoadedItems(result, retain);
+              items = this.mergeWithLoadedItems(result);
               this._items.deleteAll(); // Directly call deleteAll to prevent event emit.
               this.addItems(items, 'tail');
               this.internalState.current = WindowState.LATEST;
@@ -1200,7 +1194,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
      */
   }, {
     key: "mergeWithLoadedItems",
-    value: function mergeWithLoadedItems(fetched, retain) {
+    value: function mergeWithLoadedItems(fetched) {
       var _this3 = this;
       var loaded = this.items;
       if (!loaded.length) {
@@ -1224,7 +1218,7 @@ var TraversableRemoteCollection = /*#__PURE__*/function (_ObservableIndexedObj) 
       // Items present in the page are taken from it - the server copy is the
       // up-to-date one.
       var retained = loaded.filter(function (item) {
-        return !fetchedIds.has(_this3.getId(item)) && retain(item);
+        return !fetchedIds.has(_this3.getId(item));
       });
       return [].concat(TopicHistoryWindow_toConsumableArray(retained), TopicHistoryWindow_toConsumableArray(fetched));
     }
@@ -1341,7 +1335,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
   }, {
     key: "resyncToLatest",
     value: function () {
-      var _resyncToLatest2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(retain) {
+      var _resyncToLatest2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9() {
         return _regenerator().w(function (_context9) {
           while (1) switch (_context9.n) {
             case 0:
@@ -1351,11 +1345,11 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
               }
               return _context9.a(2);
             case 1:
-              return _context9.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resyncToLatest", this, 3)([retain]));
+              return _context9.a(2, TopicHistoryWindow_superPropGet(TopicHistoryWindow, "resyncToLatest", this, 3)([]));
           }
         }, _callee9, this);
       }));
-      function resyncToLatest(_x3) {
+      function resyncToLatest() {
         return _resyncToLatest2.apply(this, arguments);
       }
       return resyncToLatest;
@@ -1421,7 +1415,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           }
         }, _callee10, this);
       }));
-      function jumpTo(_x4) {
+      function jumpTo(_x3) {
         return _jumpTo2.apply(this, arguments);
       }
       return jumpTo;
@@ -1512,7 +1506,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           }
         }, _callee12, this);
       }));
-      function fetchItemsAround(_x5) {
+      function fetchItemsAround(_x4) {
         return _fetchItemsAround.apply(this, arguments);
       }
       return fetchItemsAround;
@@ -1696,7 +1690,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           }
         }, _callee18, this);
       }));
-      function handleNewMessage(_x6) {
+      function handleNewMessage(_x5) {
         return _handleNewMessage.apply(this, arguments);
       }
       return handleNewMessage;
@@ -1736,7 +1730,7 @@ var TopicHistoryWindow = /*#__PURE__*/function (_TraversableRemoteCol) {
           }
         }, _callee19, this);
       }));
-      function handleMessagesRedacted(_x7) {
+      function handleMessagesRedacted(_x6) {
         return _handleMessagesRedacted.apply(this, arguments);
       }
       return handleMessagesRedacted;
@@ -1840,22 +1834,22 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
      * were never pulled (LIVE) or belong to an ephemeral room are left untouched
      * so their in-memory context survives the reconnect.
      *
-     * How a refreshed window is rebuilt depends on the room history mode:
-     * rooms keeping the full history are simply reset to the latest page (it can
-     * always be traversed back), while rooms with a time-limited history
-     * (MaxAge) load the messages missed during the downtime on top of the
-     * already loaded ones that still fit in the room's time window - messages
-     * that aged out of it in the meantime are dropped. Messages returned in both
-     * are deduplicated, and a room where nothing (or almost nothing) was written
-     * during the downtime keeps its loaded history instead of being emptied by a
-     * short latest page.
+     * How a refreshed window is rebuilt depends on the room history mode: rooms
+     * keeping the full history are simply reset to the latest page (it can
+     * always be traversed back on demand), while rooms with a time-limited
+     * history (MaxAge) load the messages missed during the downtime on top of
+     * the already loaded ones, with the messages returned in both deduplicated.
+     * The maxAge retention applies to what the server serves - so that users
+     * joining later do not see the older conversation - and never to what this
+     * client already has: messages the user witnessed stay in the window until
+     * they are pushed out by its own size limit.
      */
     )
   }, {
     key: "resync",
     value: (function () {
       var _resync = RoomMessagesHistory_asyncToGenerator(/*#__PURE__*/RoomMessagesHistory_regenerator().m(function _callee2(room) {
-        var fitsInTimeWindow, _i, _Array$from, _Array$from$_i, window, _t;
+        var _i, _Array$from, _Array$from$_i, window, _t;
         return RoomMessagesHistory_regenerator().w(function (_context2) {
           while (1) switch (_context2.p = _context2.n) {
             case 0:
@@ -1864,10 +1858,6 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
               if (this.room.defaultTopic) {
                 this.createHistoryWindowForTopic(this.room.defaultTopic);
               }
-
-              // Single point in time for every window of this room, so they all trim
-              // their history against the same boundary.
-              fitsInTimeWindow = this.timeLimitedHistory ? this.createTimeWindowFilter() : null;
               _i = 0, _Array$from = Array.from(this.historyWindows.items);
             case 1:
               if (!(_i < _Array$from.length)) {
@@ -1891,12 +1881,12 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
               }
               return _context2.a(3, 10);
             case 5:
-              if (!fitsInTimeWindow) {
+              if (!this.timeLimitedHistory) {
                 _context2.n = 7;
                 break;
               }
               _context2.n = 6;
-              return window.resyncToLatest(fitsInTimeWindow);
+              return window.resyncToLatest();
             case 6:
               _context2.n = 8;
               break;
@@ -2019,33 +2009,6 @@ var RoomMessagesHistory = /*#__PURE__*/function () {
       var _room$history, _room$history2;
       this.traverseLock = ((_room$history = room.history) === null || _room$history === void 0 ? void 0 : _room$history.mode) === 'Ephemeral';
       this.timeLimitedHistory = ((_room$history2 = room.history) === null || _room$history2 === void 0 ? void 0 : _room$history2.mode) === 'MaxAge';
-    }
-
-    /**
-     * Build a predicate telling whether an already loaded message still fits in
-     * the room's time-limited history window, so that messages the server has
-     * dropped in the meantime are not kept locally forever.
-     */
-  }, {
-    key: "createTimeWindowFilter",
-    value: function createTimeWindowFilter() {
-      var _this$room$history;
-      var maxAge = (_this$room$history = this.room.history) === null || _this$room$history === void 0 ? void 0 : _this$room$history.maxAge;
-      if (!maxAge || maxAge <= 0) {
-        // Length of the window is unknown - keep what is loaded and let the
-        // server decide what it still returns.
-        return function () {
-          return true;
-        };
-      }
-      var oldestAllowedAt = Date.now() - maxAge * 1000; // maxAge is in seconds.
-
-      return function (message) {
-        var createdAt = Date.parse(message.createdAt);
-        // Messages without a usable timestamp are kept - dropping them would
-        // lose history that the server may still have.
-        return isNaN(createdAt) || createdAt >= oldestAllowedAt;
-      };
     }
   }]);
 }();

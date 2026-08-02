@@ -1,5 +1,5 @@
 import {ChatStateTracker} from "./ChatStateTracker";
-import {Message, NewTopic, Room, RoomUpdated, Topic, TopicDeleted} from "../types/src";
+import {NewTopic, Room, RoomUpdated, Topic, TopicDeleted} from "../types/src";
 import {IndexedCollection,} from "../IndexedObjectCollection";
 import {TopicHistoryWindow, WindowState} from "./TopicHistoryWindow";
 
@@ -51,15 +51,15 @@ export class RoomMessagesHistory {
      * were never pulled (LIVE) or belong to an ephemeral room are left untouched
      * so their in-memory context survives the reconnect.
      *
-     * How a refreshed window is rebuilt depends on the room history mode:
-     * rooms keeping the full history are simply reset to the latest page (it can
-     * always be traversed back), while rooms with a time-limited history
-     * (MaxAge) load the messages missed during the downtime on top of the
-     * already loaded ones that still fit in the room's time window - messages
-     * that aged out of it in the meantime are dropped. Messages returned in both
-     * are deduplicated, and a room where nothing (or almost nothing) was written
-     * during the downtime keeps its loaded history instead of being emptied by a
-     * short latest page.
+     * How a refreshed window is rebuilt depends on the room history mode: rooms
+     * keeping the full history are simply reset to the latest page (it can
+     * always be traversed back on demand), while rooms with a time-limited
+     * history (MaxAge) load the messages missed during the downtime on top of
+     * the already loaded ones, with the messages returned in both deduplicated.
+     * The maxAge retention applies to what the server serves - so that users
+     * joining later do not see the older conversation - and never to what this
+     * client already has: messages the user witnessed stay in the window until
+     * they are pushed out by its own size limit.
      */
     public async resync(room: Room): Promise<void> {
         this.room = room;
@@ -68,10 +68,6 @@ export class RoomMessagesHistory {
         if (this.room.defaultTopic) {
             this.createHistoryWindowForTopic(this.room.defaultTopic);
         }
-
-        // Single point in time for every window of this room, so they all trim
-        // their history against the same boundary.
-        const fitsInTimeWindow = this.timeLimitedHistory ? this.createTimeWindowFilter() : null;
 
         for (const [, window] of Array.from(this.historyWindows.items)) {
             try {
@@ -87,8 +83,8 @@ export class RoomMessagesHistory {
                     continue;
                 }
 
-                if (fitsInTimeWindow) {
-                    await window.resyncToLatest(fitsInTimeWindow);
+                if (this.timeLimitedHistory) {
+                    await window.resyncToLatest();
                 } else {
                     await window.resetToLatest(true);
                 }
@@ -158,29 +154,5 @@ export class RoomMessagesHistory {
     private updateHistoryMode(room: Room): void {
         this.traverseLock = room.history?.mode === 'Ephemeral';
         this.timeLimitedHistory = room.history?.mode === 'MaxAge';
-    }
-
-    /**
-     * Build a predicate telling whether an already loaded message still fits in
-     * the room's time-limited history window, so that messages the server has
-     * dropped in the meantime are not kept locally forever.
-     */
-    private createTimeWindowFilter(): (message: Message) => boolean {
-        const maxAge = this.room.history?.maxAge;
-
-        if (! maxAge || maxAge <= 0) {
-            // Length of the window is unknown - keep what is loaded and let the
-            // server decide what it still returns.
-            return () => true;
-        }
-
-        const oldestAllowedAt = Date.now() - maxAge * 1000; // maxAge is in seconds.
-
-        return (message: Message) => {
-            const createdAt = Date.parse(message.createdAt);
-            // Messages without a usable timestamp are kept - dropping them would
-            // lose history that the server may still have.
-            return isNaN(createdAt) || createdAt >= oldestAllowedAt;
-        };
     }
 }

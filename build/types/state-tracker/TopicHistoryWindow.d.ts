@@ -66,13 +66,14 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
     abstract createMirror(): TraversableRemoteCollection<ItemT, EventMapT>;
     resetToLatest(force?: boolean): Promise<void>;
     /**
-     * Refresh the window with the latest page, but keep the already loaded items
-     * accepted by the `retain` predicate instead of replacing everything.
+     * Refresh the window with the latest page, keeping the already loaded items
+     * instead of replacing them.
      *
      * This is the reconnect-friendly variant of resetToLatest: the items missed
      * while the connection was down are pulled with a single request and merged
-     * on top of the retained ones, so the context the application already had
-     * does not disappear.
+     * on top of the loaded ones (items returned in both are deduplicated), so
+     * the context the application already had does not disappear. The window
+     * size limit is the only thing that pushes the oldest items out.
      *
      * An empty or partial page is not a reason to drop anything: it only means
      * the collection has little (or nothing) left on the remote side, while the
@@ -82,7 +83,7 @@ export declare abstract class TraversableRemoteCollection<ItemT, EventMapT exten
      * in the window - in that case the window falls back to the plain
      * resetToLatest result.
      */
-    resyncToLatest(retain?: (item: ItemT) => boolean): Promise<void>;
+    resyncToLatest(): Promise<void>;
     fetchPrevious(): Promise<void>;
     fetchNext(): Promise<void>;
     jumpTo(id: string): Promise<void>;
@@ -123,7 +124,7 @@ export declare class TopicHistoryWindow extends TraversableRemoteCollection<Mess
     get isTraverseLocked(): boolean;
     setTraverseLock(lock: boolean): Promise<void>;
     resetToLatest(force?: boolean): Promise<void>;
-    resyncToLatest(retain?: (item: Message) => boolean): Promise<void>;
+    resyncToLatest(): Promise<void>;
     fetchNext(): Promise<void>;
     fetchPrevious(): Promise<void>;
     jumpTo(id: string): Promise<void>;
